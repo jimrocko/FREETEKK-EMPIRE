@@ -6,7 +6,23 @@ import { GOALS } from './goals';
 import { HOMES } from './homes';
 import { RECURRING_COSTS } from './recurring';
 import { REP_TIERS } from './reputation';
-import { ITEMS, GOALS_BY_ID } from './registry';
+import { ITEMS, GOALS_BY_ID, SHOPS_BY_ID, DISTRICTS_BY_ID, CITIES_BY_ID, SPOTS_BY_ID, POIS_BY_ID, JOBS_BY_ID, RUMORS_BY_ID } from './registry';
+import { CITIES, DISTRICTS } from './cities';
+import { SPOTS } from './spots';
+import { POIS } from './pois';
+import { SHOPS } from './shops';
+import { RUMORS } from './rumors';
+
+/** Ray casting point-in-polygon test. */
+export function pointInPolygon([x, y]: [number, number], poly: [number, number][]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
 
 /** Checks content for duplicate ids and dangling references. Returns a list of problems. */
 export function validateContent(): string[] {
@@ -24,6 +40,12 @@ export function validateContent(): string[] {
   checkUnique('goal', GOALS);
   checkUnique('home', HOMES);
   checkUnique('cost', RECURRING_COSTS);
+  checkUnique('city', CITIES);
+  checkUnique('district', DISTRICTS);
+  checkUnique('spot', SPOTS);
+  checkUnique('poi', POIS);
+  checkUnique('shop', SHOPS);
+  checkUnique('rumor', RUMORS);
 
   const checkCondition = (where: string, c: Condition) => {
     switch (c.t) {
@@ -39,6 +61,15 @@ export function validateContent(): string[] {
       case 'goal':
         if (!GOALS_BY_ID.has(c.id)) problems.push(`${where}: unbekanntes Ziel ${c.id}`);
         break;
+      case 'districtExplored':
+        if (!DISTRICTS_BY_ID.has(c.district)) problems.push(`${where}: unbekannter Bezirk ${c.district}`);
+        break;
+      case 'spotKnown':
+        if (!SPOTS_BY_ID.has(c.spot)) problems.push(`${where}: unbekannter Spot ${c.spot}`);
+        break;
+      case 'poiKnown':
+        if (!POIS_BY_ID.has(c.poi)) problems.push(`${where}: unbekannter Ort ${c.poi}`);
+        break;
       case 'all':
       case 'any':
         c.of.forEach((x) => checkCondition(where, x));
@@ -53,6 +84,9 @@ export function validateContent(): string[] {
   const checkEffect = (where: string, e: Effect) => {
     if (e.t === 'item' && !ITEMS.has(e.item)) problems.push(`${where}: unbekanntes Item ${e.item}`);
     if (e.t === 'xp' && !SKILLS.includes(e.skill)) problems.push(`${where}: unbekannte Fähigkeit ${e.skill}`);
+    if (e.t === 'revealSpot' && !SPOTS_BY_ID.has(e.spot)) problems.push(`${where}: unbekannter Spot ${e.spot}`);
+    if (e.t === 'revealPoi' && !POIS_BY_ID.has(e.poi)) problems.push(`${where}: unbekannter Ort ${e.poi}`);
+    if (e.t === 'rumor' && !RUMORS_BY_ID.has(e.rumor)) problems.push(`${where}: unbekanntes Gerücht ${e.rumor}`);
   };
 
   for (const it of ALL_ITEMS) {
@@ -60,8 +94,8 @@ export function validateContent(): string[] {
     if (it.quality < 0 || it.quality > 100) problems.push(`${it.id}: Qualität außerhalb 0–100`);
     if (!(it.volumeL > 0)) problems.push(`${it.id}: Volumen muss > 0 sein`);
     if (!(it.weightKg > 0)) problems.push(`${it.id}: Gewicht muss > 0 sein`);
-    if (!it.shop && !it.usedMarket) problems.push(`${it.id}: weder im Shop noch auf dem Gebrauchtmarkt`);
-    it.shopRequires?.forEach((c) => checkCondition(it.id, c));
+    if (!it.shops?.length && !it.usedMarket) problems.push(`${it.id}: weder im Shop noch auf dem Gebrauchtmarkt`);
+    for (const shop of it.shops ?? []) if (!SHOPS_BY_ID.has(shop)) problems.push(`${it.id}: unbekannter Laden ${shop}`);
   }
   for (const job of JOBS) {
     if (!(job.durationMin > 0) || !(job.pay > 0)) problems.push(`${job.id}: Dauer und Lohn müssen > 0 sein`);
@@ -73,6 +107,43 @@ export function validateContent(): string[] {
     g.requires?.forEach((c) => checkCondition(g.id, c));
     g.complete.forEach((c) => checkCondition(g.id, c));
     g.rewards.forEach((e) => checkEffect(g.id, e));
+  }
+  for (const d of DISTRICTS) {
+    if (!CITIES_BY_ID.has(d.cityId)) problems.push(`${d.id}: unbekannte Stadt ${d.cityId}`);
+    if (!pointInPolygon(d.label, d.shape)) problems.push(`${d.id}: Label liegt außerhalb des Bezirks`);
+    d.requires?.forEach((c) => checkCondition(d.id, c));
+  }
+  for (const c of CITIES) {
+    for (const id of Object.keys(c.startExplored)) if (!DISTRICTS_BY_ID.has(id)) problems.push(`${c.id}: unbekannter Bezirk ${id}`);
+  }
+  const placeCheck = (id: string, districtId: string, pos: [number, number]) => {
+    const district = DISTRICTS_BY_ID.get(districtId);
+    if (!district) problems.push(`${id}: unbekannter Bezirk ${districtId}`);
+    else if (!pointInPolygon(pos, district.shape)) problems.push(`${id}: Position liegt nicht im Bezirk ${districtId}`);
+  };
+  for (const sp of SPOTS) {
+    placeCheck(sp.id, sp.districtId, sp.pos);
+    for (const [k, v] of Object.entries(sp.stats)) if (v < 0) problems.push(`${sp.id}: ${k} negativ`);
+    if (sp.explore === undefined && !RUMORS.some((r) => r.target.id === sp.id)) problems.push(`${sp.id}: kann nie entdeckt werden`);
+  }
+  for (const p of POIS) {
+    placeCheck(p.id, p.districtId, p.pos);
+    if (p.shopId && !SHOPS_BY_ID.has(p.shopId)) problems.push(`${p.id}: unbekannter Laden ${p.shopId}`);
+    if (p.kind === 'storage' && !p.storage) problems.push(`${p.id}: Lager ohne Lagerdaten`);
+    if ((p.kind === 'hangout' || p.kind === 'club') && !p.visit) problems.push(`${p.id}: Treffpunkt ohne Besuch`);
+    if (p.explore === undefined && !RUMORS.some((r) => r.target.id === p.id)) problems.push(`${p.id}: kann nie entdeckt werden`);
+  }
+  for (const shop of SHOPS) {
+    if (shop.poiId && POIS_BY_ID.get(shop.poiId)?.shopId !== shop.id) problems.push(`${shop.id}: Ort ${shop.poiId} passt nicht`);
+  }
+  for (const r of RUMORS) {
+    const exists = r.target.kind === 'spot' ? SPOTS_BY_ID.has(r.target.id) : POIS_BY_ID.has(r.target.id);
+    if (!exists) problems.push(`${r.id}: Ziel ${r.target.id} existiert nicht`);
+    for (const src of r.sources) {
+      if ('job' in src && !JOBS_BY_ID.has(src.job)) problems.push(`${r.id}: unbekannter Job ${src.job}`);
+      if ('poi' in src && !POIS_BY_ID.get(src.poi)?.visit) problems.push(`${r.id}: Ort ${src.poi} unbekannt oder nicht besuchbar`);
+      if ('district' in src && !DISTRICTS_BY_ID.has(src.district)) problems.push(`${r.id}: unbekannter Bezirk ${src.district}`);
+    }
   }
   for (let i = 1; i < REP_TIERS.length; i++) {
     if (REP_TIERS[i].min <= REP_TIERS[i - 1].min) problems.push(`Reputation-Stufen nicht aufsteigend bei ${REP_TIERS[i].id}`);

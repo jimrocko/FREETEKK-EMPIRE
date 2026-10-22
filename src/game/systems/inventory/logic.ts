@@ -1,7 +1,7 @@
 import type { GameState } from '../../state';
 import type { Reason } from '../../core/types';
 import type { ItemDef, Rarity } from '../../content/types';
-import { ITEMS, homeDef, itemDef } from '../../content/registry';
+import { ITEMS, POIS_BY_ID, homeDef, itemDef } from '../../content/registry';
 import { fmtNumber, roundMoney } from '../../core/format';
 import type { ItemInstance } from './state';
 
@@ -54,7 +54,9 @@ export function usedVolume(s: GameState): number {
 }
 
 export function storageCapacity(s: GameState): number {
-  return homeDef(s.player.homeId).capacityL;
+  let cap = homeDef(s.player.homeId).capacityL;
+  for (const id of Object.keys(s.map.rentals)) cap += POIS_BY_ID.get(id)?.storage?.capacityL ?? 0;
+  return cap;
 }
 
 export function freeVolume(s: GameState): number {

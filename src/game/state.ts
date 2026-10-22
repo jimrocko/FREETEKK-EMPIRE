@@ -7,6 +7,8 @@ import { createInventoryState, type InventoryState } from './systems/inventory/s
 import { createActivitiesState, type ActivitiesState } from './systems/activities/state';
 import { createMarketState, type MarketState } from './systems/market/state';
 import { createGoalsState, type GoalsState } from './systems/goals/state';
+import { createMapState, type MapState } from './systems/map/state';
+import { createSpotsState, type SpotsState } from './systems/spots/state';
 import { addItem } from './systems/inventory/logic';
 import { refreshOffers } from './systems/market/logic';
 
@@ -39,6 +41,8 @@ export interface GameState {
   activities: ActivitiesState;
   market: MarketState;
   goals: GoalsState;
+  map: MapState;
+  spots: SpotsState;
   notifications: NotificationsState;
 }
 
@@ -61,6 +65,8 @@ export function createSlices(now: number, seed: number): GameState {
     activities: createActivitiesState(),
     market: createMarketState(),
     goals: createGoalsState(),
+    map: createMapState(now),
+    spots: createSpotsState(),
     notifications: createNotificationsState(),
   };
 }

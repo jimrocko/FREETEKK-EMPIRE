@@ -13,6 +13,7 @@ import { listingBonus } from '../../../game/systems/market/logic';
 import { ActionButton } from '../../components/ActionButton';
 import { Badge, Card, ConditionBar, EmptyState, Modal, PageHeader, ProgressBar, Tabs, type TabDef } from '../../components/ui';
 import { CATEGORY_LABELS } from '../market/MarketScreen';
+import { rentedStorage } from '../../../game/systems/map/logic';
 
 const STAT_LABELS: Record<string, string> = {
   kick: 'Kick',
@@ -118,6 +119,7 @@ export function InventoryScreen() {
   const items = ownedItems(s);
   const used = usedVolume(s);
   const cap = storageCapacity(s);
+  const rented = rentedStorage(s);
 
   const tabs = useMemo(() => {
     const counts = new Map<ItemCategory, number>();
@@ -140,16 +142,26 @@ export function InventoryScreen() {
       <Card>
         <div className="row row--between small" style={{ marginBottom: 8 }}>
           <span className="row">
-            <Archive size={15} className="tone-accent" /> Kleines WG-Zimmer
+            <Archive size={15} className="tone-accent" /> Stauraum
           </span>
           <span className="num dim">
             {fmtNumber(used, 1)} / {fmtNumber(cap)} L
           </span>
         </div>
         <ProgressBar value={used / cap} label="Stauraum" />
-        <p className="tiny faint" style={{ marginTop: 8 }}>
-          Platz ist knapp. Große Geräte brauchen später einen Proberaum oder ein Lager.
-        </p>
+        {rented.length > 0 ? (
+          <div className="row row--wrap" style={{ marginTop: 10 }}>
+            {rented.map((p) => (
+              <Badge key={p.id} tone="info">
+                +{fmtNumber(p.storage!.capacityL)} L {p.name}
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <p className="tiny faint" style={{ marginTop: 8 }}>
+            Platz ist knapp. Keller, Proberäume und Lager findest du beim Erkunden der Stadt.
+          </p>
+        )}
       </Card>
 
       {tabs.length > 2 && <Tabs value={filter} onChange={setFilter} tabs={tabs} />}

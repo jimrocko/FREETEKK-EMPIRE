@@ -3,10 +3,11 @@ import type { Effect } from './types';
 import { fmtMoney, fmtNumber } from './format';
 import { notify } from './notify';
 import { SKILL_DEFS } from '../content/skills';
-import { ITEMS } from '../content/registry';
+import { ITEMS, POIS_BY_ID, SPOTS_BY_ID } from '../content/registry';
 import { earn, spend } from '../systems/finance/logic';
 import { addRep, addXp, setFlag, unlock } from '../systems/progression/logic';
 import { addItem } from '../systems/inventory/logic';
+import { hearRumor, revealPoi, revealSpot } from '../systems/map/logic';
 
 export function applyEffect(d: GameState, e: Effect): void {
   switch (e.t) {
@@ -32,6 +33,15 @@ export function applyEffect(d: GameState, e: Effect): void {
     case 'notify':
       notify(d, { tone: e.tone, title: e.title, text: e.text });
       return;
+    case 'revealSpot':
+      revealSpot(d, e.spot, 'contact', e.intel ?? 35);
+      return;
+    case 'revealPoi':
+      revealPoi(d, e.poi, 'contact');
+      return;
+    case 'rumor':
+      hearRumor(d, e.rumor, 'contact');
+      return;
   }
 }
 
@@ -55,6 +65,12 @@ export function describeEffect(e: Effect): string {
     }
     case 'unlock':
       return `Freischaltung: ${e.label ?? e.id}`;
+    case 'revealSpot':
+      return `Spot: ${SPOTS_BY_ID.get(e.spot)?.name ?? e.spot}`;
+    case 'revealPoi':
+      return `Ort: ${POIS_BY_ID.get(e.poi)?.name ?? e.poi}`;
+    case 'rumor':
+      return 'ein Gerücht';
     case 'flag':
     case 'notify':
       return '';

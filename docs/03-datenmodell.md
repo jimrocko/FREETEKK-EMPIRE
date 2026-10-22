@@ -114,7 +114,7 @@ interface ItemDef {
   stats?: Record<string, number> // typ-spezifisch (z. B. powerW, acid, groove, capacityL)
   upkeepPerDay?: number          // Wartung/Versicherung
   tags?: string[]                // 'mobility','computer','studio', …
-  shop?: boolean                 // im Neuwaren-Shop erhältlich
+  shops?: string[]               // Läden, die es neu verkaufen (Online-Versand + Läden auf der Karte)
   usedMarket?: boolean           // kann auf dem Gebrauchtmarkt auftauchen
   description: string
 }
@@ -132,7 +132,7 @@ interface ItemInstance {
 interface InventoryState { items: Record<string, ItemInstance>; nextUid: number }
 ```
 
-- **Stauraum:** Zuhause hat begrenzte Liter (Zimmer: 400 L). Später: Proberaum, Lager, Fahrzeuge.
+- **Stauraum:** Zuhause hat begrenzte Liter (Zimmer: 400 L). Dazu gemietete Lagerplätze von der Karte (Kellerabteil, Proberaum, Container, Self-Storage); später Fahrzeuge.
 - **Wiederverkaufswert:** `price · 0.6 · (0.25 + 0.75 · condition/100) · Seltenheitsfaktor`. Sofort-Ankauf zahlt 70 % davon, ein Inserat 90–115 % nach Wartezeit. Es gibt keinen Weg, dasselbe Item mit Gewinn sofort zurückzuverkaufen.
 
 ### Aktivitäten
@@ -211,21 +211,26 @@ interface RngState { s: number }                                        // mulbe
 ## Phase 2 – Karte, Städte, Spots
 
 ```ts
-interface CityDef { id; name; description; districts: DistrictDef[]; priceLevel: number; sceneSize: number; requires?: Condition[] }
-interface DistrictDef { id; cityId; name; kind: 'center'|'industrial'|'residential'|'harbor'|'outskirts'|'forest'|'university'; shape: Polygon; exploreMin: number; danger: number }
+interface CityDef { id; name; description; sceneSize; priceLevel; startExplored: Record<districtId, number>; water: string[] }
+interface DistrictDef {
+  id; cityId; name; kind: 'center'|'industrial'|'residential'|'harbor'|'university'|'forest'|'commercial'
+  description; shape: [x, y][]; label: [x, y]      // SVG-Kartenkoordinaten (viewBox 0 0 360 300)
+  exploreMin; exploreGain; xp; requires?: Condition[]
+}
 
-interface PoiDef {               // Shops, Lieferanten, Clubs, Treffpunkte …
-  id; cityId; districtId; kind: 'shop'|'supplier'|'club'|'hangout'|'storage'|'rehearsal'|'workshop'|'rival-base'
-  name; description; discovery: { explore?: number; via?: 'connection'|'rumor'|'event' }
-  effects?: Effect[]             // z. B. Shop-Sortiment freischalten
+interface PoiDef {               // Orte: Läden, Treffpunkte, Clubs, Lagerplätze
+  id; cityId; districtId; kind: 'shop'|'hangout'|'club'|'storage'; name; description; pos: [x, y]
+  explore?: number               // ab diesem Erkundungsgrad auffindbar; sonst nur über Gerüchte/Kontakte
+  shopId?: string                // Laden
+  visit?: { label; durationMin; cost; xp; rep?; rumorChance }    // Treffpunkt/Club
+  storage?: { capacityL; perDay; deposit }                       // Lagerplatz
 }
 
 interface SpotDef {
-  id; cityId; districtId; name; type: 'industrial'|'warehouse'|'bunker'|'forest'|'field'|'quarry'|'lakeside'|'club'|'hall'|'tunnel'|'rooftop'
-  capacity; atmosphere; access; powerKw; noiseTolerance; weatherExposure; security; vehicleSpace; infrastructure
-  legality: 'legal'|'grey'|'illegal'; rentPerEvent; condition
-  discovery: { explore?: number; via?: ('connection'|'rumor'|'event'|'rival')[] }
-  description; tags
+  id; cityId; districtId; name; type; description; pos: [x, y]
+  stats: { capacity; atmosphere; access; powerKw; noise; weather; security; vehicles; infrastructure }
+  legality: 'legal'|'grey'|'illegal'; rent; condition; fame; features: string[]
+  explore?: number               // sonst nur über Gerüchte/Kontakte
 }
 
 interface SpotState {
@@ -234,12 +239,21 @@ interface SpotState {
   lastCheckedAt?: number         // Spot-Check vor Events
   fame: number                   // Bekanntheit; hoch = Risiko (Polizei, Rivalen)
   condition: number
-  status: 'open'|'closed'|'burned'|'taken'
-  takenBy?: string               // Rivalen-Crew
+  status: 'open'|'closed'; closedUntilDay?
+  mods: Partial<SpotStats>       // Veränderungen durch Welt-Ereignisse
   events: number                 // Events dort
 }
 
-interface MapState { cityId; districts: Record<id, { explored: number; visits: number }>; pois: Record<id, { known: boolean; at? }> }
+interface ShopDef { id; name; description; priceFactor; poiId? }        // Laden; ohne poiId immer verfügbar (Online)
+interface RumorDef { id; text; target: { kind: 'spot'|'poi'; id }; sources: ({ job } | { poi } | { district; minExplored })[]; followMin }
+
+interface MapState {
+  cityId
+  districts: Record<id, { explored: number; visits: number }>
+  pois: Record<id, { at; via }>                 // bekannte Orte
+  rumors: Record<id, { heardAt; via; resolved? }>
+  rentals: Record<poiId, { since }>              // gemietete Lagerplätze
+}
 ```
 
 ## Phase 3 – Personen, Connections, Nachrichten

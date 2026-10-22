@@ -1,8 +1,8 @@
 import type { GameState } from '../../state';
-import type { ItemDef, Rarity } from '../../content/types';
+import type { ItemDef, Rarity, ShopDef } from '../../content/types';
 import { ALL_ITEMS } from '../../content/items';
 import { SELLER_NAMES, SELLER_NOTES } from '../../content/market';
-import { checkAll } from '../../core/conditions';
+import { SHOPS } from '../../content/shops';
 import { fmtMoney } from '../../core/format';
 import { notify } from '../../core/notify';
 import { dayStartAt } from '../../core/time';
@@ -26,20 +26,46 @@ export function nicePrice(value: number): number {
   return Math.max(step, Math.round(value / step) * step);
 }
 
-export function shopCatalog(s: GameState): ItemDef[] {
-  return ALL_ITEMS.filter((def) => def.shop && checkAll(s, def.shopRequires));
+/** Shops the player can buy from (online + discovered stores). */
+export function knownShops(s: GameState): ShopDef[] {
+  return SHOPS.filter((shop) => !shop.poiId || s.map.pois[shop.poiId] !== undefined);
+}
+
+export function shopItems(shopId: string): ItemDef[] {
+  return ALL_ITEMS.filter((def) => def.shops?.includes(shopId));
+}
+
+export function shopPrice(shop: ShopDef, def: ItemDef): number {
+  return Math.round(def.price * shop.priceFactor);
+}
+
+/** Every item the player can currently buy new, with the best known price. */
+export function shopCatalog(s: GameState): { def: ItemDef; shop: ShopDef; price: number }[] {
+  const best = new Map<string, { def: ItemDef; shop: ShopDef; price: number }>();
+  for (const shop of knownShops(s)) {
+    for (const def of shopItems(shop.id)) {
+      const price = shopPrice(shop, def);
+      const cur = best.get(def.id);
+      if (!cur || price < cur.price) best.set(def.id, { def, shop, price });
+    }
+  }
+  return [...best.values()];
+}
+
+export function undiscoveredShopCount(s: GameState): number {
+  return SHOPS.length - knownShops(s).length;
 }
 
 export function usedPool(): ItemDef[] {
   return ALL_ITEMS.filter((def) => def.usedMarket);
 }
 
-export function generateOffer(d: GameState): MarketOffer | null {
+export function generateOffer(d: GameState, opts: { factor?: number } = {}): MarketOffer | null {
   const def = pickWeighted(d, usedPool(), (it) => RARITY_WEIGHT[it.rarity ?? 'common'] * tierWeight(it.tier));
   if (!def) return null;
   const condition = randInt(d, 30, 95);
   const roll = randRange(d, 0, 1);
-  const factor = roll < 0.15 ? randRange(d, 0.65, 0.8) : roll < 0.75 ? randRange(d, 0.85, 1.1) : randRange(d, 1.15, 1.4);
+  const factor = opts.factor ?? (roll < 0.15 ? randRange(d, 0.65, 0.8) : roll < 0.75 ? randRange(d, 0.85, 1.1) : randRange(d, 1.15, 1.4));
   const fair = resaleValue(def, condition);
   const price = nicePrice(fair * factor);
   const lifetimeDays = randInt(d, 1, 3);

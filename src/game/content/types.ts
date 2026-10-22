@@ -26,10 +26,8 @@ export interface ItemDef {
   stats?: Record<string, number>;
   upkeepPerDay?: number;
   tags?: string[];
-  /** Sold new in the shop. */
-  shop?: boolean;
-  /** Shop only lists it once these conditions hold. */
-  shopRequires?: Condition[];
+  /** Shops that sell it new (see content/shops.ts). */
+  shops?: string[];
   /** Can show up on the used market. */
   usedMarket?: boolean;
   description: string;
@@ -91,4 +89,116 @@ export interface HomeDef {
   name: string;
   capacityL: number;
   description: string;
+}
+
+export type SpotType =
+  | 'industrial'
+  | 'warehouse'
+  | 'bunker'
+  | 'forest'
+  | 'field'
+  | 'quarry'
+  | 'lakeside'
+  | 'hall'
+  | 'basement'
+  | 'rooftop'
+  | 'yard'
+  | 'tracks'
+  | 'canteen';
+
+export type Legality = 'legal' | 'grey' | 'illegal';
+
+/** Values 0–100 unless noted. */
+export interface SpotStats {
+  /** People. */
+  capacity: number;
+  atmosphere: number;
+  /** Zufahrt: how easy it is to get gear in and out. */
+  access: number;
+  /** Available power in kW (0 = none, generator needed). */
+  powerKw: number;
+  /** Lärmverträglichkeit: how loud you can get without trouble. */
+  noise: number;
+  /** Wetterabhängigkeit: 0 = indoor, 100 = fully exposed. */
+  weather: number;
+  /** Sicherheit: safety from police, owners and accidents. */
+  security: number;
+  /** Parking spaces for vehicles. */
+  vehicles: number;
+  /** Versorgung/Infrastruktur: toilets, water, light. */
+  infrastructure: number;
+}
+
+export interface SpotDef {
+  id: string;
+  cityId: string;
+  districtId: string;
+  name: string;
+  type: SpotType;
+  description: string;
+  /** Position on the city map. */
+  pos: [number, number];
+  stats: SpotStats;
+  legality: Legality;
+  /** Rent per event (0 for squats/outdoor). */
+  rent: number;
+  /** Starting condition 0–100. */
+  condition: number;
+  /** Starting fame 0–100. */
+  fame: number;
+  /** Technical features: 'roof', 'toilets', 'water', 'lighting', 'stage', 'loading', 'heating'. */
+  features: string[];
+  /** Explored % at which exploration can find it; omit for rumor/contact-only spots. */
+  explore?: number;
+}
+
+export type PoiKind = 'shop' | 'hangout' | 'club' | 'storage';
+
+export interface PoiVisit {
+  label: string;
+  durationMin: number;
+  cost: number;
+  xp: Partial<Record<SkillId, number>>;
+  rep?: number;
+  /** Chance per visit to hear one of the rumors linked to this place. */
+  rumorChance: number;
+}
+
+export interface PoiDef {
+  id: string;
+  cityId: string;
+  districtId: string;
+  kind: PoiKind;
+  name: string;
+  description: string;
+  pos: [number, number];
+  /** Explored % needed to find it; omit for rumor-only places. */
+  explore?: number;
+  /** Shop id this place sells under. */
+  shopId?: string;
+  visit?: PoiVisit;
+  storage?: { capacityL: number; perDay: number; deposit: number };
+}
+
+export interface ShopDef {
+  id: string;
+  name: string;
+  description: string;
+  priceFactor: number;
+  /** Place on the map that must be known (none = always available). */
+  poiId?: string;
+}
+
+export type RumorSource =
+  | { job: string }
+  | { poi: string }
+  | { district: string; minExplored: number };
+
+export interface RumorDef {
+  id: string;
+  text: string;
+  target: { kind: 'spot' | 'poi'; id: string };
+  sources: RumorSource[];
+  /** Real minutes to follow up. */
+  followMin: number;
 }

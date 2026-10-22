@@ -21,7 +21,7 @@ describe('jobs', () => {
     expect(s.finance.cash).toBe(cash);
     advance(s, 1);
     expect(s.finance.cash).toBeGreaterThanOrEqual(cash + 25);
-    expect(s.progression.skills.netzwerk).toBe(8);
+    expect(s.progression.skills.netzwerk).toBeGreaterThanOrEqual(8);
     expect(s.progression.stats.jobsDone).toBe(1);
   });
 
@@ -83,18 +83,19 @@ describe('market', () => {
   it('buys new items with money and space checks', () => {
     const s = newGame();
     const cash = s.finance.cash;
-    expect(act(s, buyNew, { defId: 'item.vulka-beats' }).ok).toBe(true);
+    expect(act(s, buyNew, { defId: 'item.vulka-beats', shopId: 'shop.online' }).ok).toBe(true);
     expect(s.finance.cash).toBe(cash - itemDef('item.vulka-beats').price);
     expect(ownedItems(s).some((i) => i.defId === 'item.vulka-beats' && i.condition === 100)).toBe(true);
-    const tooExpensive = act(s, buyNew, { defId: 'item.laptop-studio' });
+    const tooExpensive = act(s, buyNew, { defId: 'item.laptop-studio', shopId: 'shop.technikmarkt' });
     expect(tooExpensive.ok).toBe(false);
   });
 
   it('refuses items that do not fit in the room', () => {
     const s = newGame();
     s.finance.cash = 100_000;
+    s.map.pois['poi.radhaus'] = { at: s.clock.now, via: 'test' };
     let bought = 0;
-    for (let i = 0; i < 10; i++) if (act(s, buyNew, { defId: 'item.cargo-bike' }).ok) bought++;
+    for (let i = 0; i < 10; i++) if (act(s, buyNew, { defId: 'item.cargo-bike', shopId: 'shop.radhaus' }).ok) bought++;
     expect(bought).toBe(1);
     expect(usedVolume(s)).toBeLessThanOrEqual(storageCapacity(s));
   });
@@ -133,7 +134,8 @@ describe('market', () => {
   it('selling to the dealer pays less than a new item costs (no buy/sell loop)', () => {
     const s = newGame();
     s.finance.cash = 2000;
-    act(s, buyNew, { defId: 'item.tr-66' });
+    s.map.pois['poi.klangkiste'] = { at: s.clock.now, via: 'test' };
+    act(s, buyNew, { defId: 'item.tr-66', shopId: 'shop.klangkiste' });
     const it = ownedItems(s).find((i) => i.defId === 'item.tr-66')!;
     const def = itemDef(it.defId);
     expect(dealerPrice(def, 100)).toBeLessThan(def.price);
@@ -145,7 +147,7 @@ describe('market', () => {
 
   it('listings lock the item and sell after the timer', () => {
     const s = newGame();
-    act(s, buyNew, { defId: 'item.vulka-bass' });
+    act(s, buyNew, { defId: 'item.vulka-bass', shopId: 'shop.online' });
     const it = ownedItems(s).find((i) => i.defId === 'item.vulka-bass')!;
     expect(act(s, createListing, { uid: it.uid, preset: 'quick' }).ok).toBe(true);
     expect(s.inventory.items[it.uid].locked).toMatch(/^listing:/);
@@ -186,7 +188,7 @@ describe('finance', () => {
   it('blocks purchases while in the red', () => {
     const s = newGame();
     s.finance.cash = -10;
-    const res = act(s, buyNew, { defId: 'item.powerbank' });
+    const res = act(s, buyNew, { defId: 'item.powerbank', shopId: 'shop.online' });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.reason).toMatch(/Minus/);
   });

@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { BadgePercent, Clock, ShoppingBag, Store, Tag, User } from 'lucide-react';
+import { BadgePercent, Clock, MapPin, ShoppingBag, Store, Tag, User } from 'lucide-react';
 import { useGameState } from '../../../app/store';
 import type { GameState } from '../../../game/state';
 import { fmtDuration, fmtMoney, fmtPercent } from '../../../game/core/format';
 import { itemDef } from '../../../game/content/registry';
 import type { ItemCategory } from '../../../game/content/types';
-import { haggleChance, offerTimeLeft, shopCatalog } from '../../../game/systems/market/logic';
+import { haggleChance, knownShops, offerTimeLeft, shopCatalog, shopItems, shopPrice, undiscoveredShopCount } from '../../../game/systems/market/logic';
 import type { MarketOffer } from '../../../game/systems/market/state';
 import { buyNew, buyUsed, haggle } from '../../../game/systems/market/actions';
 import { RARITY_LABELS, resaleValue } from '../../../game/systems/inventory/logic';
@@ -14,7 +14,7 @@ import { skillLevel } from '../../../game/systems/progression/logic';
 import { ActionButton } from '../../components/ActionButton';
 import { ActivityRow } from '../../components/ActivityList';
 import { Badge, Button, Card, ConditionBar, EmptyState, PageHeader, Tabs } from '../../components/ui';
-import { navigate } from '../../router';
+import { navigate, useRoute } from '../../router';
 
 type MarketTab = 'used' | 'shop' | 'listings';
 
@@ -73,10 +73,13 @@ function OfferCard({ s, offer }: { s: GameState; offer: MarketOffer }) {
 
 export function MarketScreen() {
   const s = useGameState();
-  const [tab, setTab] = useState<MarketTab>('used');
+  const sub = useRoute().split('/')[2];
+  const [tab, setTab] = useState<MarketTab>(sub === 'shop' ? 'shop' : sub === 'inserate' ? 'listings' : 'used');
   const listings = activitiesByChannel(s, 'market');
   const offers = [...s.market.offers].sort((a, b) => a.expiresAt - b.expiresAt);
   const catalog = shopCatalog(s);
+  const shops = knownShops(s);
+  const hiddenShops = undiscoveredShopCount(s);
 
   return (
     <div className="page" data-testid="screen-market">
@@ -105,27 +108,49 @@ export function MarketScreen() {
         ))}
 
       {tab === 'shop' && (
-        <div className="grid grid--auto">
-          {catalog.map((def) => (
-            <Card key={def.id} className="item-card" testId={`shop-${def.id}`}>
-              <div className="row row--between" style={{ alignItems: 'flex-start' }}>
-                <div className="grow">
-                  {def.brand && <div className="item-card__brand">{def.brand}</div>}
-                  <div className="item-card__name">{def.name}</div>
+        <div className="stack">
+          {shops.map((shop) => (
+            <div key={shop.id} className="stack">
+              <div className="row row--between">
+                <div>
+                  <h2>{shop.name}</h2>
+                  <p className="small dim">{shop.description}</p>
                 </div>
-                <div className="price">{fmtMoney(def.price)}</div>
+                {shop.priceFactor < 1 && <Badge tone="success">−{Math.round((1 - shop.priceFactor) * 100)} %</Badge>}
               </div>
-              <div className="row row--wrap">
-                <Badge>{CATEGORY_LABELS[def.category]}</Badge>
-                <Badge>{def.volumeL} L</Badge>
-                <Badge>Qualität {def.quality}</Badge>
+              <div className="grid grid--auto">
+                {shopItems(shop.id).map((def) => (
+                  <Card key={def.id} className="item-card" testId={`shop-${shop.id}-${def.id}`}>
+                    <div className="row row--between" style={{ alignItems: 'flex-start' }}>
+                      <div className="grow">
+                        {def.brand && <div className="item-card__brand">{def.brand}</div>}
+                        <div className="item-card__name">{def.name}</div>
+                      </div>
+                      <div className="price">{fmtMoney(shopPrice(shop, def))}</div>
+                    </div>
+                    <div className="row row--wrap">
+                      <Badge>{CATEGORY_LABELS[def.category]}</Badge>
+                      <Badge>{def.volumeL} L</Badge>
+                      <Badge>Qualität {def.quality}</Badge>
+                    </div>
+                    <p className="small dim">{def.description}</p>
+                    <ActionButton action={buyNew} payload={{ defId: def.id, shopId: shop.id }} variant="primary" block testId={`buynew-${def.id}`}>
+                      <Store size={16} /> Neu kaufen
+                    </ActionButton>
+                  </Card>
+                ))}
               </div>
-              <p className="small dim">{def.description}</p>
-              <ActionButton action={buyNew} payload={{ defId: def.id }} variant="primary" block testId={`buynew-${def.id}`}>
-                <Store size={16} /> Neu kaufen
-              </ActionButton>
-            </Card>
+            </div>
           ))}
+          {hiddenShops > 0 && (
+            <Card>
+              <EmptyState icon={<MapPin size={28} />} title={`${hiddenShops} weitere ${hiddenShops === 1 ? 'Laden' : 'Läden'} in der Stadt`} text="Erkunde die Bezirke, um Läden mit mehr Auswahl und besseren Preisen zu finden.">
+                <Button small onClick={() => navigate('/karte')}>
+                  Zur Karte
+                </Button>
+              </EmptyState>
+            </Card>
+          )}
         </div>
       )}
 

@@ -1,9 +1,15 @@
-import type { GoalDef, HomeDef, ItemDef, JobDef, RepTier } from './types';
+import type { GoalDef, HomeDef, ItemDef, JobDef, PoiDef, RepTier, RumorDef, ShopDef, SpotDef } from './types';
+import type { CityDef, DistrictDef } from './cities';
 import { ALL_ITEMS } from './items';
 import { JOBS } from './jobs';
 import { GOALS } from './goals';
 import { HOMES } from './homes';
 import { REP_TIERS } from './reputation';
+import { CITIES, DISTRICTS } from './cities';
+import { SPOTS } from './spots';
+import { POIS } from './pois';
+import { SHOPS } from './shops';
+import { RUMORS } from './rumors';
 
 function indexById<T extends { id: string }>(list: readonly T[]): ReadonlyMap<string, T> {
   const map = new Map<string, T>();
@@ -15,6 +21,27 @@ export const ITEMS = indexById(ALL_ITEMS);
 export const JOBS_BY_ID = indexById(JOBS);
 export const GOALS_BY_ID = indexById(GOALS);
 export const HOMES_BY_ID = indexById(HOMES);
+export const CITIES_BY_ID = indexById(CITIES);
+export const DISTRICTS_BY_ID = indexById(DISTRICTS);
+export const SPOTS_BY_ID = indexById(SPOTS);
+export const POIS_BY_ID = indexById(POIS);
+export const SHOPS_BY_ID = indexById(SHOPS);
+export const RUMORS_BY_ID = indexById(RUMORS);
+
+function getter<T>(map: ReadonlyMap<string, T>, kind: string): (id: string) => T {
+  return (id) => {
+    const def = map.get(id);
+    if (!def) throw new Error(`Unknown ${kind}: ${id}`);
+    return def;
+  };
+}
+
+export const cityDef: (id: string) => CityDef = getter(CITIES_BY_ID, 'city');
+export const districtDef: (id: string) => DistrictDef = getter(DISTRICTS_BY_ID, 'district');
+export const spotDef: (id: string) => SpotDef = getter(SPOTS_BY_ID, 'spot');
+export const poiDef: (id: string) => PoiDef = getter(POIS_BY_ID, 'poi');
+export const shopDef: (id: string) => ShopDef = getter(SHOPS_BY_ID, 'shop');
+export const rumorDef: (id: string) => RumorDef = getter(RUMORS_BY_ID, 'rumor');
 
 export function itemDef(id: string): ItemDef {
   const def = ITEMS.get(id);

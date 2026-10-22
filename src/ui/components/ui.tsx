@@ -77,9 +77,23 @@ export function ProgressBar({ value, thin, running, label }: { value: number; th
   );
 }
 
-export function Stat({ label, value, sub, icon, tone }: { label: string; value: ReactNode; sub?: ReactNode; icon?: ReactNode; tone?: Tone | 'accent' }) {
+export function Stat({
+  label,
+  value,
+  sub,
+  icon,
+  tone,
+  onClick,
+}: {
+  label: string;
+  value: ReactNode;
+  sub?: ReactNode;
+  icon?: ReactNode;
+  tone?: Tone | 'accent';
+  onClick?: () => void;
+}) {
   return (
-    <div className="stat">
+    <div className={['stat', onClick && 'clickable'].filter(Boolean).join(' ')} onClick={onClick} role={onClick ? 'button' : undefined}>
       <div className="stat__label">
         {icon}
         {label}

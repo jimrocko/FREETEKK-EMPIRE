@@ -24,15 +24,17 @@ Legende: ✅ fertig · 🔨 in Arbeit · ⏳ geplant
 
 **Abnahme:** Neues Spiel → Job erledigen → Geld + XP → Gerät kaufen/verkaufen → Reload ohne Verlust → Offline-Bericht nach Abwesenheit → keine Konsolenfehler → iPhone-Viewport ohne horizontales Scrollen.
 
-## Phase 2 – Karte, Städte, Spots ⏳
+## Phase 2 – Karte, Städte, Spots ✅
 
-- Startstadt mit 8 Bezirken als SVG-Karte, Nebel/Erkundungsgrad
-- Erkunden als Aktivität (Kanal `explore`): findet Spots, Shops, Lieferanten, Treffpunkte, Gerüchte, Gebrauchtangebote
-- ≥ 12 Spots mit allen Werten, ungenaue Werte bis „Spot checken“
-- Spot-Dynamik: Bekanntheit, Zustand, Schließung
-- Shops auf der Karte erweitern das Sortiment
+- Startstadt Steinhafen mit 8 Bezirken als SVG-Karte, Nebel je nach Erkundungsgrad, gesperrte Bezirke (Fahrrad nötig) mit Begründung
+- Erkunden als Aktivität (Kanal `explore`, Fahrrad macht schneller): findet Spots und Orte, Gerüchte, Pfand, Sperrmüll-Funde, Aushänge (Gebrauchtangebote)
+- 17 Spots mit allen Werten (Kapazität, Atmosphäre, Zufahrt, Strom, Lärm, Wetter, Sicherheit, Fahrzeuge, Versorgung, Zustand, Bekanntheit, Legalität, Miete, Ausstattung); ungenaue Werte bis „Spot checken“
+- Spot-Dynamik pro Spieltag: Bekanntheit sinkt, Zustand driftet, bekannte inoffizielle Spots werden abgesperrt, Welt-Ereignisse (Bauzaun, Sturm, Security …) verändern Werte
+- 14 Orte: Läden (erweitern das Sortiment mit besseren Preisen), Treffpunkte und Clubs (Besuch kostet Geld, gibt XP, Gerüchte), Lagerplätze zum Mieten (mehr Stauraum, Kaution, Tagesmiete)
+- Gerüchte aus Jobs, Besuchen und Erkundung führen zu versteckten Spots – Systeme verbinden sich
+- 12 neue Ziele
 
-**Abnahme:** Spot nur durch Erkundung/Hinweis sichtbar; Spot-Check verbessert Informationen; alles gespeichert.
+**Abnahme:** Spot nur durch Erkundung/Hinweis sichtbar ✓; Spot-Check verbessert Informationen ✓; alles gespeichert ✓; jeder Ort ist auffindbar (Test) ✓; Marker liegen in ihren Bezirken (Content-Validierung) ✓.
 
 ## Phase 3 – Connections, Personen, Nachrichten ⏳
 

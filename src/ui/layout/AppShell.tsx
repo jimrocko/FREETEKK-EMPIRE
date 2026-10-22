@@ -41,6 +41,7 @@ function routeLocked(s: ReturnType<typeof useGameState>, r: RouteDef): string | 
 
 function SideNav({ path }: { path: string }) {
   const s = useGameState();
+  const active = findRoute(path).path;
   let lastGroup = '';
   return (
     <nav className="sidenav" aria-label="Hauptnavigation">
@@ -53,7 +54,7 @@ function SideNav({ path }: { path: string }) {
         return (
           <div key={r.path} style={{ display: 'contents' }}>
             {sep}
-            <button className={['sidenav__item', path === r.path && 'is-active'].filter(Boolean).join(' ')} disabled={!!locked} title={locked ?? undefined} onClick={() => navigate(r.path)}>
+            <button className={['sidenav__item', active === r.path && 'is-active'].filter(Boolean).join(' ')} disabled={!!locked} title={locked ?? undefined} onClick={() => navigate(r.path)}>
               {locked ? <Lock size={18} /> : <Icon size={18} />}
               {r.label}
               {badge > 0 && <span className="navbtn__badge">{badge}</span>}
@@ -68,16 +69,18 @@ function SideNav({ path }: { path: string }) {
 function BottomNav({ path, onMore }: { path: string; onMore: () => void }) {
   const s = useGameState();
   const primary = ROUTES.filter((r) => r.nav === 'primary');
-  const moreActive = findRoute(path).nav === 'more';
+  const active = findRoute(path);
+  const moreActive = active.nav === 'more';
   const moreBadge = ROUTES.filter((r) => r.nav === 'more').reduce((n, r) => n + (r.badge?.(s) ?? 0), 0);
   return (
     <nav className="bottomnav" aria-label="Hauptnavigation">
       {primary.map((r) => {
         const Icon = r.icon;
         return (
-          <button key={r.path} className={['navbtn', path === r.path && 'is-active'].filter(Boolean).join(' ')} onClick={() => navigate(r.path)} data-testid={`nav-${r.path}`}>
+          <button key={r.path} className={['navbtn', active.path === r.path && 'is-active'].filter(Boolean).join(' ')} onClick={() => navigate(r.path)} data-testid={`nav-${r.path}`}>
             <Icon size={22} />
             {r.label}
+            {(r.badge?.(s) ?? 0) > 0 && <span className="navbtn__badge">{r.badge!(s)}</span>}
           </button>
         );
       })}

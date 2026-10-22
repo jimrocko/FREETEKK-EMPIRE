@@ -1,10 +1,12 @@
-import { Activity as ActivityIcon, Bell, Briefcase, ChevronRight, Coins, Gauge, Package, Star, Target, TrendingUp } from 'lucide-react';
+import { Activity as ActivityIcon, Bell, Briefcase, ChevronRight, Coins, Gauge, Map as MapIcon, Package, Star, Target, TrendingUp } from 'lucide-react';
 import { useGameState } from '../../../app/store';
 import { fmtMoney, fmtNumber } from '../../../game/core/format';
 import { formatGameClock, gameTimeAt } from '../../../game/core/time';
 import { repTierFor } from '../../../game/content/registry';
 import { economySummary, warnings } from '../../../game/selectors';
-import { inventoryValue } from '../../../game/systems/inventory/logic';
+import { inventoryValue, storageCapacity, usedVolume } from '../../../game/systems/inventory/logic';
+import { cityDistricts, districtState, openRumors } from '../../../game/systems/map/logic';
+import { knownSpots } from '../../../game/systems/spots/logic';
 import { activeGoals } from '../../../game/systems/goals/logic';
 import { jobListings } from '../../../game/systems/jobs/logic';
 import { startJob } from '../../../game/systems/jobs/actions';
@@ -29,6 +31,10 @@ export function DashboardScreen() {
     .slice(0, 3);
   const feed = [...s.notifications.feed].reverse().slice(0, 5);
   const itemCount = Object.keys(s.inventory.items).length;
+  const districts = cityDistricts(s);
+  const cityExplored = Math.round(districts.reduce((sum, d) => sum + districtState(s, d.id).explored, 0) / districts.length);
+  const spotsKnown = knownSpots(s).length;
+  const rumorsOpen = openRumors(s).length;
 
   return (
     <div className="page" data-testid="screen-dashboard">
@@ -47,15 +53,29 @@ export function DashboardScreen() {
           value={fmtMoney(s.finance.cash)}
           tone={s.finance.cash < 0 ? 'danger' : 'accent'}
           sub={`Inventar: ${fmtMoney(inventoryValue(s))}`}
+          onClick={() => navigate('/finanzen')}
         />
         <Stat
           label="Einnahmen/Std"
           icon={<TrendingUp size={13} />}
           value={fmtMoney(eco.lastHourIncome + eco.passivePerHour)}
           sub={`letzte Std · Fixkosten −${fmtMoney(eco.fixedPerHour)}`}
+          onClick={() => navigate('/finanzen')}
         />
-        <Stat label="Reputation" icon={<Star size={13} />} value={rep.tier.name} sub={rep.next ? `${fmtNumber(s.progression.reputation)} / ${fmtNumber(rep.next.min)}` : fmtNumber(s.progression.reputation)} />
-        <Stat label="Besitz" icon={<Package size={13} />} value={`${itemCount} Items`} sub={`${s.activities.running.length} Aktivität${s.activities.running.length === 1 ? '' : 'en'} laufen`} />
+        <Stat
+          label="Reputation"
+          icon={<Star size={13} />}
+          value={rep.tier.name}
+          sub={rep.next ? `${fmtNumber(s.progression.reputation)} / ${fmtNumber(rep.next.min)}` : fmtNumber(s.progression.reputation)}
+          onClick={() => navigate('/fortschritt')}
+        />
+        <Stat
+          label="Besitz"
+          icon={<Package size={13} />}
+          value={`${itemCount} Items`}
+          sub={`${fmtNumber(usedVolume(s))} / ${fmtNumber(storageCapacity(s))} L Platz`}
+          onClick={() => navigate('/inventar')}
+        />
       </div>
 
       <div className="dash">
@@ -118,6 +138,33 @@ export function DashboardScreen() {
         </div>
 
         <div className="stack">
+          <Card testId="card-city">
+            <CardHead
+              icon={<MapIcon size={15} />}
+              title="Steinhafen"
+              right={
+                <Button small variant="ghost" onClick={() => navigate('/karte')}>
+                  Karte <ChevronRight size={14} />
+                </Button>
+              }
+            />
+            <div className="grid grid--2">
+              <div>
+                <div className="stat__label">Erkundet</div>
+                <div className="stat__value">{cityExplored} %</div>
+              </div>
+              <div>
+                <div className="stat__label">Spots</div>
+                <div className="stat__value">{spotsKnown}</div>
+              </div>
+            </div>
+            {rumorsOpen > 0 && (
+              <Button block small variant="ghost" onClick={() => navigate('/karte/geruechte')}>
+                <span className="tone-discovery">{rumorsOpen} offene{rumorsOpen === 1 ? 's' : ''} Gerücht{rumorsOpen === 1 ? '' : 'e'}</span>
+              </Button>
+            )}
+          </Card>
+
           <Card className="card--flush">
             <div style={{ padding: '16px 16px 0' }}>
               <CardHead

@@ -37,6 +37,10 @@ export type Condition =
   | { t: 'unlocked'; id: string; label?: string }
   | { t: 'goal'; id: string }
   | { t: 'day'; gte: number }
+  | { t: 'districtExplored'; district: string; gte: number }
+  | { t: 'spotKnown'; spot: string }
+  | { t: 'spotsKnown'; gte: number }
+  | { t: 'poiKnown'; poi: string }
   | { t: 'all'; of: Condition[] }
   | { t: 'any'; of: Condition[] }
   | { t: 'not'; c: Condition; label?: string };
@@ -49,6 +53,9 @@ export type Effect =
   | { t: 'item'; item: string; qty?: number; condition?: number }
   | { t: 'flag'; flag: string; value?: number }
   | { t: 'unlock'; id: string; label?: string }
-  | { t: 'notify'; tone: Tone; title: string; text?: string };
+  | { t: 'notify'; tone: Tone; title: string; text?: string }
+  | { t: 'revealSpot'; spot: string; intel?: number }
+  | { t: 'revealPoi'; poi: string }
+  | { t: 'rumor'; rumor: string };
 
 export type Reason = string | null;

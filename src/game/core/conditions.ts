@@ -2,7 +2,7 @@ import type { GameState } from '../state';
 import type { Condition, Reason } from './types';
 import { fmtMoney, fmtNumber } from './format';
 import { SKILL_DEFS } from '../content/skills';
-import { GOALS_BY_ID, ITEMS, repTierFor } from '../content/registry';
+import { DISTRICTS_BY_ID, GOALS_BY_ID, ITEMS, POIS_BY_ID, SPOTS_BY_ID, repTierFor } from '../content/registry';
 import { REP_TIERS } from '../content/reputation';
 import { gameDayAt } from './time';
 import { hasFlag, isUnlocked, skillLevel, stat } from '../systems/progression/logic';
@@ -30,6 +30,14 @@ export function checkCondition(s: GameState, c: Condition): boolean {
       return s.goals.done[c.id] !== undefined;
     case 'day':
       return gameDayAt(s.clock, s.clock.now) >= c.gte;
+    case 'districtExplored':
+      return (s.map.districts[c.district]?.explored ?? 0) >= c.gte;
+    case 'spotKnown':
+      return s.spots.spots[c.spot]?.known === true;
+    case 'spotsKnown':
+      return Object.values(s.spots.spots).filter((x) => x.known).length >= c.gte;
+    case 'poiKnown':
+      return s.map.pois[c.poi] !== undefined;
     case 'all':
       return c.of.every((x) => checkCondition(s, x));
     case 'any':
@@ -84,6 +92,14 @@ export function describeCondition(c: Condition): string {
       return `Ziel „${GOALS_BY_ID.get(c.id)?.title ?? c.id}“`;
     case 'day':
       return `Ab Tag ${c.gte}`;
+    case 'districtExplored':
+      return `${DISTRICTS_BY_ID.get(c.district)?.name ?? c.district} zu ${c.gte} % erkundet`;
+    case 'spotKnown':
+      return `Spot „${SPOTS_BY_ID.get(c.spot)?.name ?? c.spot}“ bekannt`;
+    case 'spotsKnown':
+      return `${c.gte} Spots bekannt`;
+    case 'poiKnown':
+      return `Ort „${POIS_BY_ID.get(c.poi)?.name ?? c.poi}“ bekannt`;
     case 'all':
       return c.of.map(describeCondition).join(' und ');
     case 'any':
@@ -125,6 +141,10 @@ export function conditionProgress(s: GameState, c: Condition): ConditionProgress
       return { current: countItem(s, c.item), target: c.count ?? 1 };
     case 'itemTag':
       return { current: countTag(s, c.tag), target: c.count ?? 1 };
+    case 'districtExplored':
+      return { current: s.map.districts[c.district]?.explored ?? 0, target: c.gte };
+    case 'spotsKnown':
+      return { current: Object.values(s.spots.spots).filter((x) => x.known).length, target: c.gte };
     default:
       return null;
   }

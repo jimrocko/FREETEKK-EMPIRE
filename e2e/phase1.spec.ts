@@ -1,42 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-
-/** Collects console errors and uncaught exceptions for the whole test. */
-function trackErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(m.text());
-  });
-  page.on('pageerror', (e) => errors.push(e.message));
-  return errors;
-}
-
-async function newGame(page: Page, name = 'Testi') {
-  await page.goto('/?debug');
-  await page.evaluate(() => localStorage.clear());
-  await page.goto('/?debug');
-  await page.getByTestId('start-name').fill(name);
-  await page.getByTestId('start-game').click();
-  await expect(page.getByTestId('screen-dashboard')).toBeVisible();
-}
-
-async function expectNoHorizontalScroll(page: Page) {
-  const [scrollWidth, innerWidth] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
-  expect(scrollWidth).toBeLessThanOrEqual(innerWidth);
-}
-
-async function openRoute(page: Page, path: string, isMobile: boolean) {
-  if (!isMobile) {
-    await page.evaluate((p) => (location.hash = p), path);
-    return;
-  }
-  const primary = page.getByTestId(`nav-${path}`);
-  if (await primary.count()) {
-    await primary.click();
-  } else {
-    await page.getByTestId('nav-more').click();
-    await page.getByTestId(`more-${path}`).click();
-  }
-}
+import { expect, test } from '@playwright/test';
+import { expectNoHorizontalScroll, newGame, openRoute, trackErrors } from './helpers';
 
 test('start screen requires a name', async ({ page }) => {
   const errors = trackErrors(page);
@@ -56,6 +19,7 @@ test('every screen renders without errors or horizontal scrolling', async ({ pag
   await newGame(page);
   const screens: [string, string][] = [
     ['/', 'screen-dashboard'],
+    ['/karte', 'screen-map'],
     ['/jobs', 'screen-jobs'],
     ['/markt', 'screen-market'],
     ['/inventar', 'screen-inventory'],

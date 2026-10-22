@@ -8,19 +8,23 @@ import { moneyReason, spend } from '../finance/logic';
 import { addXp, incStat } from '../progression/logic';
 import { addItem, getItem, resaleValue, sellableReason, spaceReason } from '../inventory/logic';
 import { channelReason, startActivity } from '../activities/logic';
-import { haggleChance, listingBonus, nicePrice, shopCatalog } from './logic';
+import { haggleChance, knownShops, listingBonus, nicePrice, shopPrice } from './logic';
 
-export const buyNew = defineAction<{ defId: string }>({
+export const buyNew = defineAction<{ defId: string; shopId: string }>({
   id: 'market.buyNew',
   check: (s, p) => {
-    const def = shopCatalog(s).find((it) => it.id === p.defId);
-    if (!def) return 'Nicht im Sortiment.';
-    return moneyReason(s, def.price) ?? spaceReason(s, def.id);
+    const shop = knownShops(s).find((x) => x.id === p.shopId);
+    if (!shop) return 'Diesen Laden kennst du nicht.';
+    const def = ITEMS.get(p.defId);
+    if (!def?.shops?.includes(shop.id)) return 'Nicht im Sortiment.';
+    return moneyReason(s, shopPrice(shop, def)) ?? spaceReason(s, def.id);
   },
   run: (d, p) => {
+    const shop = knownShops(d).find((x) => x.id === p.shopId)!;
     const def = itemDef(p.defId);
-    spend(d, def.price, 'equipment', `Neu gekauft: ${def.name}`);
-    addItem(d, def.id, { condition: 100, paid: def.price });
+    const price = shopPrice(shop, def);
+    spend(d, price, 'equipment', `Neu gekauft: ${def.name} (${shop.name})`);
+    addItem(d, def.id, { condition: 100, paid: price });
     incStat(d, 'itemsBought');
     return `${def.name} gekauft.`;
   },
