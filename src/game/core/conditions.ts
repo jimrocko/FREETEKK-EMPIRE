@@ -7,6 +7,8 @@ import { REP_TIERS } from '../content/reputation';
 import { gameDayAt } from './time';
 import { hasFlag, isUnlocked, skillLevel, stat } from '../systems/progression/logic';
 import { countItem, countTag } from '../systems/inventory/logic';
+import { CHANNEL_LABELS, channelCapacity, channelUsage } from '../systems/activities/logic';
+import { PERSONS_BY_ID } from '../content/registry';
 
 export function checkCondition(s: GameState, c: Condition): boolean {
   switch (c.t) {
@@ -38,6 +40,18 @@ export function checkCondition(s: GameState, c: Condition): boolean {
       return Object.values(s.spots.spots).filter((x) => x.known).length >= c.gte;
     case 'poiKnown':
       return s.map.pois[c.poi] !== undefined;
+    case 'knows':
+      return s.people.people[c.person]?.met === true;
+    case 'trust':
+      return (s.people.people[c.person]?.met ? s.people.people[c.person].trust : 0) >= c.gte;
+    case 'contacts':
+      return Object.values(s.people.people).filter((p) => p.met).length >= c.gte;
+    case 'knowsRole':
+      return Object.entries(s.people.people).filter(([id, p]) => p.met && PERSONS_BY_ID.get(id)?.roles.includes(c.role as never)).length >= (c.count ?? 1);
+    case 'trusted':
+      return Object.values(s.people.people).filter((p) => p.met && p.trust >= c.trust).length >= c.count;
+    case 'channelFree':
+      return channelUsage(s, c.channel) < channelCapacity(s, c.channel);
     case 'all':
       return c.of.every((x) => checkCondition(s, x));
     case 'any':
@@ -56,6 +70,26 @@ function repName(gte: number): string {
   const exact = REP_TIERS.find((t) => t.min === gte);
   return exact ? `Reputation „${exact.name}“` : `Reputation ${fmtNumber(gte)} (${repTierFor(gte).tier.name})`;
 }
+
+const ROLE_NAMES: Record<string, string> = {
+  dj: 'DJ',
+  producer: 'Producer',
+  artist: 'Live-Act',
+  technician: 'Technik',
+  driver: 'Fahrer',
+  organizer: 'Veranstalter',
+  booker: 'Booker',
+  promoter: 'Promotion',
+  designer: 'Design',
+  merch: 'Merch',
+  manager: 'Management',
+  supplier: 'Lieferant',
+  landlord: 'Vermieter',
+  shopkeeper: 'Händler',
+  journalist: 'Presse',
+  security: 'Security',
+  scout: 'Ortskenner',
+};
 
 const TAG_LABELS: Record<string, string> = {
   mobility: 'ein Fahrrad o. Ä.',
@@ -100,6 +134,18 @@ export function describeCondition(c: Condition): string {
       return `${c.gte} Spots bekannt`;
     case 'poiKnown':
       return `Ort „${POIS_BY_ID.get(c.poi)?.name ?? c.poi}“ bekannt`;
+    case 'knows':
+      return `Kontakt: ${PERSONS_BY_ID.get(c.person)?.name ?? c.person}`;
+    case 'trust':
+      return `Vertrauen von ${PERSONS_BY_ID.get(c.person)?.name ?? c.person} ≥ ${c.gte}`;
+    case 'contacts':
+      return `${c.gte} Kontakte`;
+    case 'knowsRole':
+      return `${(c.count ?? 1) > 1 ? `${c.count} ` : ''}Kontakt${(c.count ?? 1) > 1 ? 'e' : ''}: ${ROLE_NAMES[c.role] ?? c.role}`;
+    case 'trusted':
+      return `${c.count} ${c.count === 1 ? 'Kontakt' : 'Kontakte'} mit Vertrauen ≥ ${c.trust}`;
+    case 'channelFree':
+      return `freier Slot: ${CHANNEL_LABELS[c.channel]}`;
     case 'all':
       return c.of.map(describeCondition).join(' und ');
     case 'any':
@@ -145,6 +191,12 @@ export function conditionProgress(s: GameState, c: Condition): ConditionProgress
       return { current: s.map.districts[c.district]?.explored ?? 0, target: c.gte };
     case 'spotsKnown':
       return { current: Object.values(s.spots.spots).filter((x) => x.known).length, target: c.gte };
+    case 'contacts':
+      return { current: Object.values(s.people.people).filter((p) => p.met).length, target: c.gte };
+    case 'trusted':
+      return { current: Object.values(s.people.people).filter((p) => p.met && p.trust >= c.trust).length, target: c.count };
+    case 'trust':
+      return { current: Math.floor(s.people.people[c.person]?.trust ?? 0), target: c.gte };
     default:
       return null;
   }

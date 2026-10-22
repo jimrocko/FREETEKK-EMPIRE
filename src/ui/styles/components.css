@@ -945,3 +945,128 @@ button.list__row:hover {
 .clickable:hover {
   border-color: var(--border-strong);
 }
+
+/* ── Network ────────────────────────────────────────── */
+.avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #0b0b10;
+  letter-spacing: 0.02em;
+}
+
+.avatar--lg {
+  width: 64px;
+  height: 64px;
+  font-size: 1.2rem;
+}
+
+.avatar--unknown {
+  background: var(--card-2) !important;
+  color: var(--text-faint);
+  border: 1px dashed var(--border-strong);
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bubble {
+  max-width: 86%;
+  padding: 10px 13px;
+  border-radius: 16px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.bubble--mine {
+  align-self: flex-end;
+  background: var(--accent-soft);
+  border-color: rgba(184, 255, 60, 0.3);
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 4px;
+}
+
+.bubble--open {
+  border-color: rgba(196, 140, 255, 0.55);
+  box-shadow: 0 0 0 1px rgba(196, 140, 255, 0.25);
+}
+
+.bubble__time {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  color: var(--text-faint);
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.graph svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 70dvh;
+}
+
+.graph__label {
+  font-family: var(--font);
+  font-size: 7px;
+  font-weight: 700;
+  fill: var(--text);
+  text-anchor: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.8);
+  stroke-width: 2.4px;
+}
+
+.graph__node {
+  cursor: pointer;
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex-shrink: 0;
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.chip.is-active {
+  background: var(--accent-soft);
+  border-color: rgba(184, 255, 60, 0.4);
+  color: var(--accent);
+}

@@ -8,6 +8,7 @@ import { chance, randInt } from '../../core/rng';
 import { earn } from '../finance/logic';
 import { addRep, addXp, incStat } from '../progression/logic';
 import { rollRumor } from '../map/logic';
+import { rollMeet } from '../people/logic';
 
 export const jobHandler: ActivityHandler = {
   cancelLabel: 'Schicht abbrechen',
@@ -31,6 +32,7 @@ export const jobHandler: ActivityHandler = {
     incStat(d, 'jobsDone');
     incStat(d, `job:${job.id}`);
     if (rollRumor(d, { job: job.id }, 0.25, 'job')) parts.push('Gerücht gehört');
+    if (rollMeet(d, { job: job.id })) parts.push('neuen Kontakt geknüpft');
     notify(d, { tone: 'success', title: `Schicht beendet: ${job.name}`, text: parts.join(' · '), link: '/jobs' });
   },
 };

@@ -86,6 +86,7 @@ export const JOBS: readonly JobDef[] = [
         of: [
           { t: 'skill', skill: 'organisation', gte: 3 },
           { t: 'skill', skill: 'netzwerk', gte: 3 },
+          { t: 'flag', flag: 'ref.kesselhaus', label: 'Empfehlung fürs Kesselhaus' },
         ],
       },
     ],

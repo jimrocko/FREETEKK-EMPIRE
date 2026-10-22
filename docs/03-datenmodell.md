@@ -259,41 +259,44 @@ interface MapState {
 ## Phase 3 – Personen, Connections, Nachrichten
 
 ```ts
-type Role = 'dj'|'producer'|'technician'|'driver'|'organizer'|'booker'|'designer'|'merch'|'manager'|'promoter'|'supplier'|'landlord'|'shopkeeper'|'journalist'|'scout'
+type Role = 'dj'|'producer'|'artist'|'technician'|'driver'|'organizer'|'booker'|'promoter'|'designer'|'merch'|'manager'|'supplier'|'landlord'|'shopkeeper'|'journalist'|'security'|'scout'
 
 interface PersonDef {
-  id; name; nickname?; cityId; roles: Role[]
+  id; name; nick?; cityId; roles: Role[]
   stats: { technik; organisation; kreativ; netzwerk; business; zuverlaessigkeit; erfahrung; bekanntheit }
-  price: number                  // Gage/Tagessatz
-  traits: string[]               // 'loyal','gierig','chaotisch','perfektionist', …
-  interests: string[]            // Genres, Themen
-  knows: string[]                // Personen-IDs → Netzwerk-Kanten
-  knowsSpots?: string[]; knowsPois?: string[]
-  introTrust: number             // nötiges Vertrauen für Vorstellungen
-  meet: { via: 'start'|'explore'|'job'|'event'|'intro'|'message'; district?; job? }
-  goal?: string                  // eigenes Ziel (z. B. „will eigenen Floor“)
-  bio: string
+  price                          // Gage/Tagessatz
+  traits: TraitId[]; interests: string[]
+  knows: string[]                // Netzwerk-Kanten (Vorstellungen)
+  knowsSpots?; knowsPois?        // was sie dir zeigen können
+  introTrust: number             // Vertrauen, das der Vorstellende braucht
+  meet: ({ start; trust } | { job; chance } | { poi; chance } | { district; chance; minExplored? } | { reaches: Condition[]; text })[]
+  goal; bio
 }
 
 interface PersonState {
-  met: boolean; metAt?; via?
+  met; metAt?; via?
   trust: number                  // 0–100
-  relation: number               // -100…100
-  lastContactAt?: number
-  busyUntil?: number
+  relation: number               // −100…100
+  lastContactAt?; lastMeetDay?; lastIntroDay?; lastWriteDay?
+  meetings: number
   revealed: string[]             // bekannte Kontakte dieser Person
-  favors: number                 // Gefallen (+ schuldet dir / − du schuldest)
-  status: 'contact'|'crew'|'blocked'
+  told: string[]                 // Spots/Orte, die sie dir gezeigt hat
+  favor: number                  // + schuldet dir / − du schuldest
 }
 
 interface MessageTemplateDef {
-  id; from: string | { role: Role }; when?: Condition[]; weight?: number; cooldownDays?: number
-  text: string; choices: ChoiceDef[]; expiresHours?: number; onExpire?: Effect[]
+  id; from: { person } | { role: Role[] }; when?: Condition[]; minTrust?; weight; cooldownDays?; once?; followUpOnly?
+  text                           // {name}, {player}
+  choices?: ChoiceDef[]; onDeliver?: Effect[]; expiresHours?; onExpire?: Effect[]
 }
-interface ChoiceDef { id; label; requires?: Condition[]; effects?: Effect[]; outcomes?: { weight; effects; text }[] }
+interface ChoiceDef { id; label; requires?: Condition[]; effects?: Effect[]; outcomes?: { weight; skillBonus?; effects; reply? }[]; reply? }
 
-interface MessageState { id; threadId; from; at; text; choices?: ChoiceDef[]; expiresAt?; resolved?: string; read: boolean }
+interface Message { id; from; at; text; mine?; templateId?; open?; expiresAt?; resolved?; online?; read }
+interface MessagesState { list: Message[]; nextId; nextRollAt; queue: { templateId; from; deliverAt }[]; sent: Record<templateId, time> }
 ```
+
+Neue Effekte: `trust`, `relation`, `favor`, `meet`, `meetSomeone`, `message` (Folge-Nachricht mit Verzögerung), `task` (zeitgebundene Aufgabe als Aktivität mit Effekten bei Abschluss), `explore` (Erkundungsgrad). `'$from'` steht für den Absender.
+Neue Bedingungen: `knows`, `trust`, `contacts`, `knowsRole`, `trusted`, `channelFree`.
 
 ## Phase 4 – Equipment & Musik
 

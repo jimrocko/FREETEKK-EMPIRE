@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { Bell, Briefcase, Home, Map as MapIcon, Package, Settings, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
+import { Bell, Briefcase, Home, Map as MapIcon, Package, Users, Settings, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
 import type { Condition } from '../game/core/types';
 import type { GameState } from '../game/state';
 import { unreadCount } from '../game/core/notify';
@@ -13,6 +13,8 @@ import { ProgressScreen } from './screens/progress/ProgressScreen';
 import { FeedScreen } from './screens/feed/FeedScreen';
 import { SettingsScreen } from './screens/settings/SettingsScreen';
 import { MapScreen } from './screens/map/MapScreen';
+import { NetworkScreen } from './screens/network/NetworkScreen';
+import { openMessages, unreadMessages } from '../game/systems/messages/logic';
 
 export interface RouteDef {
   path: string;
@@ -31,7 +33,16 @@ export interface RouteDef {
 export const ROUTES: RouteDef[] = [
   { path: '/', label: 'Home', icon: Home, component: DashboardScreen, nav: 'primary', group: 'Spiel' },
   { path: '/karte', label: 'Karte', icon: MapIcon, component: MapScreen, nav: 'primary', group: 'Spiel', badge: (s) => openRumors(s).length },
-  { path: '/jobs', label: 'Jobs', icon: Briefcase, component: JobsScreen, nav: 'primary', group: 'Spiel' },
+  {
+    path: '/netzwerk',
+    label: 'Netzwerk',
+    icon: Users,
+    component: NetworkScreen,
+    nav: 'primary',
+    group: 'Spiel',
+    badge: (s) => Math.max(openMessages(s).length, unreadMessages(s)),
+  },
+  { path: '/jobs', label: 'Jobs', icon: Briefcase, component: JobsScreen, nav: 'more', group: 'Spiel' },
   { path: '/markt', label: 'Markt', icon: ShoppingBag, component: MarketScreen, nav: 'primary', group: 'Spiel' },
   { path: '/inventar', label: 'Inventar', icon: Package, component: InventoryScreen, nav: 'more', group: 'Spiel' },
   { path: '/finanzen', label: 'Finanzen', icon: Wallet, component: FinanceScreen, nav: 'more', group: 'Übersicht' },

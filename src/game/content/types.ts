@@ -202,3 +202,112 @@ export interface RumorDef {
   /** Real minutes to follow up. */
   followMin: number;
 }
+
+export type Role =
+  | 'dj'
+  | 'producer'
+  | 'artist'
+  | 'technician'
+  | 'driver'
+  | 'organizer'
+  | 'booker'
+  | 'promoter'
+  | 'designer'
+  | 'merch'
+  | 'manager'
+  | 'supplier'
+  | 'landlord'
+  | 'shopkeeper'
+  | 'journalist'
+  | 'security'
+  | 'scout';
+
+export type TraitId = 'loyal' | 'gierig' | 'chaotisch' | 'perfektionist' | 'misstrauisch' | 'herzlich' | 'partytier' | 'vorsichtig' | 'ehrgeizig' | 'idealist';
+
+export interface PersonStats {
+  technik: number;
+  organisation: number;
+  kreativ: number;
+  netzwerk: number;
+  business: number;
+  zuverlaessigkeit: number;
+  erfahrung: number;
+  bekanntheit: number;
+}
+
+/** Ways to meet someone (besides being introduced by a contact). */
+export type MeetDef =
+  | { start: true; trust: number }
+  | { job: string; chance: number }
+  | { poi: string; chance: number }
+  | { district: string; chance: number; minExplored?: number }
+  /** They get in touch by themselves once the condition holds. */
+  | { reaches: Condition[]; text: string };
+
+export interface PersonDef {
+  id: string;
+  name: string;
+  nick?: string;
+  cityId: string;
+  roles: Role[];
+  stats: PersonStats;
+  /** Typical fee per gig/day in €. */
+  price: number;
+  traits: TraitId[];
+  interests: string[];
+  /** People this person knows (network edges). */
+  knows: string[];
+  /** Spots and places they can tell you about once they trust you. */
+  knowsSpots?: string[];
+  knowsPois?: string[];
+  /** Trust their introducer needs before introducing them. */
+  introTrust: number;
+  meet: MeetDef[];
+  /** What they want – shown in their profile. */
+  goal: string;
+  bio: string;
+}
+
+export interface ChoiceOutcome {
+  weight: number;
+  /** Extra weight per skill level above 1. */
+  skillBonus?: { skill: SkillId; per: number };
+  effects: Effect[];
+  reply?: string;
+}
+
+export interface ChoiceDef {
+  id: string;
+  label: string;
+  requires?: Condition[];
+  effects?: Effect[];
+  outcomes?: ChoiceOutcome[];
+  /** Answer from the sender after this choice. */
+  reply?: string;
+}
+
+export type MessageSender =
+  | { person: string }
+  /** Any met contact with one of these roles. */
+  | { role: Role[] };
+
+export interface MessageTemplateDef {
+  id: string;
+  from: MessageSender;
+  /** Conditions for the template to be picked by the random scheduler. '$from' refers to the sender. */
+  when?: Condition[];
+  /** Minimum trust of the sender. */
+  minTrust?: number;
+  weight: number;
+  cooldownDays?: number;
+  once?: boolean;
+  /** Only sent as a follow-up, never randomly. */
+  followUpOnly?: boolean;
+  text: string;
+  choices?: ChoiceDef[];
+  /** Effects applied when the message arrives (for messages without choices). */
+  onDeliver?: Effect[];
+  /** Real hours until an unanswered message expires. */
+  expiresHours?: number;
+  onExpire?: Effect[];
+}

@@ -36,13 +36,18 @@ Legende: ✅ fertig · 🔨 in Arbeit · ⏳ geplant
 
 **Abnahme:** Spot nur durch Erkundung/Hinweis sichtbar ✓; Spot-Check verbessert Informationen ✓; alles gespeichert ✓; jeder Ort ist auffindbar (Test) ✓; Marker liegen in ihren Bezirken (Content-Validierung) ✓.
 
-## Phase 3 – Connections, Personen, Nachrichten ⏳
+## Phase 3 – Connections, Personen, Nachrichten ✅
 
-- ≥ 24 Personen mit Rollen, Werten, Eigenschaften, Zielen, Kontakten
-- Kennenlernen über Start, Jobs, Erkundung, Vorstellung, Events
-- Vertrauen/Beziehung, Treffen, Schreiben, Gefallen, Vorstellen lassen
-- Netzwerk-Graph (sichtbar: wer kennt wen, unbekannte Kontakte als „?“)
-- Nachrichten mit Entscheidungen (Zusagen/Ablehnen/Gegenangebot/Später), Ablauf, Konsequenzen
+- 28 Personen mit Rollen, 8 Werten, Eigenschaften (loyal, misstrauisch, herzlich …), Interessen, eigenen Zielen und eigenem Netzwerk (`knows`)
+- Kennenlernen über Start (3 Kontakte), Jobs, Treffpunkte/Clubs, Erkundung, Vorstellungen, Partys und von selbst (z. B. Presse ab Reputation „Local“, Gebrauchthändler nach mehreren Gebrauchtkäufen)
+- Vertrauen (0–100, abnehmender Zuwachs) und Stimmung (−100…100, verblasst ohne Kontakt); Eigenschaften verändern beides
+- Interaktionen: Schreiben (1×/Tag), Treffen (Zeit + Geld; enthüllt Kontakte und Orte), Vorstellen lassen (Vertrauensschwelle der Zielperson), Gefallen einfordern
+- Netzwerk-Graph: du in der Mitte, Linienstärke = Vertrauen, „?“-Knoten für Leute, von denen du gehört hast
+- Nachrichten mit Entscheidungen: Zusagen, Ablehnen, Gegenangebot (Erfolg abhängig von Business), Später antworten; Ablauf mit Konsequenzen, Folge-Nachrichten (z. B. Rückzahlung), zeitgebundene Aufgaben als Aktivitäten
+- Verbindungen zu anderen Systemen: Kontakte verraten Spots, öffnen Jobs (Empfehlung fürs Kesselhaus), nehmen dich in gesperrte Bezirke mit, bieten Geräte an
+- 10 neue Ziele
+
+**Abnahme:** jede Person erreichbar (Test) ✓; jede Nachricht beantwortbar ohne Fehler (Test) ✓; keine spontanen Nachrichten offline ✓; Save/Load ✓; Mobile ✓.
 
 ## Phase 4 – Equipment & Musik ⏳
 

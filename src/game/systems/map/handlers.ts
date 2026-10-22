@@ -11,6 +11,7 @@ import { addRep, addXp, incStat, skillLevel } from '../progression/logic';
 import { addItem, freeVolume } from '../inventory/logic';
 import { generateOffer, MAX_OFFERS } from '../market/logic';
 import { districtState, exploreGain, findableIn, revealPoi, revealSpot, rollRumor } from './logic';
+import { rollMeet } from '../people/logic';
 
 function xpText(xp: Partial<Record<SkillId, number>>): string[] {
   return (Object.entries(xp) as [SkillId, number][]).filter(([, v]) => v > 0).map(([k, v]) => `+${v} XP ${SKILL_DEFS[k].name}`);
@@ -40,6 +41,7 @@ export const exploreHandler: ActivityHandler = {
 
     // Rumors tied to this district.
     const rumor = rollRumor(d, { district: def.id, minExplored: 0 }, 0.4, 'explore');
+    const met = rollMeet(d, { district: def.id });
 
     // Small surprises on the way.
     const extras: string[] = [];
@@ -71,6 +73,7 @@ export const exploreHandler: ActivityHandler = {
     const parts = [`+${st.explored - before} % erkundet`];
     if (found.length > 0) parts.push(`${found.length} ${found.length === 1 ? 'Fund' : 'Funde'}`);
     if (rumor) parts.push('ein Gerücht');
+    if (met) parts.push('neuer Kontakt');
     parts.push(...extras, ...xpText(def.xp));
     notify(d, { tone: 'success', title: `${def.name} erkundet (${st.explored} %)`, text: parts.join(' · '), link: '/karte' });
   },
@@ -85,7 +88,9 @@ export const visitHandler: ActivityHandler = {
     if (visit.rep) addRep(d, visit.rep);
     incStat(d, 'visits');
     const rumor = rollRumor(d, { poi: poi.id }, visit.rumorChance, 'visit');
+    const met = rollMeet(d, { poi: poi.id });
     const parts = xpText(visit.xp);
+    if (met) parts.push('neuer Kontakt');
     if (visit.rep) parts.push(`+${visit.rep} Reputation`);
     if (rumor) parts.push('Gerücht aufgeschnappt');
     notify(d, { tone: 'success', title: `${visit.label}: ${poi.name}`, text: parts.join(' · '), link: `/karte/ort/${poi.id}` });

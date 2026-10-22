@@ -1,4 +1,4 @@
-import type { GoalDef, HomeDef, ItemDef, JobDef, PoiDef, RepTier, RumorDef, ShopDef, SpotDef } from './types';
+import type { GoalDef, HomeDef, ItemDef, JobDef, MessageTemplateDef, PersonDef, PoiDef, RepTier, RumorDef, ShopDef, SpotDef } from './types';
 import type { CityDef, DistrictDef } from './cities';
 import { ALL_ITEMS } from './items';
 import { JOBS } from './jobs';
@@ -10,6 +10,8 @@ import { SPOTS } from './spots';
 import { POIS } from './pois';
 import { SHOPS } from './shops';
 import { RUMORS } from './rumors';
+import { PEOPLE } from './people';
+import { MESSAGE_TEMPLATES } from './messages';
 
 function indexById<T extends { id: string }>(list: readonly T[]): ReadonlyMap<string, T> {
   const map = new Map<string, T>();
@@ -27,6 +29,8 @@ export const SPOTS_BY_ID = indexById(SPOTS);
 export const POIS_BY_ID = indexById(POIS);
 export const SHOPS_BY_ID = indexById(SHOPS);
 export const RUMORS_BY_ID = indexById(RUMORS);
+export const PERSONS_BY_ID = indexById(PEOPLE);
+export const TEMPLATES_BY_ID = indexById(MESSAGE_TEMPLATES);
 
 function getter<T>(map: ReadonlyMap<string, T>, kind: string): (id: string) => T {
   return (id) => {
@@ -42,6 +46,8 @@ export const spotDef: (id: string) => SpotDef = getter(SPOTS_BY_ID, 'spot');
 export const poiDef: (id: string) => PoiDef = getter(POIS_BY_ID, 'poi');
 export const shopDef: (id: string) => ShopDef = getter(SHOPS_BY_ID, 'shop');
 export const rumorDef: (id: string) => RumorDef = getter(RUMORS_BY_ID, 'rumor');
+export const personDef: (id: string) => PersonDef = getter(PERSONS_BY_ID, 'person');
+export const templateDef: (id: string) => MessageTemplateDef = getter(TEMPLATES_BY_ID, 'message template');
 
 export function itemDef(id: string): ItemDef {
   const def = ITEMS.get(id);

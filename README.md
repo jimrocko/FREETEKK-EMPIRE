@@ -10,7 +10,8 @@ Mobile-first Web-App (React + TypeScript), läuft komplett im Browser, speichert
 |---|---|---|
 | 1 | Grundstruktur: Simulation, Zeit, Geld, Inventar, Jobs, Markt, Ziele, Save/Load, Offline, Dashboard | ✅ |
 | 2 | Karte von Steinhafen, Erkundung, 17 Spots, Läden, Treffpunkte, Lager, Gerüchte | ✅ |
-| 3–10 | Connections, Musik, Crew, Soundsysteme, Events, Merch, Rivalen, Städte, Endgame | siehe [Roadmap](docs/04-roadmap.md) |
+| 3 | 28 Personen, Vertrauen & Stimmung, Treffen, Vorstellungen, Netzwerk-Graph, Nachrichten mit Entscheidungen | ✅ |
+| 4–10 | Musik, Crew, Soundsysteme, Events, Merch, Rivalen, Städte, Endgame | siehe [Roadmap](docs/04-roadmap.md) |
 
 ## Schnellstart
 

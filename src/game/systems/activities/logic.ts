@@ -5,6 +5,7 @@ import type { Activity, ActivityPayload } from './state';
 export const BASE_CAPACITY: Record<ActivityChannel, number> = {
   job: 1,
   explore: 1,
+  social: 1,
   studio: 1,
   workshop: 1,
   errand: 1,
@@ -15,6 +16,7 @@ export const BASE_CAPACITY: Record<ActivityChannel, number> = {
 export const CHANNEL_LABELS: Record<ActivityChannel, string> = {
   job: 'Job',
   explore: 'Erkundung',
+  social: 'Treffen',
   studio: 'Studio',
   workshop: 'Werkstatt',
   errand: 'Besorgungen',
@@ -25,6 +27,7 @@ export const CHANNEL_LABELS: Record<ActivityChannel, string> = {
 const CHANNEL_BUSY: Record<ActivityChannel, string> = {
   job: 'Du arbeitest gerade schon.',
   explore: 'Du bist schon unterwegs.',
+  social: 'Du bist schon verabredet.',
   studio: 'Im Studio läuft schon eine Produktion.',
   workshop: 'Die Werkbank ist belegt.',
   errand: 'Alle Besorgungs-Slots sind belegt.',

@@ -1,4 +1,4 @@
-import { Activity as ActivityIcon, Bell, Briefcase, ChevronRight, Coins, Gauge, Map as MapIcon, Package, Star, Target, TrendingUp } from 'lucide-react';
+import { Activity as ActivityIcon, Bell, Briefcase, ChevronRight, Coins, Gauge, Map as MapIcon, MessageCircle, Package, Star, Target, TrendingUp } from 'lucide-react';
 import { useGameState } from '../../../app/store';
 import { fmtMoney, fmtNumber } from '../../../game/core/format';
 import { formatGameClock, gameTimeAt } from '../../../game/core/time';
@@ -7,6 +7,11 @@ import { economySummary, warnings } from '../../../game/selectors';
 import { inventoryValue, storageCapacity, usedVolume } from '../../../game/systems/inventory/logic';
 import { cityDistricts, districtState, openRumors } from '../../../game/systems/map/logic';
 import { knownSpots } from '../../../game/systems/spots/logic';
+import { openMessages } from '../../../game/systems/messages/logic';
+import { personDef } from '../../../game/content/registry';
+import { displayName } from '../../../game/systems/people/logic';
+import { fmtCountdown } from '../../../game/core/format';
+import { Avatar } from '../network/Avatar';
 import { activeGoals } from '../../../game/systems/goals/logic';
 import { jobListings } from '../../../game/systems/jobs/logic';
 import { startJob } from '../../../game/systems/jobs/actions';
@@ -35,6 +40,7 @@ export function DashboardScreen() {
   const cityExplored = Math.round(districts.reduce((sum, d) => sum + districtState(s, d.id).explored, 0) / districts.length);
   const spotsKnown = knownSpots(s).length;
   const rumorsOpen = openRumors(s).length;
+  const decisions = openMessages(s);
 
   return (
     <div className="page" data-testid="screen-dashboard">
@@ -80,6 +86,31 @@ export function DashboardScreen() {
 
       <div className="dash">
         <div className="stack">
+          {decisions.length > 0 && (
+            <Card className="card--flush" accent testId="card-decisions">
+              <div style={{ padding: '16px 16px 0' }}>
+                <CardHead icon={<MessageCircle size={15} />} title="Wartet auf Antwort" right={<span className="tiny faint">{decisions.length}</span>} />
+              </div>
+              <div className="list">
+                {decisions.slice(0, 3).map((m) => {
+                  const def = personDef(m.from);
+                  return (
+                    <button key={m.id} className="list__row" onClick={() => navigate(`/netzwerk/chat/${m.from}`)}>
+                      <Avatar def={def} />
+                      <span className="grow" style={{ minWidth: 0 }}>
+                        <strong>{displayName(def)}</strong>
+                        <span className="small dim" style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {m.text}
+                        </span>
+                      </span>
+                      {m.expiresAt !== undefined && <span className="tiny tone-warning num">{fmtCountdown(m.expiresAt - s.clock.now)}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
+
           <Card className="card--flush" testId="card-activities">
             <div style={{ padding: '16px 16px 0' }}>
               <CardHead icon={<ActivityIcon size={15} />} title="Laufende Aktivitäten" right={<span className="tiny faint">{s.activities.running.length}</span>} />

@@ -12,6 +12,9 @@ import { SPOTS } from './spots';
 import { POIS } from './pois';
 import { SHOPS } from './shops';
 import { RUMORS } from './rumors';
+import { PEOPLE } from './people';
+import { MESSAGE_TEMPLATES } from './messages';
+import { TEMPLATES_BY_ID, PERSONS_BY_ID } from './registry';
 
 /** Ray casting point-in-polygon test. */
 export function pointInPolygon([x, y]: [number, number], poly: [number, number][]): boolean {
@@ -46,6 +49,8 @@ export function validateContent(): string[] {
   checkUnique('poi', POIS);
   checkUnique('shop', SHOPS);
   checkUnique('rumor', RUMORS);
+  checkUnique('person', PEOPLE);
+  checkUnique('template', MESSAGE_TEMPLATES);
 
   const checkCondition = (where: string, c: Condition) => {
     switch (c.t) {
@@ -70,6 +75,10 @@ export function validateContent(): string[] {
       case 'poiKnown':
         if (!POIS_BY_ID.has(c.poi)) problems.push(`${where}: unbekannter Ort ${c.poi}`);
         break;
+      case 'knows':
+      case 'trust':
+        if (c.person !== '$from' && !PERSONS_BY_ID.has(c.person)) problems.push(`${where}: unbekannte Person ${c.person}`);
+        break;
       case 'all':
       case 'any':
         c.of.forEach((x) => checkCondition(where, x));
@@ -81,7 +90,13 @@ export function validateContent(): string[] {
         break;
     }
   };
-  const checkEffect = (where: string, e: Effect) => {
+  const checkEffect = (where: string, e: Effect): void => {
+    if ((e.t === 'trust' || e.t === 'relation' || e.t === 'favor' || e.t === 'meet') && e.person !== '$from' && !PERSONS_BY_ID.has(e.person)) {
+      problems.push(`${where}: unbekannte Person ${e.person}`);
+    }
+    if (e.t === 'message' && !TEMPLATES_BY_ID.has(e.template)) problems.push(`${where}: unbekannte Nachricht ${e.template}`);
+    if (e.t === 'task') e.effects.forEach((x) => checkEffect(where, x));
+    if (e.t === 'explore' && !DISTRICTS_BY_ID.has(e.district)) problems.push(`${where}: unbekannter Bezirk ${e.district}`);
     if (e.t === 'item' && !ITEMS.has(e.item)) problems.push(`${where}: unbekanntes Item ${e.item}`);
     if (e.t === 'xp' && !SKILLS.includes(e.skill)) problems.push(`${where}: unbekannte Fähigkeit ${e.skill}`);
     if (e.t === 'revealSpot' && !SPOTS_BY_ID.has(e.spot)) problems.push(`${where}: unbekannter Spot ${e.spot}`);
@@ -145,6 +160,50 @@ export function validateContent(): string[] {
       if ('district' in src && !DISTRICTS_BY_ID.has(src.district)) problems.push(`${r.id}: unbekannter Bezirk ${src.district}`);
     }
   }
+  const knownBySomeone = new Set(PEOPLE.flatMap((p) => p.knows));
+  for (const p of PEOPLE) {
+    for (const k of p.knows) {
+      if (!PERSONS_BY_ID.has(k)) problems.push(`${p.id}: kennt unbekannte Person ${k}`);
+      if (k === p.id) problems.push(`${p.id}: kennt sich selbst`);
+    }
+    for (const sp of p.knowsSpots ?? []) if (!SPOTS_BY_ID.has(sp)) problems.push(`${p.id}: unbekannter Spot ${sp}`);
+    for (const po of p.knowsPois ?? []) if (!POIS_BY_ID.has(po)) problems.push(`${p.id}: unbekannter Ort ${po}`);
+    for (const [k, v] of Object.entries(p.stats)) if (v < 0 || v > 100) problems.push(`${p.id}: ${k} außerhalb 0–100`);
+    for (const m of p.meet) {
+      if ('job' in m && !JOBS_BY_ID.has(m.job)) problems.push(`${p.id}: unbekannter Job ${m.job}`);
+      if ('poi' in m && !POIS_BY_ID.get(m.poi)?.visit) problems.push(`${p.id}: Ort ${m.poi} unbekannt oder nicht besuchbar`);
+      if ('district' in m && !DISTRICTS_BY_ID.has(m.district)) problems.push(`${p.id}: unbekannter Bezirk ${m.district}`);
+      if ('reaches' in m) m.reaches.forEach((c) => checkCondition(p.id, c));
+    }
+    if (p.meet.length === 0 && !knownBySomeone.has(p.id)) problems.push(`${p.id}: kann nie kennengelernt werden`);
+  }
+  const followUps = new Set<string>();
+  const collectFollowUps = (list: readonly Effect[] | undefined) =>
+    list?.forEach((e) => {
+      if (e.t === 'message') followUps.add(e.template);
+      if (e.t === 'task') collectFollowUps(e.effects);
+    });
+  for (const t of MESSAGE_TEMPLATES) {
+    if ('person' in t.from && !PERSONS_BY_ID.has(t.from.person)) problems.push(`${t.id}: unbekannter Absender ${t.from.person}`);
+    if ('role' in t.from && t.from.role.length === 0) problems.push(`${t.id}: keine Rollen`);
+    t.when?.forEach((c) => checkCondition(t.id, c));
+    t.onDeliver?.forEach((e) => checkEffect(t.id, e));
+    t.onExpire?.forEach((e) => checkEffect(t.id, e));
+    collectFollowUps(t.onDeliver);
+    const ids = new Set<string>();
+    for (const ch of t.choices ?? []) {
+      if (ids.has(ch.id)) problems.push(`${t.id}: doppelte Antwort ${ch.id}`);
+      ids.add(ch.id);
+      ch.requires?.forEach((c) => checkCondition(t.id, c));
+      ch.effects?.forEach((e) => checkEffect(t.id, e));
+      collectFollowUps(ch.effects);
+      for (const o of ch.outcomes ?? []) {
+        o.effects.forEach((e) => checkEffect(t.id, e));
+        collectFollowUps(o.effects);
+      }
+    }
+  }
+  for (const t of MESSAGE_TEMPLATES) if (t.followUpOnly && !followUps.has(t.id)) problems.push(`${t.id}: Folge-Nachricht wird nie ausgelöst`);
   for (let i = 1; i < REP_TIERS.length; i++) {
     if (REP_TIERS[i].min <= REP_TIERS[i - 1].min) problems.push(`Reputation-Stufen nicht aufsteigend bei ${REP_TIERS[i].id}`);
   }

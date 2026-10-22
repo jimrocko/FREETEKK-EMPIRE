@@ -23,7 +23,7 @@ export type LedgerCategory = (typeof LEDGER_CATEGORIES)[number];
 
 export type Tone = 'info' | 'success' | 'warning' | 'danger' | 'discovery';
 
-export type ActivityChannel = 'job' | 'explore' | 'studio' | 'workshop' | 'errand' | 'event' | 'market';
+export type ActivityChannel = 'job' | 'explore' | 'social' | 'studio' | 'workshop' | 'errand' | 'event' | 'market';
 
 /** Data-driven requirement. Every condition can describe itself for the UI. */
 export type Condition =
@@ -41,6 +41,12 @@ export type Condition =
   | { t: 'spotKnown'; spot: string }
   | { t: 'spotsKnown'; gte: number }
   | { t: 'poiKnown'; poi: string }
+  | { t: 'knows'; person: string }
+  | { t: 'trust'; person: string; gte: number }
+  | { t: 'contacts'; gte: number }
+  | { t: 'knowsRole'; role: string; count?: number }
+  | { t: 'trusted'; count: number; trust: number }
+  | { t: 'channelFree'; channel: ActivityChannel }
   | { t: 'all'; of: Condition[] }
   | { t: 'any'; of: Condition[] }
   | { t: 'not'; c: Condition; label?: string };
@@ -56,6 +62,15 @@ export type Effect =
   | { t: 'notify'; tone: Tone; title: string; text?: string }
   | { t: 'revealSpot'; spot: string; intel?: number }
   | { t: 'revealPoi'; poi: string }
-  | { t: 'rumor'; rumor: string };
+  | { t: 'rumor'; rumor: string }
+  /** '$from' targets the sender of the message being answered. */
+  | { t: 'trust'; person: string; amount: number }
+  | { t: 'relation'; person: string; amount: number }
+  | { t: 'favor'; person: string; amount: number }
+  | { t: 'meet'; person: string }
+  | { t: 'meetSomeone'; roles?: string[] }
+  | { t: 'message'; template: string; from?: string; delayMin?: number }
+  | { t: 'task'; channel: ActivityChannel; minutes: number; label: string; effects: Effect[] }
+  | { t: 'explore'; district: string; amount: number };
 
 export type Reason = string | null;
