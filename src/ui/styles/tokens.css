@@ -1,0 +1,60 @@
+:root {
+  color-scheme: dark;
+
+  --bg: #09090c;
+  --bg-elev: #0f0f14;
+  --card: #14141b;
+  --card-2: #1b1b24;
+  --card-hover: #20202b;
+  --border: #262632;
+  --border-strong: #363645;
+
+  --text: #ececf2;
+  --text-dim: #a2a2b4;
+  --text-faint: #6c6c7e;
+
+  --accent: #b8ff3c;
+  --accent-ink: #0c1200;
+  --accent-soft: rgba(184, 255, 60, 0.12);
+  --accent-2: #ff3fd5;
+  --accent-2-soft: rgba(255, 63, 213, 0.12);
+
+  --success: #3dffa6;
+  --success-soft: rgba(61, 255, 166, 0.12);
+  --warning: #ffb444;
+  --warning-soft: rgba(255, 180, 68, 0.12);
+  --danger: #ff4d61;
+  --danger-soft: rgba(255, 77, 97, 0.13);
+  --info: #5ccbff;
+  --info-soft: rgba(92, 203, 255, 0.12);
+  --discovery: #c48cff;
+  --discovery-soft: rgba(196, 140, 255, 0.13);
+
+  --skill-produktion: #ff6bd8;
+  --skill-technik: #5ccbff;
+  --skill-organisation: #ffb444;
+  --skill-netzwerk: #b8ff3c;
+  --skill-business: #c48cff;
+
+  --radius-s: 8px;
+  --radius: 14px;
+  --radius-l: 20px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --font: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+
+  --topbar-h: 56px;
+  --bottomnav-h: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
