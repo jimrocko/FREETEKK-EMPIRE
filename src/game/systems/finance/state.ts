@@ -19,8 +19,23 @@ export interface PassiveBucket {
   amount: number;
 }
 
+export interface Loan {
+  id: string;
+  offerId: string;
+  label: string;
+  amount: number;
+  remaining: number;
+  perDay: number;
+  takenAt: number;
+}
+
 export interface FinanceState {
+  /** Bargeld – used for all payments. */
   cash: number;
+  /** Konto – savings with interest, safe from losses. */
+  bank: number;
+  loans: Loan[];
+  nextLoanId: number;
   /** Recent bookings, newest last (ring buffer). */
   ledger: LedgerEntry[];
   /** Lifetime totals per category. */
@@ -34,5 +49,5 @@ export interface FinanceState {
 export const START_CASH = 500;
 
 export function createFinanceState(cash = START_CASH): FinanceState {
-  return { cash, ledger: [], totals: {}, days: [], passive: {} };
+  return { cash, bank: 0, loans: [], nextLoanId: 1, ledger: [], totals: {}, days: [], passive: {} };
 }

@@ -365,15 +365,33 @@ interface PaRental { id; label; cost; reach; quality; reliability; powerKw; requ
 // Waren-Items: category 'goods', stats { servings, sellPrice }; Verbrauch pro Gast und Stunde in CONSUMPTION
 ```
 
-## Phase 7 – Finanzen & Merch
+## Phase 7 – Finanzen & Merch ✅
 
 ```ts
-interface Loan { id; principal; ratePerDay; remaining; takenAt }
-interface MerchDesign { id; name; style: string[]; quality; createdAt }
-interface MerchProductDef { id; name; type: 'shirt'|'hoodie'|'cap'|'sticker'|'patch'|'poster'; baseCost; volumeL }
-interface ManufacturerDef { id; name; products: Record<productId, { unitCost; minQty; days; quality }>; requires? }
-interface MerchOrder { id; designId; productId; manufacturerId; qty; readyAt }
-interface BrandState { value: number; affinity: number }
+// finance (erweitert)
+interface FinanceState { /* … */ bank: number; loans: Loan[]; nextLoanId: number }
+interface Loan { id; offerId; label; amount; remaining; perDay; takenAt }
+interface LoanOffer { id; label; amount; total /* inkl. Zinsen */; days; requires? }   // content/finance.ts
+
+// merch
+interface MerchState {
+  designs: MerchDesign[]; orders: MerchOrder[]
+  stock: Record<`${designId}|${productId}`, MerchStock>
+  prices: Record<productId, number>          // fehlt → basePrice
+  brand: number                              // Markenwert
+  shopOpen: boolean; nextId: number
+}
+interface MerchDesign { id; name; motif; quality; createdAt; by: 'self' | personId }
+interface MerchOrder { id; designId; productId; manufacturerId; qty; unitCost; quality; readyAt }
+interface MerchStock { designId; productId; qty; unitCost /* Ø */; quality /* Ø */ }
+interface MerchProductDef { id; name; volumeL; basePrice; appeal }                    // content/merch.ts
+interface ManufacturerDef { id; name; description; quality; minutes; products: Record<productId, { unitCost; minQty }>; personId?; requires? }
+
+// Handel & Lager
+interface TradePartnerDef { personId; factor /* Anteil vom Marktwert */; trust; categories?; note }  // content/trade.ts
+PoiDef.storage.requires?: Condition[]
+EventPlanInput.merch?: boolean               // Merch-Stand
+Condition += { t: 'brand'; gte } | { t: 'bank'; gte }
 ```
 
 ## Phase 8 – Rivalen & Zufallsereignisse

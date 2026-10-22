@@ -183,4 +183,15 @@ export const POIS: readonly PoiDef[] = [
     pos: [30, 270],
     storage: { capacityL: 5000, perDay: 40, deposit: 400 },
   },
+  {
+    id: 'poi.lagerhalle',
+    cityId: C,
+    districtId: 'steinhafen.nordring',
+    kind: 'storage',
+    name: 'Lagerhalle Nordring',
+    description: 'Eine ganze Halle mit Rolltor und Rampe. Für Merch-Paletten, mehrere Anlagen und alles, was eine Firma braucht.',
+    pos: [150, 62],
+    explore: 70,
+    storage: { capacityL: 20000, perDay: 120, deposit: 1500, requires: [{ t: 'rep', gte: 500 }] },
+  },
 ];

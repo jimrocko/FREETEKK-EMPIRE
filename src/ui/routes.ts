@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { Bell, Briefcase, Disc3, Flag, Home, Map as MapIcon, Package, PartyPopper, Users, Settings, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
+import { Bell, Briefcase, Disc3, Flag, Home, Map as MapIcon, Package, PartyPopper, Users, Settings, Shirt, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
 import type { Condition } from '../game/core/types';
 import type { GameState } from '../game/state';
 import { unreadCount } from '../game/core/notify';
@@ -17,6 +17,7 @@ import { NetworkScreen } from './screens/network/NetworkScreen';
 import { StudioScreen } from './screens/studio/StudioScreen';
 import { CrewScreen } from './screens/crew/CrewScreen';
 import { EventsScreen } from './screens/events/EventsScreen';
+import { MerchScreen } from './screens/merch/MerchScreen';
 import { upcomingEvents } from '../game/systems/events/plan';
 import { openMessages, unreadMessages } from '../game/systems/messages/logic';
 
@@ -75,6 +76,7 @@ export const ROUTES: RouteDef[] = [
     group: 'Spiel',
     badge: (s) => upcomingEvents(s).filter((e) => Object.values(e.tasks).includes('open')).length,
   },
+  { path: '/merch', label: 'Merch', icon: Shirt, component: MerchScreen, nav: 'more', group: 'Spiel', requires: [{ t: 'crewFounded' }] },
   { path: '/markt', label: 'Markt', icon: ShoppingBag, component: MarketScreen, nav: 'more', group: 'Spiel' },
   { path: '/inventar', label: 'Inventar', icon: Package, component: InventoryScreen, nav: 'more', group: 'Spiel' },
   { path: '/finanzen', label: 'Finanzen', icon: Wallet, component: FinanceScreen, nav: 'more', group: 'Übersicht' },

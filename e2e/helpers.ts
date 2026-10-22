@@ -1,4 +1,6 @@
 import { expect, type Page } from '@playwright/test';
+import { createInitialState, type GameState } from '../src/game/state';
+import { serializeSave } from '../src/game/save/saveManager';
 
 /** Collects console errors and uncaught exceptions for the whole test. */
 export function trackErrors(page: Page): string[] {
@@ -47,4 +49,24 @@ export async function skipTime(page: Page, ms: number) {
   await page.reload();
   const report = page.getByTestId('offline-continue');
   if (await report.isVisible().catch(() => false)) await report.click();
+}
+
+/**
+ * Starts the app with a prepared save: a fresh game changed by `mutate`.
+ * Used for later phases so tests don't have to replay hours of play.
+ */
+export async function loadGame(page: Page, mutate: (s: GameState) => void) {
+  const now = Date.now();
+  const s = createInitialState({ now, seed: 7, playerName: 'Testi' });
+  mutate(s);
+  const text = serializeSave(s, now);
+  await page.goto('/?debug');
+  await page.evaluate((t) => {
+    localStorage.clear();
+    localStorage.setItem('tekklife.save.main', t);
+  }, text);
+  await page.reload();
+  const report = page.getByTestId('offline-continue');
+  if (await report.isVisible().catch(() => false)) await report.click();
+  await expect(page.getByTestId('screen-dashboard')).toBeVisible();
 }

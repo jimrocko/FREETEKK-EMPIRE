@@ -86,11 +86,19 @@ Legende: ✅ fertig · 🔨 in Arbeit · ⏳ geplant
 
 **Abnahme:** vertikaler Slice als E2E-Test (Job → Spot → Einkauf → Planung → Nacht → Bericht → Reload) ✓; Event-Ergebnis unabhängig von Tick-Größe (Test) ✓; Absage mit Erstattung ✓; Razzien an bekannten illegalen Spots ✓; Mobile ✓.
 
-## Phase 7 – Finanzen, Merch, Lager, Handel ⏳
+## Phase 7 – Finanzen, Merch, Lager, Handel ✅
 
-- Finanzübersicht mit Verlauf, Konto/Kredite, laufende Kosten
-- Merch: Designs, Hersteller, Produktion, Lager, Verkauf auf Events und online
-- Lagerräume mieten, Handel zwischen Connections
+- Konto neben dem Bargeld: Ein-/Auszahlen, 0,05 % Zinsen pro Spieltag, deckt Fixkosten automatisch, wenn das Bargeld nicht reicht
+- Kredite (Klein-, Investitions-, Geschäftskredit) mit Reputations-/Business-Anforderungen, tägliche Raten als Fixkosten, Sondertilgung, höchstens zwei gleichzeitig; Auszahlung zählt nicht als „verdient“
+- Merch (ab gegründeter Crew, eigener Screen `/merch`): Designs selbst zeichnen (Studio-Kanal, Qualität aus Business, Logo und Designer in der Crew) oder bei Design-Kontakten kaufen; drei Hersteller (Online-Druckerei, Fynns Siebdruck ab Vertrauen, Textilfabrik ab Reputation/Business) mit Stückpreisen, Mindestmengen, Qualität und Lieferzeit
+- Lager: Merch belegt Stauraum (Volumen pro Stück), Durchschnittskosten und -qualität je Design/Produkt
+- Verkauf: Merch-Stand auf Events (Nachfrage aus Gästen, Stimmung, Markenwert, Qualität und Preis; Prognose im Planer; „Merch“ und „Merch-Wareneinsatz“ im Bericht), Großhandel an Läden (ab Business 2), Onlineshop (ab Business 3 und 25 verkauften Teilen) mit täglichen Verkäufen auch offline (12-Std-Grenze)
+- Markenwert: wächst mit Events und Verkäufen, verblasst langsam; neue Bedingungen `brand` und `bank`
+- Handel über Kontakte: Lukas (fast alles, 85 %), Marek (Ton/Licht/Strom, 92 %), Kemal (Studio/Gadgets, 88 %) – ab Vertrauen, statt 70 % beim Ankauf
+- Lagerhalle Nordring (20.000 L, ab Reputation 500); Speicher-Anforderungen datengetrieben
+- 8 neue Ziele
+
+**Abnahme:** Unit-Tests für Konto, Zinsen, Kredite (Raten, Tilgung, Limits), Merch (Freischaltung, Designs, Aufträge, Lagerplatz, Preise, Großhandel, Onlineshop), Merch-Stand im Event, Handel, Lagerhalle und alte Spielstände ✓; E2E (iPhone + Desktop): Konto → Kredit → Design → Auftrag → Lieferung → Preis → Handel → Reload ✓.
 
 ## Phase 8 – Welt-Simulation ⏳
 

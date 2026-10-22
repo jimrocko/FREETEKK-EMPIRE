@@ -68,6 +68,10 @@ export function checkCondition(s: GameState, c: Condition): boolean {
       return bestSystem(s, 'reach') >= c.gte;
     case 'systemQuality':
       return bestSystem(s, 'quality') >= c.gte;
+    case 'brand':
+      return s.merch.brand >= c.gte;
+    case 'bank':
+      return s.finance.bank >= c.gte;
     case 'all':
       return c.of.every((x) => checkCondition(s, x));
     case 'any':
@@ -173,6 +177,10 @@ export function describeCondition(c: Condition): string {
       return `Soundsystem für ${fmtN(c.gte)} Leute`;
     case 'systemQuality':
       return `Soundsystem-Qualität ${c.gte}`;
+    case 'brand':
+      return `Markenwert ${fmtN(c.gte)}`;
+    case 'bank':
+      return `${fmtN(c.gte)} € auf dem Konto`;
     case 'all':
       return c.of.map(describeCondition).join(' und ');
     case 'any':
@@ -228,6 +236,10 @@ export function conditionProgress(s: GameState, c: Condition): ConditionProgress
       return { current: bestSystem(s, 'reach'), target: c.gte };
     case 'systemQuality':
       return { current: bestSystem(s, 'quality'), target: c.gte };
+    case 'brand':
+      return { current: Math.floor(s.merch.brand), target: c.gte };
+    case 'bank':
+      return { current: Math.floor(s.finance.bank), target: c.gte };
     case 'trust':
       return { current: Math.floor(s.people.people[c.person]?.trust ?? 0), target: c.gte };
     default:

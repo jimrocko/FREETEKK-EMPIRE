@@ -177,7 +177,7 @@ export interface PoiDef {
   /** Shop id this place sells under. */
   shopId?: string;
   visit?: PoiVisit;
-  storage?: { capacityL: number; perDay: number; deposit: number };
+  storage?: { capacityL: number; perDay: number; deposit: number; requires?: Condition[] };
 }
 
 export interface ShopDef {

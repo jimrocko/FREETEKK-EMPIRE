@@ -26,6 +26,7 @@ import { transportCapacity } from '../../../game/systems/transport/logic';
 import { countItem } from '../../../game/systems/inventory/logic';
 import { LEGALITY_LABELS, daysSinceCheck, knownSpots, statView } from '../../../game/systems/spots/logic';
 import { displayName } from '../../../game/systems/people/logic';
+import { totalPieces } from '../../../game/systems/merch/logic';
 import { ActionButton } from '../../components/ActionButton';
 import { Banner, Button, Card, CardHead, EmptyState } from '../../components/ui';
 import { navigate } from '../../router';
@@ -63,6 +64,7 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
   const [helpers, setHelpers] = useState(0);
   const [awareness, setAwareness] = useState(false);
   const [medics, setMedics] = useState(false);
+  const [merch, setMerch] = useState(() => totalPieces(s) > 0);
   const [name, setName] = useState(`Party #${s.events.list.length + 1}`);
 
   if (spots.length === 0) {
@@ -94,6 +96,7 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
     helpers,
     awareness,
     medics,
+    merch: merch && totalPieces(s) > 0,
   };
   const f = forecast(s, plan);
   const upfront = upfrontCosts(s, plan).reduce((sum, c) => sum + c.amount, 0);
@@ -310,6 +313,12 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
           <p className="tiny faint" style={{ marginTop: 6 }}>
             Faustregel: eine helfende Person pro 60 Gäste – Crew zählt mit.
           </p>
+          {s.crew.founded && (
+            <label className="row small" style={{ marginTop: 8 }}>
+              <input type="checkbox" checked={plan.merch === true} disabled={totalPieces(s) === 0} onChange={() => setMerch(!merch)} style={{ width: 22, minHeight: 22 }} data-testid="plan-merch" /> Merch-Stand (
+              {totalPieces(s) === 0 ? 'kein Merch auf Lager' : `${fmtNumber(totalPieces(s))} Teile`})
+            </label>
+          )}
         </Card>
 
         <Card accent testId="forecast">
@@ -331,6 +340,12 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
               <dl className="kv">
                 <dt>Einnahmen (geschätzt)</dt>
                 <dd>{fmtMoney(f.revenue)}</dd>
+                {f.merchRevenue > 0 && (
+                  <>
+                    <dt>davon Merch</dt>
+                    <dd>{fmtMoney(f.merchRevenue)}</dd>
+                  </>
+                )}
                 <dt>Vorkosten (jetzt)</dt>
                 <dd>−{fmtMoney(upfront)}</dd>
                 <dt>Gagen (danach)</dt>

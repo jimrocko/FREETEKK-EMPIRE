@@ -50,6 +50,8 @@ export type Condition =
   | { t: 'crewSize'; gte: number }
   | { t: 'systemReach'; gte: number }
   | { t: 'systemQuality'; gte: number }
+  | { t: 'brand'; gte: number }
+  | { t: 'bank'; gte: number }
   | { t: 'channelFree'; channel: ActivityChannel }
   | { t: 'all'; of: Condition[] }
   | { t: 'any'; of: Condition[] }

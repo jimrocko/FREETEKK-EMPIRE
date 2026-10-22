@@ -14,7 +14,8 @@ Mobile-first Web-App (React + TypeScript), läuft komplett im Browser, speichert
 | 4 | Geräte-Verschleiß & Reparatur, Studio mit 7 Genres, Tracks, Streams, Tracks an DJs | ✅ |
 | 5 | PA-Katalog, Soundsystem-Builder, Fahrzeuge & Mietwagen, Crew mit Gagen, Stimmung und Delegation | ✅ |
 | 6 | Event-Planer mit Prognose, Vorbereitung, Simulation der Nacht, ausführlicher Bericht, Versorgung – **vertikaler Slice komplett** | ✅ |
-| 7–10 | Finanzen & Merch, Rivalen & Zufallsereignisse, Städte & Endgame, Feinschliff | siehe [Roadmap](docs/04-roadmap.md) |
+| 7 | Konto mit Zinsen, Kredite, Merch (Designs, Hersteller, Lager, Stand, Großhandel, Onlineshop, Markenwert), Handel über Kontakte, Lagerhalle | ✅ |
+| 8–10 | Rivalen & Zufallsereignisse, Städte & Endgame, Feinschliff | siehe [Roadmap](docs/04-roadmap.md) |
 
 ## Schnellstart
 

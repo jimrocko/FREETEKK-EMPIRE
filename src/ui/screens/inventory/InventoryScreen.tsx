@@ -2,12 +2,14 @@ import { useMemo, useState } from 'react';
 import { Archive, Lock, PackageOpen } from 'lucide-react';
 import { useGameState } from '../../../app/store';
 import { fmtDuration, fmtMoney, fmtNumber } from '../../../game/core/format';
-import { itemDef } from '../../../game/content/registry';
+import { PERSONS_BY_ID, itemDef } from '../../../game/content/registry';
 import type { ItemCategory } from '../../../game/content/types';
 import { LISTING_PRESETS } from '../../../game/content/market';
 import type { ItemInstance } from '../../../game/systems/inventory/state';
-import { RARITY_LABELS, dealerPrice, inventoryValue, ownedItems, resaleValue, storageCapacity, usedVolume } from '../../../game/systems/inventory/logic';
-import { sellToDealer } from '../../../game/systems/inventory/actions';
+import { RARITY_LABELS, dealerPrice, inventoryValue, partnerPrice, ownedItems, resaleValue, storageCapacity, usedVolume } from '../../../game/systems/inventory/logic';
+import { sellToContact, sellToDealer } from '../../../game/systems/inventory/actions';
+import { TRADE_PARTNERS } from '../../../game/content/trade';
+import { knowsPerson, shortName } from '../../../game/systems/people/logic';
 import { createListing, listingPrice } from '../../../game/systems/market/actions';
 import { listingBonus } from '../../../game/systems/market/logic';
 import { ActionButton } from '../../components/ActionButton';
@@ -99,6 +101,12 @@ function ItemDetail({ item, onClose }: { item: ItemInstance; onClose: () => void
               ))}
             </div>
           </div>
+          {def.category !== 'goods' &&
+            TRADE_PARTNERS.filter((t) => knowsPerson(s, t.personId) && (!t.categories || t.categories.includes(def.category))).map((t) => (
+              <ActionButton key={t.personId} action={sellToContact} payload={{ uid: item.uid, personId: t.personId }} block onDone={onClose} testId={`sell-contact-${t.personId}`}>
+                An {shortName(PERSONS_BY_ID.get(t.personId)!)}: {fmtMoney(partnerPrice(s, item, t.personId) * item.qty)}
+              </ActionButton>
+            ))}
           <ActionButton action={sellToDealer} payload={{ uid: item.uid }} variant="danger" block onDone={onClose} testId="sell-dealer">
             Sofort an Ankauf: {fmtMoney(dealerPrice(def, item.condition, item.broken) * item.qty)}
           </ActionButton>

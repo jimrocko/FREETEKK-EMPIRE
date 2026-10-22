@@ -136,6 +136,22 @@ export function chargeDailyCosts(d: GameState, lines: readonly CostLine[]): numb
   return total;
 }
 
+/** Interest is credited to the account, not to cash. */
+export function creditBank(d: GameState, amount: number, label: string): void {
+  const value = roundMoney(amount);
+  if (value <= 0) return;
+  d.finance.bank = roundMoney(d.finance.bank + value);
+  book(d, value, 'other', label);
+  incStat(d, 'moneyEarned', value);
+}
+
+/** Loan payout: money in, but not counted as earned. */
+export function receiveLoan(d: GameState, amount: number, label: string): void {
+  const value = roundMoney(amount);
+  d.finance.cash += value;
+  book(d, value, 'other', label);
+}
+
 /** Debug helper (only reachable from the developer panel). */
 export function debugGrant(d: GameState, amount: number): void {
   earn(d, amount, 'other', 'Entwickler-Geld');

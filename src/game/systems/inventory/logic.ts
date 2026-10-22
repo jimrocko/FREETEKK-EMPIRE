@@ -3,6 +3,8 @@ import type { Reason } from '../../core/types';
 import type { ItemDef, Rarity } from '../../content/types';
 import { ITEMS, POIS_BY_ID, homeDef, itemDef } from '../../content/registry';
 import { fmtNumber, roundMoney } from '../../core/format';
+import { MERCH_PRODUCTS } from '../../content/merch';
+import { TRADE_PARTNERS } from '../../content/trade';
 import type { ItemInstance } from './state';
 
 const RARITY_VALUE: Record<Rarity, number> = { common: 1, uncommon: 1.15, rare: 1.4, legendary: 2 };
@@ -23,6 +25,12 @@ export function resaleValue(def: ItemDef, condition: number, broken = false): nu
 /** What the second-hand dealer pays instantly per unit. */
 export function dealerPrice(def: ItemDef, condition: number, broken = false): number {
   return roundMoney(resaleValue(def, condition, broken) * 0.7);
+}
+
+/** What a trade contact pays per unit (see content/trade.ts). */
+export function partnerPrice(_s: GameState, it: ItemInstance, personId: string): number {
+  const partner = TRADE_PARTNERS.find((x) => x.personId === personId);
+  return roundMoney(resaleValue(itemDef(it.defId), it.condition, it.broken) * (partner?.factor ?? 0.7));
 }
 
 export function getItem(s: GameState, uid: string): ItemInstance | undefined {
@@ -47,9 +55,10 @@ export function countTag(s: GameState, tag: string): number {
   return n;
 }
 
-/** Storage used at home and in rented space. Vehicles are parked outside. */
+/** Storage used at home and in rented space. Vehicles are parked outside; merch stock counts too. */
 export function usedVolume(s: GameState): number {
   let v = 0;
+  for (const st of Object.values(s.merch.stock)) v += st.qty * (MERCH_PRODUCTS.find((p) => p.id === st.productId)?.volumeL ?? 0);
   for (const it of Object.values(s.inventory.items)) {
     const def = ITEMS.get(it.defId);
     if (def && def.category !== 'vehicle') v += def.volumeL * it.qty;

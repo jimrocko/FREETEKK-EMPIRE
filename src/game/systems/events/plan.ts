@@ -16,6 +16,7 @@ import { knowsPerson, shortName } from '../people/logic';
 import { daysSinceCheck } from '../spots/logic';
 import { doneTracks } from '../music/logic';
 import { skillLevel } from '../progression/logic';
+import { stockLoad, totalPieces } from '../merch/logic';
 import type { EventPlanInput, GameEvent } from './state';
 
 export const DJ_ROLES = ['dj', 'producer', 'artist'];
@@ -186,7 +187,8 @@ export function upfrontCosts(s: GameState, plan: EventPlanInput): CostLineItem[]
 export function transportLoad(s: GameState, plan: EventPlanInput): { volumeL: number; weightKg: number } {
   const goods = goodsLoad(s, plan);
   const sound = soundSummary(s, plan);
-  return { volumeL: goods.volumeL + (sound?.volumeL ?? 0), weightKg: goods.weightKg + (sound?.weightKg ?? 0) };
+  const merch = plan.merch ? stockLoad(s) : { volumeL: 0, weightKg: 0 };
+  return { volumeL: goods.volumeL + (sound?.volumeL ?? 0) + merch.volumeL, weightKg: goods.weightKg + (sound?.weightKg ?? 0) + merch.weightKg };
 }
 
 export function eventTasksFor(s: GameState, plan: EventPlanInput): Record<string, 'open' | 'done'> {
@@ -244,6 +246,7 @@ export function planReason(s: GameState, plan: EventPlanInput): Reason {
     if (!(price >= 0 && price <= 20)) return 'Preise zwischen 0 und 20 €.';
   }
   if (plan.helpers < 0 || plan.helpers > 20) return 'Höchstens 20 Helfer.';
+  if (plan.merch && totalPieces(s) === 0) return 'Für einen Merch-Stand fehlt Ware – erst produzieren lassen.';
   const load = transportLoad(s, plan);
   if (load.volumeL > 0) {
     if (plan.transport === 'own') {

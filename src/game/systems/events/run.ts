@@ -13,6 +13,7 @@ import { findSystem } from '../sound/logic';
 import { wearItem } from '../equipment/logic';
 import { removeItem } from '../inventory/logic';
 import { effectiveStats } from '../spots/logic';
+import { addBrand, standSales } from '../merch/logic';
 import { canPlaySelf, soundSummary, spotName } from './plan';
 import {
   demandFor,
@@ -235,6 +236,22 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
     }
   }
   if (goodsCost > 0) costs['Wareneinsatz'] = Math.round(goodsCost);
+
+  // Merch stand (pieces were paid when ordered – their cost shows as "Merch-Wareneinsatz").
+  if (ev.merch) {
+    const stand = standSales(d, visitors, scores.mood, share, roll);
+    for (const [key, n] of Object.entries(stand.sold)) d.merch.stock[key].qty -= n;
+    if (stand.pieces > 0) {
+      revenue['Merch'] = Math.round(stand.revenue);
+      costs['Merch-Wareneinsatz'] = Math.round(stand.cost);
+      earn(d, stand.revenue, 'merch', `Merch-Stand: ${ev.name}`);
+      incStat(d, 'merchSold', stand.pieces);
+      addBrand(d, stand.pieces * 0.02);
+      highlights.push(`${fmtNumber(stand.pieces)} Merch-Teile verkauft.`);
+    }
+  }
+  // Every good night makes the crew's name stronger.
+  if (d.crew.founded) addBrand(d, Math.sqrt(visitors) * (scores.mood / 100) * 0.25);
   const totalRevenue = Object.values(revenue).reduce((a, b) => a + b, 0);
   const totalCosts = Object.values(costs).reduce((a, b) => a + b, 0);
   const profit = totalRevenue - totalCosts;

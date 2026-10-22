@@ -1,3 +1,4 @@
+import { requirementReason } from '../../core/conditions';
 import { defineAction } from '../../core/actions';
 import { minutes } from '../../core/time';
 import { fmtMoney } from '../../core/format';
@@ -82,7 +83,7 @@ export const rentStorage = defineAction<{ poiId: string }>({
     if (!def?.storage) return 'Hier gibt es nichts zu mieten.';
     if (!isPoiKnown(s, def.id)) return 'Ort ist noch unbekannt.';
     if (s.map.rentals[def.id]) return 'Schon gemietet.';
-    return moneyReason(s, def.storage.deposit + def.storage.perDay);
+    return requirementReason(s, def.storage.requires) ?? moneyReason(s, def.storage.deposit + def.storage.perDay);
   },
   run: (d, p) => {
     const def = poiDef(p.poiId);

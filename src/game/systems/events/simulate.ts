@@ -7,6 +7,7 @@ import { skillLevel } from '../progression/logic';
 import { activeMembers } from '../crew/logic';
 import { effectiveStats } from '../spots/logic';
 import { doneTracks } from '../music/logic';
+import { standSales } from '../merch/logic';
 import { networkSize } from './util';
 import { dayFactor, goodsLoad, soundSummary, type SoundSummary } from './plan';
 import type { EventPlanInput, EventScores, Weather } from './state';
@@ -204,6 +205,8 @@ export interface Forecast {
   supplyCoverage: number;
   /** Chance that at least one booked DJ does not show up. */
   noShowRisk: number;
+  /** Expected merch stand revenue (0 without stand). */
+  merchRevenue: number;
 }
 
 export function powerAvailable(s: GameState, plan: EventPlanInput, sound: SoundSummary): boolean {
@@ -252,6 +255,7 @@ export function forecast(s: GameState, plan: EventPlanInput): Forecast | null {
     half,
   );
   const entryRevenue = plan.entry > 0 ? visitors * plan.entry * 0.92 : visitors * 1.8 * (scores.mood / 100);
+  const merchRevenue = plan.merch ? standSales(s, visitors, scores.mood, 1).revenue : 0;
   const fees = plan.lineup.reduce((sum, id) => sum + (id === 'self' ? 0 : performerFeeSafe(s, id)), 0);
   return {
     demand,
@@ -260,13 +264,14 @@ export function forecast(s: GameState, plan: EventPlanInput): Forecast | null {
     sound,
     powerOk,
     mood: scores.mood,
-    revenue: Math.round(entryRevenue + supply.revenue),
+    revenue: Math.round(entryRevenue + supply.revenue + merchRevenue),
     costs: fees,
     policeRisk: policeRisk(s, plan, visitors),
     failureRisk: Math.max(0, (100 - sound.reliability) / 120),
     weatherRisk: spot.stats.weather > 50,
     supplyCoverage: Object.keys(plan.prices).length > 0 ? supply.coverage : 0,
     noShowRisk: 1 - performers(s, plan.lineup).reduce((p, x) => p * (x.id === 'self' ? 1 : 1 - (100 - x.reliability) / 300), 1),
+    merchRevenue: Math.round(merchRevenue),
   };
 }
 

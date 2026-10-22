@@ -20,6 +20,8 @@ export interface EventPlanInput {
   helpers: number;
   awareness: boolean;
   medics: boolean;
+  /** Bring the merch stock and run a stand. */
+  merch?: boolean;
 }
 
 export type TaskStatus = 'open' | 'running' | 'done';

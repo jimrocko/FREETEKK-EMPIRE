@@ -15,6 +15,9 @@ import { RUMORS } from './rumors';
 import { PEOPLE } from './people';
 import { MESSAGE_TEMPLATES } from './messages';
 import { TEMPLATES_BY_ID, PERSONS_BY_ID } from './registry';
+import { MANUFACTURERS, MERCH_PRODUCTS } from './merch';
+import { TRADE_PARTNERS } from './trade';
+import { LOAN_OFFERS } from './finance';
 
 /** Ray casting point-in-polygon test. */
 export function pointInPolygon([x, y]: [number, number], poly: [number, number][]): boolean {
@@ -204,6 +207,20 @@ export function validateContent(): string[] {
     }
   }
   for (const t of MESSAGE_TEMPLATES) if (t.followUpOnly && !followUps.has(t.id)) problems.push(`${t.id}: Folge-Nachricht wird nie ausgelöst`);
+  checkUnique('merch', MERCH_PRODUCTS);
+  checkUnique('manufacturer', MANUFACTURERS);
+  checkUnique('loan', LOAN_OFFERS);
+  for (const m of MANUFACTURERS) {
+    if (m.personId && !PERSONS_BY_ID.has(m.personId)) problems.push(`${m.id}: unbekannte Person ${m.personId}`);
+    for (const pid of Object.keys(m.products)) if (!MERCH_PRODUCTS.some((p) => p.id === pid)) problems.push(`${m.id}: unbekanntes Produkt ${pid}`);
+    m.requires?.forEach((c) => checkCondition(m.id, c));
+  }
+  for (const t of TRADE_PARTNERS) if (!PERSONS_BY_ID.has(t.personId)) problems.push(`Handel: unbekannte Person ${t.personId}`);
+  for (const l of LOAN_OFFERS) {
+    if (l.total < l.amount) problems.push(`${l.id}: Rückzahlung kleiner als Kredit`);
+    l.requires?.forEach((c) => checkCondition(l.id, c));
+  }
+  for (const poi of POIS) poi.storage?.requires?.forEach((c) => checkCondition(poi.id, c));
   for (let i = 1; i < REP_TIERS.length; i++) {
     if (REP_TIERS[i].min <= REP_TIERS[i - 1].min) problems.push(`Reputation-Stufen nicht aufsteigend bei ${REP_TIERS[i].id}`);
   }
