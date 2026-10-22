@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { Bell, Briefcase, Disc3, Flag, Home, Map as MapIcon, Package, Users, Settings, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
+import { Bell, Briefcase, Disc3, Flag, Home, Map as MapIcon, Package, PartyPopper, Users, Settings, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
 import type { Condition } from '../game/core/types';
 import type { GameState } from '../game/state';
 import { unreadCount } from '../game/core/notify';
@@ -16,6 +16,8 @@ import { MapScreen } from './screens/map/MapScreen';
 import { NetworkScreen } from './screens/network/NetworkScreen';
 import { StudioScreen } from './screens/studio/StudioScreen';
 import { CrewScreen } from './screens/crew/CrewScreen';
+import { EventsScreen } from './screens/events/EventsScreen';
+import { upcomingEvents } from '../game/systems/events/plan';
 import { openMessages, unreadMessages } from '../game/systems/messages/logic';
 
 export interface RouteDef {
@@ -64,7 +66,16 @@ export const ROUTES: RouteDef[] = [
       },
     ],
   },
-  { path: '/markt', label: 'Markt', icon: ShoppingBag, component: MarketScreen, nav: 'primary', group: 'Spiel' },
+  {
+    path: '/events',
+    label: 'Events',
+    icon: PartyPopper,
+    component: EventsScreen,
+    nav: 'primary',
+    group: 'Spiel',
+    badge: (s) => upcomingEvents(s).filter((e) => Object.values(e.tasks).includes('open')).length,
+  },
+  { path: '/markt', label: 'Markt', icon: ShoppingBag, component: MarketScreen, nav: 'more', group: 'Spiel' },
   { path: '/inventar', label: 'Inventar', icon: Package, component: InventoryScreen, nav: 'more', group: 'Spiel' },
   { path: '/finanzen', label: 'Finanzen', icon: Wallet, component: FinanceScreen, nav: 'more', group: 'Übersicht' },
   { path: '/fortschritt', label: 'Fortschritt', icon: Trophy, component: ProgressScreen, nav: 'more', group: 'Übersicht' },

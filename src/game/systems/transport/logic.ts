@@ -10,12 +10,16 @@ export interface VehicleInfo {
   condition: number;
 }
 
-/** Owned (working) vehicles and active rentals. */
+/** What you can carry without any vehicle (a few crates, a bag). */
+export const HAND_CARRY = { volumeL: 60, weightKg: 40 };
+
+/** Owned (working) vehicles incl. cargo bikes, and active rentals. */
 export function vehicles(s: GameState): VehicleInfo[] {
   const out: VehicleInfo[] = [];
   for (const it of Object.values(s.inventory.items)) {
     const def = ITEMS.get(it.defId);
-    if (def?.category === 'vehicle' && !it.broken && !it.locked) out.push({ key: it.uid, def, rented: false, condition: it.condition });
+    const carries = def?.category === 'vehicle' || def?.tags?.includes('transport');
+    if (def && carries && !it.broken && !it.locked) out.push({ key: it.uid, def, rented: false, condition: it.condition });
   }
   for (const r of s.transport.rentals) {
     const def = ITEMS.get(r.defId);
@@ -31,8 +35,8 @@ export interface TransportCapacity {
 }
 
 export function transportCapacity(s: GameState): TransportCapacity {
-  let volumeL = 0;
-  let weightKg = 0;
+  let volumeL = HAND_CARRY.volumeL;
+  let weightKg = HAND_CARRY.weightKg;
   const list = vehicles(s);
   for (const v of list) {
     volumeL += v.def.stats?.capacityL ?? 0;

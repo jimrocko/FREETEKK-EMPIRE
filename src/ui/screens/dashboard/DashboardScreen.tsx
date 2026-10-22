@@ -12,6 +12,8 @@ import { personDef } from '../../../game/content/registry';
 import { displayName } from '../../../game/systems/people/logic';
 import { fmtCountdown } from '../../../game/core/format';
 import { Avatar } from '../network/Avatar';
+import { upcomingEvents } from '../../../game/systems/events/plan';
+import { EventCard } from '../events/EventsScreen';
 import { activeGoals } from '../../../game/systems/goals/logic';
 import { jobListings } from '../../../game/systems/jobs/logic';
 import { startJob } from '../../../game/systems/jobs/actions';
@@ -41,6 +43,7 @@ export function DashboardScreen() {
   const spotsKnown = knownSpots(s).length;
   const rumorsOpen = openRumors(s).length;
   const decisions = openMessages(s);
+  const events = upcomingEvents(s);
 
   return (
     <div className="page" data-testid="screen-dashboard">
@@ -110,6 +113,8 @@ export function DashboardScreen() {
               </div>
             </Card>
           )}
+
+          {events.length > 0 && events.slice(0, 2).map((ev) => <EventCard key={ev.id} ev={ev} />)}
 
           <Card className="card--flush" testId="card-activities">
             <div style={{ padding: '16px 16px 0' }}>

@@ -73,12 +73,18 @@ Legende: ✅ fertig · 🔨 in Arbeit · ⏳ geplant
 
 **Abnahme:** Systemwerte reagieren korrekt auf Endstufen/Kabel/Controller/Defekte (Tests) ✓; Crew-Gagen und Weggang ohne Geld (Test) ✓; Fahrzeuge und Mieten (Tests) ✓; Mobile ✓.
 
-## Phase 6 – Events, Locations, Versorgung ⏳ (vertikaler Slice komplett)
+## Phase 6 – Events, Locations, Versorgung ✅ (vertikaler Slice komplett)
 
-- Event-Planer (Spot, Nacht, Dauer, Eintritt, Lineup, System, Crew, Transport, Versorgung, Werbung)
-- Vorbereitungsaufgaben mit Timern, delegierbar
-- Event-Simulation und ausführlicher Bericht (Besucher, Einnahmen, Kosten, Stimmung, Sound, Organisation, neue Connections/Möglichkeiten)
-- Lieferanten, Preise, Mengen, Lagerbestand
+- Event-Planer: Spot, eine der nächsten sieben Nächte (Wochenende ★), Dauer 4–12 Std, Eintritt oder Spendenbasis, Line-up (eigene Sets, DJ-Kontakte mit Bekanntheit/Zuverlässigkeit/Gage; bekannte DJs erst ab Reputation), eigenes Soundsystem oder Verleih-PA, Transport (selbst/Mietwagen nach Ladung), Werbung (Mundpropaganda, Flyer, Social Media, Infoline, Stadtmagazin), Bar mit eigenen Preisen oder Wasser umsonst, Helfer, Awareness, Sanitäter
+- Live-Prognose: Nachfrage vs. Kapazität, Stimmung, Einnahmen, Vorkosten, Gagen, Ergebnis, Risiken (Polizei, Technik, Wetter, DJ-Ausfall), Warnungen (Strom, Anlage zu klein, Getränke reichen nicht)
+- Vorbereitungsaufgaben im Kanal „Event-Vorbereitung“: Spot checken, Flyer verteilen, Line-up bestätigen – unerledigt mit Folgen
+- Die Nacht läuft als Ereignis (auch offline): Wetter, Polizei (Legalität, Bekanntheit, Werbung, Lärm, Security), Technik-Ausfall (Zuverlässigkeit), Stromprobleme, DJ-Ausfall (du springst ein, sonst Handy-Playlist), ausverkauft, Getränke alle
+- Ausführlicher Bericht: Besucher/Nachfrage, Einnahmen (Eintritt/Spenden, Bar), Kosten inkl. Wareneinsatz, Gewinn, sieben Werte (Stimmung, Sound, Line-up, Location, Organisation, Versorgung, Sicherheit), Zwischenfälle, Highlights, Reputation, XP, neue Kontakte
+- Folgen: Spot-Bekanntheit steigt (→ Absperrungen), Ausrüstung nutzt sich ab, Crew-Stimmung, Beziehungen zu DJs
+- Versorgung: Waren (Wasser, Mate, Bier, Softdrinks, Snacks) bei Discounter, Kemals Späti (ab Vertrauen) und Großhandel Rita (Mindestmenge, Lieferung)
+- 11 neue Ziele
+
+**Abnahme:** vertikaler Slice als E2E-Test (Job → Spot → Einkauf → Planung → Nacht → Bericht → Reload) ✓; Event-Ergebnis unabhängig von Tick-Größe (Test) ✓; Absage mit Erstattung ✓; Razzien an bekannten illegalen Spots ✓; Mobile ✓.
 
 ## Phase 7 – Finanzen, Merch, Lager, Handel ⏳
 

@@ -110,7 +110,7 @@ describe('vehicles', () => {
     const before = usedVolume(s);
     addItem(s, 'item.van-sprinter');
     expect(usedVolume(s)).toBe(before);
-    expect(transportCapacity(s).volumeL).toBe(9000);
+    expect(transportCapacity(s).volumeL).toBe(9060);
     expect(mobilityFactor(s)).toBeLessThan(1);
     expect(storageCapacity(s)).toBe(400);
   });

@@ -12,6 +12,7 @@ import { musicSystem } from './systems/music/system';
 import { crewSystem } from './systems/crew/system';
 import { soundSystem } from './systems/sound/system';
 import { transportSystem } from './systems/transport/system';
+import { eventsSystem } from './systems/events/system';
 
 /**
  * All simulation systems in processing order.
@@ -29,6 +30,7 @@ export const SYSTEMS: readonly GameSystem[] = [
   crewSystem,
   soundSystem,
   transportSystem,
+  eventsSystem,
   marketSystem,
   goalsSystem,
 ];

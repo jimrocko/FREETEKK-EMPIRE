@@ -13,7 +13,8 @@ Mobile-first Web-App (React + TypeScript), läuft komplett im Browser, speichert
 | 3 | 28 Personen, Vertrauen & Stimmung, Treffen, Vorstellungen, Netzwerk-Graph, Nachrichten mit Entscheidungen | ✅ |
 | 4 | Geräte-Verschleiß & Reparatur, Studio mit 7 Genres, Tracks, Streams, Tracks an DJs | ✅ |
 | 5 | PA-Katalog, Soundsystem-Builder, Fahrzeuge & Mietwagen, Crew mit Gagen, Stimmung und Delegation | ✅ |
-| 6–10 | Events, Versorgung, Merch, Rivalen, Städte, Endgame | siehe [Roadmap](docs/04-roadmap.md) |
+| 6 | Event-Planer mit Prognose, Vorbereitung, Simulation der Nacht, ausführlicher Bericht, Versorgung – **vertikaler Slice komplett** | ✅ |
+| 7–10 | Finanzen & Merch, Rivalen & Zufallsereignisse, Städte & Endgame, Feinschliff | siehe [Roadmap](docs/04-roadmap.md) |
 
 ## Schnellstart
 

@@ -7,6 +7,7 @@ import { meetupHandler } from '../people/handlers';
 import { taskHandler } from './taskHandler';
 import { repairHandler } from '../equipment/handler';
 import { produceHandler } from '../music/handler';
+import { eventTaskHandler } from '../events/handlers';
 
 /** Registry: activity kind → completion handler. New systems register here. */
 export const ACTIVITY_HANDLERS: Record<string, ActivityHandler> = {
@@ -20,4 +21,5 @@ export const ACTIVITY_HANDLERS: Record<string, ActivityHandler> = {
   task: taskHandler,
   repair: repairHandler,
   produce: produceHandler,
+  'event-task': eventTaskHandler,
 };

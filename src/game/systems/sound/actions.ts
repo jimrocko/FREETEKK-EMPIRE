@@ -2,6 +2,13 @@ import { defineAction } from '../../core/actions';
 import { ITEMS } from '../../content/registry';
 import { incStat } from '../progression/logic';
 import { availableParts, findSystem, isSystemPart } from './logic';
+import type { GameState } from '../../state';
+
+/** A system that is playing right now cannot be changed. */
+function inUseReason(s: GameState, systemId: string): string | null {
+  const ev = s.events.list.find((e) => e.status === 'running' && e.sound.kind === 'own' && e.sound.systemId === systemId);
+  return ev ? `Läuft gerade auf „${ev.name}“.` : null;
+}
 
 export const MAX_SYSTEMS = 6;
 
@@ -36,7 +43,7 @@ export const addPart = defineAction<{ systemId: string; uid: string }>({
 
 export const removePart = defineAction<{ systemId: string; uid: string }>({
   id: 'sound.remove',
-  check: (s, p) => (findSystem(s, p.systemId)?.components.includes(p.uid) ? null : 'Nicht im System.'),
+  check: (s, p) => (findSystem(s, p.systemId)?.components.includes(p.uid) ? inUseReason(s, p.systemId) : 'Nicht im System.'),
   run: (d, p) => {
     const sys = findSystem(d, p.systemId)!;
     sys.components = sys.components.filter((x) => x !== p.uid);
@@ -45,7 +52,7 @@ export const removePart = defineAction<{ systemId: string; uid: string }>({
 
 export const deleteSystem = defineAction<{ systemId: string }>({
   id: 'sound.delete',
-  check: (s, p) => (findSystem(s, p.systemId) ? null : 'System nicht gefunden.'),
+  check: (s, p) => (findSystem(s, p.systemId) ? inUseReason(s, p.systemId) : 'System nicht gefunden.'),
   run: (d, p) => {
     d.sound.systems = d.sound.systems.filter((x) => x.id !== p.systemId);
     return 'System aufgelöst – die Teile liegen wieder im Lager.';

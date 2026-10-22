@@ -339,23 +339,30 @@ interface TransportState { rentals: VehicleRental[]; nextId }
 ## Phase 6 – Events & Versorgung
 
 ```ts
-interface EventPlan {
-  id; name; spotId; startsAt; durationH; entry: number
-  lineup: { personId | 'self'; slot }[]; soundSystemId | rentalId
-  crew: string[]; vehicles: string[]
-  supply: Record<goodsId, { qty; price }>
-  promo: Record<promoId, number>; merch: Record<itemUid, price>
+interface EventPlanInput {
+  name; spotId; startsAt /* 22:00 Spielzeit */; durationH; entry
+  lineup: (personId | 'self')[]
+  sound: { kind: 'own'; systemId } | { kind: 'rental'; optionId }
+  transport: 'own' | 'rent'
+  promo: promoChannelId[]
+  prices: Record<goodsItemId, number>       // mitgenommene Waren + Preis pro Portion
+  freeWater; helpers; awareness; medics
+}
+interface GameEvent extends EventPlanInput {
+  id; createdAt; status: 'scheduled'|'running'|'done'|'cancelled'
   tasks: Record<taskId, 'open'|'running'|'done'>
-  status: 'planning'|'scheduled'|'running'|'done'|'cancelled'
+  paid: Record<label, €>                     // Vorkosten
+  endsAt?; weather?; report?: EventReport; cancelReason?
 }
-
 interface EventReport {
-  eventId; visitors; revenue: { entry; bar; merch }; costs: Record<string, number>; profit
-  mood; sound; organisation; supply; safety; incidents: string[]
-  rep; xp: Partial<Record<SkillId, number>>; newPeople: string[]; unlocks: string[]
+  visitors; demand; revenue: Record<label, €>; costs: Record<label, €>; profit
+  scores: { mood; sound; lineup; location; organisation; supply; safety }
+  incidents: string[]; highlights: string[]; rep; xp; newPeople: string[]; played: string[]; weather; hoursPlayed
 }
-
-interface SupplierDef { id; name; goods: Record<goodsId, price>; minOrder; delivery?: number; requires?: Condition[] }
+interface SupplierDef { id; name; priceFactor; minOrder; maxOrder; deliveryFee; personId?; requires? }
+interface PromoChannel { id; label; cost; reach; heat /* Polizei */; fame; task?; requires? }
+interface PaRental { id; label; cost; reach; quality; reliability; powerKw; requires? }
+// Waren-Items: category 'goods', stats { servings, sellPrice }; Verbrauch pro Gast und Stunde in CONSUMPTION
 ```
 
 ## Phase 7 – Finanzen & Merch

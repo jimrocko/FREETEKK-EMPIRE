@@ -109,7 +109,7 @@ export function validateContent(): string[] {
     if (it.quality < 0 || it.quality > 100) problems.push(`${it.id}: Qualität außerhalb 0–100`);
     if (!(it.volumeL > 0) && it.category !== 'vehicle') problems.push(`${it.id}: Volumen muss > 0 sein`);
     if (!(it.weightKg > 0)) problems.push(`${it.id}: Gewicht muss > 0 sein`);
-    if (!it.shops?.length && !it.usedMarket) problems.push(`${it.id}: weder im Shop noch auf dem Gebrauchtmarkt`);
+    if (!it.shops?.length && !it.usedMarket && it.category !== 'goods') problems.push(`${it.id}: weder im Shop noch auf dem Gebrauchtmarkt`);
     for (const shop of it.shops ?? []) if (!SHOPS_BY_ID.has(shop)) problems.push(`${it.id}: unbekannter Laden ${shop}`);
   }
   for (const job of JOBS) {

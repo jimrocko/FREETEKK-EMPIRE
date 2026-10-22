@@ -15,6 +15,7 @@ import { createMusicState, type MusicState } from './systems/music/state';
 import { createCrewState, type CrewState } from './systems/crew/state';
 import { createSoundState, type SoundState } from './systems/sound/state';
 import { createTransportState, type TransportState } from './systems/transport/state';
+import { createEventsState, type EventsState } from './systems/events/state';
 import { addItem } from './systems/inventory/logic';
 import { refreshOffers } from './systems/market/logic';
 
@@ -55,6 +56,7 @@ export interface GameState {
   crew: CrewState;
   sound: SoundState;
   transport: TransportState;
+  events: EventsState;
   notifications: NotificationsState;
 }
 
@@ -85,6 +87,7 @@ export function createSlices(now: number, seed: number): GameState {
     crew: createCrewState(),
     sound: createSoundState(),
     transport: createTransportState(),
+    events: createEventsState(),
     notifications: createNotificationsState(),
   };
 }

@@ -28,7 +28,7 @@ export function VehiclesTab() {
           </div>
         </div>
         <p className="tiny faint" style={{ marginTop: 8 }}>
-          Equipment und Waren müssen zu Events gefahren werden. Du fährst selbst einen Wagen – für mehr brauchst du Fahrer in der Crew.
+          Equipment und Waren müssen zu Events gefahren werden. Ohne Fahrzeug trägst du höchstens 60 L. Lastenräder zählen mit.
         </p>
       </Card>
 
