@@ -12,6 +12,9 @@ import { createSpotsState, type SpotsState } from './systems/spots/state';
 import { createPeopleState, type PeopleState } from './systems/people/state';
 import { createMessagesState, type MessagesState } from './systems/messages/state';
 import { createMusicState, type MusicState } from './systems/music/state';
+import { createCrewState, type CrewState } from './systems/crew/state';
+import { createSoundState, type SoundState } from './systems/sound/state';
+import { createTransportState, type TransportState } from './systems/transport/state';
 import { addItem } from './systems/inventory/logic';
 import { refreshOffers } from './systems/market/logic';
 
@@ -49,6 +52,9 @@ export interface GameState {
   people: PeopleState;
   messages: MessagesState;
   music: MusicState;
+  crew: CrewState;
+  sound: SoundState;
+  transport: TransportState;
   notifications: NotificationsState;
 }
 
@@ -76,6 +82,9 @@ export function createSlices(now: number, seed: number): GameState {
     people: createPeopleState(now),
     messages: createMessagesState(now),
     music: createMusicState(),
+    crew: createCrewState(),
+    sound: createSoundState(),
+    transport: createTransportState(),
     notifications: createNotificationsState(),
   };
 }

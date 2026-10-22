@@ -30,7 +30,7 @@ export function RepairPanel({ uid, onDone }: { uid: string; onDone?: () => void 
       </ActionButton>
       {contacts.map((p) => (
         <ActionButton key={p.id} action={repairPro} payload={{ uid, personId: p.id }} block showReason={false} onDone={onDone} testId={`repair-${p.id}`}>
-          Bei {shortName(p)}: {fmtMoney(proRepairCost(it, p))} · {proRepairMinutes(it)} Min → 95 %
+          Bei {shortName(p)}: {fmtMoney(proRepairCost(it, p, s))} · {proRepairMinutes(it)} Min → 95 %
         </ActionButton>
       ))}
       {contacts.length === 0 && <p className="tiny faint">Techniker-Kontakte mit etwas Vertrauen (20) reparieren für dich – schneller und besser.</p>}

@@ -47,9 +47,13 @@ export function countTag(s: GameState, tag: string): number {
   return n;
 }
 
+/** Storage used at home and in rented space. Vehicles are parked outside. */
 export function usedVolume(s: GameState): number {
   let v = 0;
-  for (const it of Object.values(s.inventory.items)) v += (ITEMS.get(it.defId)?.volumeL ?? 0) * it.qty;
+  for (const it of Object.values(s.inventory.items)) {
+    const def = ITEMS.get(it.defId);
+    if (def && def.category !== 'vehicle') v += def.volumeL * it.qty;
+  }
   return v;
 }
 
@@ -128,9 +132,16 @@ export function removeItem(d: GameState, uid: string, qty?: number): void {
   }
 }
 
+/** Sound system the item belongs to (if any). */
+export function systemOf(s: GameState, uid: string): { id: string; name: string } | undefined {
+  return s.sound.systems.find((sys) => sys.components.includes(uid));
+}
+
 export function sellableReason(s: GameState, uid: string): Reason {
   const it = getItem(s, uid);
   if (!it) return 'Item nicht gefunden.';
   if (it.locked) return 'Item ist gerade gebunden (z. B. inseriert).';
+  const sys = systemOf(s, uid);
+  if (sys) return `Gehört zum Soundsystem „${sys.name}“ – erst dort entfernen.`;
   return null;
 }

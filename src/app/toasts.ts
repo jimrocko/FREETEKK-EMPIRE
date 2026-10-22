@@ -17,7 +17,7 @@ interface ToastState {
 
 export const toastStore = createStore<ToastState>(() => ({ toasts: [], nextId: 1 }));
 
-const MAX_TOASTS = 4;
+const MAX_TOASTS = 3;
 const LIFETIME_MS = 4500;
 
 export function pushToast(t: Omit<Toast, 'id'>): void {

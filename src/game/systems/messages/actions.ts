@@ -1,5 +1,6 @@
 import { defineAction } from '../../core/actions';
 import { answerMessage, choiceReason, findMessage } from './logic';
+import { debugGrant } from '../finance/logic';
 
 export const answer = defineAction<{ messageId: string; choiceId: string }>({
   id: 'messages.answer',
@@ -10,6 +11,15 @@ export const answer = defineAction<{ messageId: string; choiceId: string }>({
   },
   run: (d, p) => {
     answerMessage(d, p.messageId, p.choiceId);
+  },
+});
+
+/** Debug helper: money for testing. */
+export const debugMoney = defineAction<{ amount: number }>({
+  id: 'debug.money',
+  check: () => null,
+  run: (d, p) => {
+    debugGrant(d, p.amount);
   },
 });
 

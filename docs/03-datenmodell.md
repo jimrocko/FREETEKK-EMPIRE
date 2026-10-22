@@ -322,10 +322,18 @@ interface MusicState { tracks: Track[]; nextId }
 ## Phase 5 – Crew, Soundsysteme, Fahrzeuge
 
 ```ts
-interface CrewMember { personId; roles: Role[]; wagePerDay; morale; joinedAt; assignment?: string }
-interface SoundSystem { id; name; components: string[] /* itemUids */; createdAt }
-// berechnet: powerW, quality, reach (Personen), reliability, setupMin, volumeL, weightKg, powerKw, upkeepPerDay
-// Fahrzeuge sind Items (category 'vehicle') mit stats { capacityL, maxLoadKg, speed, reliability }
+// Sound-Items: type 'top'|'sub'|'amp'|'controller'|'cables'|'case'|'generator'|'light' (+ 'dj-mixer')
+// stats: powerW, spl, low, active, ampW, cableSlots, kw, lightFx, setupMin, protection, setupBonus
+interface SoundSystem { id; name; components: itemUid[]; createdAt }
+interface SoundState { systems: SoundSystem[]; nextId }
+// berechnet (systemStats): powerW, quality, reach, reliability, setupMin, volumeL, weightKg, powerKw, generatorKw, lightFx, upkeepPerDay, warnings[]
+
+interface CrewMember { personId; role: Role; joinedAt; morale; wagePerDay }
+interface CrewState { founded: boolean; name: string; foundedAt?; members: CrewMember[] }
+
+// Fahrzeuge sind Items (category 'vehicle', stats capacityL/maxLoadKg/travel/reliability), belegen keinen Stauraum
+interface VehicleRental { id; optionId; defId; until }
+interface TransportState { rentals: VehicleRental[]; nextId }
 ```
 
 ## Phase 6 – Events & Versorgung

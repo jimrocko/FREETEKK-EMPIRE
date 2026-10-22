@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { Bell, Briefcase, Disc3, Home, Map as MapIcon, Package, Users, Settings, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
+import { Bell, Briefcase, Disc3, Flag, Home, Map as MapIcon, Package, Users, Settings, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
 import type { Condition } from '../game/core/types';
 import type { GameState } from '../game/state';
 import { unreadCount } from '../game/core/notify';
@@ -15,6 +15,7 @@ import { SettingsScreen } from './screens/settings/SettingsScreen';
 import { MapScreen } from './screens/map/MapScreen';
 import { NetworkScreen } from './screens/network/NetworkScreen';
 import { StudioScreen } from './screens/studio/StudioScreen';
+import { CrewScreen } from './screens/crew/CrewScreen';
 import { openMessages, unreadMessages } from '../game/systems/messages/logic';
 
 export interface RouteDef {
@@ -43,6 +44,7 @@ export const ROUTES: RouteDef[] = [
     group: 'Spiel',
     badge: (s) => Math.max(openMessages(s).length, unreadMessages(s)),
   },
+  { path: '/crew', label: 'Crew & Anlage', icon: Flag, component: CrewScreen, nav: 'more', group: 'Spiel' },
   { path: '/jobs', label: 'Jobs', icon: Briefcase, component: JobsScreen, nav: 'more', group: 'Spiel' },
   {
     path: '/studio',

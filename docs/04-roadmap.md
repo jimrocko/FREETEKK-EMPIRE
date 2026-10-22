@@ -62,12 +62,16 @@ Legende: ✅ fertig · 🔨 in Arbeit · ⏳ geplant
 
 **Abnahme:** jedes Genre produzierbar (Test) ✓; besseres Equipment/Skill/Aufwand = bessere Tracks (Test) ✓; Streams respektieren Offline-Deckel (Test) ✓; Mobile ✓.
 
-## Phase 5 – Crew, Soundsysteme, Fahrzeuge ⏳
+## Phase 5 – Crew, Soundsysteme, Fahrzeuge ✅
 
-- Crew gründen; Mitglieder aus Connections anwerben; Rollen, Gagen, Moral
-- Crew erhöht Kanal-Kapazitäten und übernimmt Aufgaben (Delegation)
-- Soundsystem-Builder mit berechneten Werten (Leistung, Qualität, Reichweite, Zuverlässigkeit, Aufbauzeit, Transport, Strom, Wartung)
-- Fahrzeuge (Kauf/Miete), Kapazität und Gewicht, Fahrer
+- PA-Katalog: Aktivboxen, Selbstbau-Tops/-Subs, Hornboxen, Line-Arrays, Basshörner, Endstufen, Controller, Kabelkisten, Cases, Generatoren (3–25 kW), Licht (Strobo, UV, Laser, Moving Heads); neuer Fachhandel „Bühnentechnik West“
+- Soundsystem-Builder (mehrere Systeme): berechnet Leistung, Qualität, Reichweite (Personen), Zuverlässigkeit, Aufbauzeit, Transport (L/kg), Strombedarf, Generatorleistung, Licht, Wartung; Warnungen bei zu schwachen Endstufen, fehlenden Kabeln, fehlendem Mixer, Bass/Top-Ungleichgewicht, zu kleinem Generator, defekten Teilen
+- Fahrzeuge: Kombi bis LKW (Autohaus Kowalski), kein Stauraumverbrauch, Versicherung/Tag, schnellere Wege; Mietwagen für einen Spieltag
+- Crew: Gründung ab „Newcomer“ und 5 Kontakten; Anwerben von Kontakten mit Vertrauen 40+ in einer ihrer Rollen; Gage pro Tag, Stimmung (sinkt ohne Geld, Mitglieder gehen); Crew-Größe wächst mit Reputation
+- Delegation: Techniker (+Werkstatt-Slot, Reparatur zum Teilepreis), Fahrer (+Besorgungen), Organisatoren (+Event-Vorbereitung), Producer (+Studio-Slot)
+- 10 neue Ziele
+
+**Abnahme:** Systemwerte reagieren korrekt auf Endstufen/Kabel/Controller/Defekte (Tests) ✓; Crew-Gagen und Weggang ohne Geld (Test) ✓; Fahrzeuge und Mieten (Tests) ✓; Mobile ✓.
 
 ## Phase 6 – Events, Locations, Versorgung ⏳ (vertikaler Slice komplett)
 

@@ -22,6 +22,20 @@ export const SHOPS: readonly ShopDef[] = [
     poiId: 'poi.radhaus',
   },
   {
+    id: 'shop.buehnentechnik',
+    name: 'Bühnentechnik West',
+    description: 'Fachhandel für PA, Endstufen, Generatoren und Licht. Hier kaufen auch Verleihfirmen.',
+    priceFactor: 0.97,
+    poiId: 'poi.buehnentechnik',
+  },
+  {
+    id: 'shop.autohaus',
+    name: 'Autohaus Kowalski',
+    description: 'Gebrauchte Kombis, Transporter und LKW. Probefahrt nur mit Ausweis.',
+    priceFactor: 1,
+    poiId: 'poi.autohaus',
+  },
+  {
     id: 'shop.technikmarkt',
     name: 'Technikmarkt West',
     description: 'Elektronikmarkt im Gewerbegebiet.',

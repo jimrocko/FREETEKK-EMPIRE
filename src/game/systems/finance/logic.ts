@@ -136,6 +136,11 @@ export function chargeDailyCosts(d: GameState, lines: readonly CostLine[]): numb
   return total;
 }
 
+/** Debug helper (only reachable from the developer panel). */
+export function debugGrant(d: GameState, amount: number): void {
+  earn(d, amount, 'other', 'Entwickler-Geld');
+}
+
 /** Sum of ledger income within the last real hour. */
 export function incomeLastHour(s: GameState): number {
   const since = s.clock.now - HOUR;

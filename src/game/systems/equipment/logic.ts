@@ -54,8 +54,10 @@ export function proRepairMinutes(it: ItemInstance): number {
   return 2 + itemDef(it.defId).tier * 3;
 }
 
-export function proRepairCost(it: ItemInstance, person: PersonDef): number {
-  return roundMoney(repairParts(it) + person.price * 0.4);
+/** Crew technicians only charge for parts. */
+export function proRepairCost(it: ItemInstance, person: PersonDef, s?: GameState): number {
+  const inCrew = s?.crew.members.some((m) => m.personId === person.id && m.role === 'technician') ?? false;
+  return roundMoney(repairParts(it) + (inCrew ? 0 : person.price * 0.4));
 }
 
 /** Technicians you know well enough to repair for you. */

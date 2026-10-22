@@ -46,6 +46,10 @@ export type Condition =
   | { t: 'contacts'; gte: number }
   | { t: 'knowsRole'; role: string; count?: number }
   | { t: 'trusted'; count: number; trust: number }
+  | { t: 'crewFounded' }
+  | { t: 'crewSize'; gte: number }
+  | { t: 'systemReach'; gte: number }
+  | { t: 'systemQuality'; gte: number }
   | { t: 'channelFree'; channel: ActivityChannel }
   | { t: 'all'; of: Condition[] }
   | { t: 'any'; of: Condition[] }

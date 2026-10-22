@@ -262,6 +262,8 @@ export interface PersonDef {
   knowsPois?: string[];
   /** Trust their introducer needs before introducing them. */
   introTrust: number;
+  /** Can join your crew (default true). */
+  crewable?: boolean;
   meet: MeetDef[];
   /** What they want – shown in their profile. */
   goal: string;

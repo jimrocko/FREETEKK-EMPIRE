@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Bug, Copy, Download, FileUp, HardDrive, RotateCcw, Save, Upload, UserRound } from 'lucide-react';
 import { appStore, useApp, useGameState } from '../../../app/store';
 import { debugAdvance, dispatch, importGame, resetGame, saveNow } from '../../../app/runtime';
-import { debugNextMessage } from '../../../game/systems/messages/actions';
+import { debugMoney, debugNextMessage } from '../../../game/systems/messages/actions';
 import { DEBUG_ENABLED, addDebugOffset, now } from '../../../app/clock';
 import { pushToast } from '../../../app/toasts';
 import { exportSave } from '../../../game/save/saveManager';
@@ -163,6 +163,9 @@ export function SettingsScreen() {
             ))}
             <Button small onClick={() => dispatch(debugNextMessage, {}, { silent: true })} testId="debug-message">
               Nachricht auslösen
+            </Button>
+            <Button small onClick={() => dispatch(debugMoney, { amount: 5000 }, { silent: true })} testId="debug-money">
+              +5.000 €
             </Button>
           </div>
         </Card>

@@ -35,13 +35,13 @@ export const repairPro = defineAction<{ uid: string; personId: string }>({
     if (base) return base;
     if (!PERSONS_BY_ID.has(p.personId) || !repairContacts(s).some((x) => x.id === p.personId)) return 'Kein Techniker-Kontakt mit genug Vertrauen (20).';
     const it = getItem(s, p.uid)!;
-    return moneyReason(s, proRepairCost(it, personDef(p.personId)));
+    return moneyReason(s, proRepairCost(it, personDef(p.personId), s));
   },
   run: (d, p) => {
     const it = getItem(d, p.uid)!;
     const def = itemDef(it.defId);
     const person = personDef(p.personId);
-    const cost = proRepairCost(it, person);
+    const cost = proRepairCost(it, person, d);
     spend(d, cost, 'equipment', `Reparatur bei ${shortName(person)}: ${def.name}`);
     const a = startActivity(d, {
       kind: 'repair',

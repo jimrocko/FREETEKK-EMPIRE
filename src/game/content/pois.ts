@@ -38,6 +38,28 @@ export const POIS: readonly PoiDef[] = [
     explore: 15,
     shopId: 'shop.technikmarkt',
   },
+  {
+    id: 'poi.buehnentechnik',
+    cityId: C,
+    districtId: 'steinhafen.west',
+    kind: 'shop',
+    name: 'Bühnentechnik West',
+    description: 'Halle voller Boxen, Endstufen und Traversen. Der Verkäufer fragt immer zuerst nach deiner Anlage.',
+    pos: [64, 240],
+    explore: 30,
+    shopId: 'shop.buehnentechnik',
+  },
+  {
+    id: 'poi.autohaus',
+    cityId: C,
+    districtId: 'steinhafen.west',
+    kind: 'shop',
+    name: 'Autohaus Kowalski',
+    description: 'Gebrauchtwagenhof mit Transportern in allen Größen.',
+    pos: [70, 282],
+    explore: 45,
+    shopId: 'shop.autohaus',
+  },
   // ── Hangouts ───────────────────────────────────────────
   {
     id: 'poi.spaeti',

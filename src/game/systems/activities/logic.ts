@@ -35,8 +35,23 @@ const CHANNEL_BUSY: Record<ActivityChannel, string> = {
   market: 'Maximale Anzahl Inserate erreicht.',
 };
 
+/** Crew roles that add a parallel slot to a channel (when motivated). */
+const CREW_CHANNEL: Partial<Record<string, ActivityChannel>> = {
+  technician: 'workshop',
+  driver: 'errand',
+  organizer: 'event',
+  producer: 'studio',
+  artist: 'studio',
+};
+
+export function crewCapacity(s: GameState, channel: ActivityChannel): number {
+  let n = 0;
+  for (const m of s.crew.members) if (m.morale >= 30 && CREW_CHANNEL[m.role] === channel) n++;
+  return n;
+}
+
 export function channelCapacity(s: GameState, channel: ActivityChannel): number {
-  return BASE_CAPACITY[channel] + (s.activities.capacityBonus[channel] ?? 0);
+  return BASE_CAPACITY[channel] + (s.activities.capacityBonus[channel] ?? 0) + crewCapacity(s, channel);
 }
 
 export function channelUsage(s: GameState, channel: ActivityChannel): number {

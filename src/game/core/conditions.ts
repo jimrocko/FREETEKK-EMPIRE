@@ -9,6 +9,14 @@ import { hasFlag, isUnlocked, skillLevel, stat } from '../systems/progression/lo
 import { countItem, countTag } from '../systems/inventory/logic';
 import { CHANNEL_LABELS, channelCapacity, channelUsage } from '../systems/activities/logic';
 import { PERSONS_BY_ID } from '../content/registry';
+import { systemStats } from '../systems/sound/logic';
+import { fmtNumber as fmtN } from './format';
+
+function bestSystem(s: GameState, key: 'reach' | 'quality'): number {
+  let best = 0;
+  for (const sys of s.sound.systems) best = Math.max(best, systemStats(s, sys)[key]);
+  return best;
+}
 
 export function checkCondition(s: GameState, c: Condition): boolean {
   switch (c.t) {
@@ -52,6 +60,14 @@ export function checkCondition(s: GameState, c: Condition): boolean {
       return Object.values(s.people.people).filter((p) => p.met && p.trust >= c.trust).length >= c.count;
     case 'channelFree':
       return channelUsage(s, c.channel) < channelCapacity(s, c.channel);
+    case 'crewFounded':
+      return s.crew.founded;
+    case 'crewSize':
+      return s.crew.members.length >= c.gte;
+    case 'systemReach':
+      return bestSystem(s, 'reach') >= c.gte;
+    case 'systemQuality':
+      return bestSystem(s, 'quality') >= c.gte;
     case 'all':
       return c.of.every((x) => checkCondition(s, x));
     case 'any':
@@ -149,6 +165,14 @@ export function describeCondition(c: Condition): string {
       return `${c.count} ${c.count === 1 ? 'Kontakt' : 'Kontakte'} mit Vertrauen ≥ ${c.trust}`;
     case 'channelFree':
       return `freier Slot: ${CHANNEL_LABELS[c.channel]}`;
+    case 'crewFounded':
+      return 'Eigene Crew gegründet';
+    case 'crewSize':
+      return `${c.gte} Leute in der Crew`;
+    case 'systemReach':
+      return `Soundsystem für ${fmtN(c.gte)} Leute`;
+    case 'systemQuality':
+      return `Soundsystem-Qualität ${c.gte}`;
     case 'all':
       return c.of.map(describeCondition).join(' und ');
     case 'any':
@@ -198,6 +222,12 @@ export function conditionProgress(s: GameState, c: Condition): ConditionProgress
       return { current: Object.values(s.people.people).filter((p) => p.met).length, target: c.gte };
     case 'trusted':
       return { current: Object.values(s.people.people).filter((p) => p.met && p.trust >= c.trust).length, target: c.count };
+    case 'crewSize':
+      return { current: s.crew.members.length, target: c.gte };
+    case 'systemReach':
+      return { current: bestSystem(s, 'reach'), target: c.gte };
+    case 'systemQuality':
+      return { current: bestSystem(s, 'quality'), target: c.gte };
     case 'trust':
       return { current: Math.floor(s.people.people[c.person]?.trust ?? 0), target: c.gte };
     default:
