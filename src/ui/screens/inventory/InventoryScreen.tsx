@@ -14,6 +14,7 @@ import { ActionButton } from '../../components/ActionButton';
 import { Badge, Card, ConditionBar, EmptyState, Modal, PageHeader, ProgressBar, Tabs, type TabDef } from '../../components/ui';
 import { CATEGORY_LABELS } from '../market/MarketScreen';
 import { rentedStorage } from '../../../game/systems/map/logic';
+import { RepairPanel } from '../../components/RepairPanel';
 
 const STAT_LABELS: Record<string, string> = {
   kick: 'Kick',
@@ -31,6 +32,8 @@ const STAT_LABELS: Record<string, string> = {
   capacityL: 'Ladevolumen (L)',
   maxLoadKg: 'Zuladung (kg)',
   channels: 'Kanäle',
+  originality: 'Originalität',
+  travel: 'Reisezeit-Faktor',
 };
 
 function ItemDetail({ item, onClose }: { item: ItemInstance; onClose: () => void }) {
@@ -46,19 +49,20 @@ function ItemDetail({ item, onClose }: { item: ItemInstance; onClose: () => void
         {item.qty > 1 && <Badge tone="accent">×{item.qty}</Badge>}
         {item.locked && (
           <Badge tone="warning">
-            <Lock size={11} /> Inseriert
+            <Lock size={11} /> {lockLabel(item.locked)}
           </Badge>
         )}
       </div>
       <p className="dim">{def.description}</p>
       <ConditionBar value={item.condition} />
+      {item.broken && <Badge tone="danger">Defekt – muss repariert werden</Badge>}
       <dl className="kv">
         <dt>Neupreis</dt>
         <dd>{fmtMoney(def.price)}</dd>
         <dt>Bezahlt</dt>
         <dd>{item.paid > 0 ? fmtMoney(item.paid) : 'Startausrüstung'}</dd>
         <dt>Marktwert</dt>
-        <dd>{fmtMoney(resaleValue(def, item.condition) * item.qty)}</dd>
+        <dd>{fmtMoney(resaleValue(def, item.condition, item.broken) * item.qty)}</dd>
         <dt>Qualität</dt>
         <dd>{def.quality} / 100</dd>
         <dt>Gewicht · Volumen</dt>
@@ -69,6 +73,8 @@ function ItemDetail({ item, onClose }: { item: ItemInstance; onClose: () => void
           <FragmentKV key={k} k={STAT_LABELS[k] ?? k} v={fmtNumber(v)} />
         ))}
       </dl>
+
+      <RepairPanel uid={item.uid} />
 
       {!item.locked && (
         <>
@@ -94,13 +100,27 @@ function ItemDetail({ item, onClose }: { item: ItemInstance; onClose: () => void
             </div>
           </div>
           <ActionButton action={sellToDealer} payload={{ uid: item.uid }} variant="danger" block onDone={onClose} testId="sell-dealer">
-            Sofort an Ankauf: {fmtMoney(dealerPrice(def, item.condition) * item.qty)}
+            Sofort an Ankauf: {fmtMoney(dealerPrice(def, item.condition, item.broken) * item.qty)}
           </ActionButton>
         </>
       )}
-      {item.locked && <p className="small dim">Das Item ist inseriert. Du kannst das Inserat im Markt unter „Inserate“ zurückziehen.</p>}
+      {item.locked && <p className="small dim">{lockText(item.locked)}</p>}
     </Modal>
   );
+}
+
+export function lockLabel(locked: string): string {
+  if (locked.startsWith('listing:')) return 'Inseriert';
+  if (locked.startsWith('repair:')) return 'In Reparatur';
+  if (locked.startsWith('studio:')) return 'Im Studio';
+  return 'Gebunden';
+}
+
+function lockText(locked: string): string {
+  if (locked.startsWith('listing:')) return 'Das Item ist inseriert. Du kannst das Inserat im Markt unter „Inserate“ zurückziehen.';
+  if (locked.startsWith('repair:')) return 'Wird gerade repariert.';
+  if (locked.startsWith('studio:')) return 'Wird gerade im Studio benutzt.';
+  return 'Das Item ist gerade gebunden.';
 }
 
 function FragmentKV({ k, v }: { k: string; v: string }) {
@@ -186,10 +206,12 @@ export function InventoryScreen() {
                   </div>
                   {it.locked ? (
                     <Badge tone="warning">
-                      <Lock size={11} /> Inseriert
+                      <Lock size={11} /> {lockLabel(it.locked)}
                     </Badge>
+                  ) : it.broken ? (
+                    <Badge tone="danger">Defekt</Badge>
                   ) : (
-                    <span className="small dim num">{fmtMoney(resaleValue(def, it.condition) * it.qty)}</span>
+                    <span className="small dim num">{fmtMoney(resaleValue(def, it.condition, it.broken) * it.qty)}</span>
                   )}
                 </div>
                 <div style={{ width: '100%' }}>

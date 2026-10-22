@@ -99,6 +99,9 @@ const TAG_LABELS: Record<string, string> = {
   phone: 'ein Smartphone',
   camera: 'ein Handy mit guter Kamera',
   transport: 'ein Transportmittel',
+  drums: 'einen Drumcomputer',
+  synth: 'einen Synthesizer',
+  sampler: 'einen Sampler',
 };
 
 /** Human readable description, e.g. „Netzwerk Lv. 2“. */

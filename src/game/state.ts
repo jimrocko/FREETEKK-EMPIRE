@@ -11,6 +11,7 @@ import { createMapState, type MapState } from './systems/map/state';
 import { createSpotsState, type SpotsState } from './systems/spots/state';
 import { createPeopleState, type PeopleState } from './systems/people/state';
 import { createMessagesState, type MessagesState } from './systems/messages/state';
+import { createMusicState, type MusicState } from './systems/music/state';
 import { addItem } from './systems/inventory/logic';
 import { refreshOffers } from './systems/market/logic';
 
@@ -47,6 +48,7 @@ export interface GameState {
   spots: SpotsState;
   people: PeopleState;
   messages: MessagesState;
+  music: MusicState;
   notifications: NotificationsState;
 }
 
@@ -73,6 +75,7 @@ export function createSlices(now: number, seed: number): GameState {
     spots: createSpotsState(),
     people: createPeopleState(now),
     messages: createMessagesState(now),
+    music: createMusicState(),
     notifications: createNotificationsState(),
   };
 }

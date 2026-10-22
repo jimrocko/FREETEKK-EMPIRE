@@ -49,12 +49,18 @@ Legende: ✅ fertig · 🔨 in Arbeit · ⏳ geplant
 
 **Abnahme:** jede Person erreichbar (Test) ✓; jede Nachricht beantwortbar ohne Fehler (Test) ✓; keine spontanen Nachrichten offline ✓; Save/Load ✓; Mobile ✓.
 
-## Phase 4 – Equipment & Musik ⏳
+## Phase 4 – Equipment & Musik ✅
 
-- Geräte-Katalog (Drum Machines, Sampler, Synths, Mixer, FX, Monitore, Interfaces) – neu und gebraucht
-- Verschleiß, Defekte, Reparatur (Werkstatt-Kanal)
-- Studio: Genre, BPM, Elemente aus eigenen Geräten, Arrangement, Mix-Aufwand → Track-Werte
-- Tracks nutzen: an DJs geben, online stellen (passive Einnahmen), auf eigenen Events spielen
+- Geräte-Katalog auf 36 Items erweitert: günstige Klone, Grooveboxen, Sampler, Synths, Effektgeräte, Monitore, Clubmixer und seltene Klassiker (TR-99, TB-303, Juna-60), die nur gebraucht oder über Kontakte auftauchen
+- Verschleiß durch Benutzung, Defekte bei schlechtem Zustand (unbenutzbar, halber Wert)
+- Reparatur selbst (Kanal Werkstatt, Teilekosten, Ergebnis abhängig von Technik, höhere Geräteklassen brauchen mehr Technik) oder bei Techniker-Kontakten (ab Vertrauen 20, Gage, 95 %)
+- Studio (freigeschaltet durch Besitz eines Instruments): 7 Genres (4 per Produktion-Level), BPM, 8 Elemente aus eigenen Geräten, Arrangement, Mix-Aufwand (4–60 Min), Live-Schätzung der Wertung
+- Track-Werte: Energie, Druck, Groove, Härte, Melodie, Atmosphäre, Originalität, Produktionsqualität → genre-gewichtete Wertung; Einfluss von Gerätequalität, Zustand, Abhöre, Laptop, Proberaum, Fähigkeit, Aufwand, Inspiration
+- Tracks online stellen → Stream-Einnahmen pro Stunde (erste passive Einnahmequelle, Hype verblasst, gute Tracks können viral gehen)
+- Tracks an DJ-Kontakte geben → Vertrauen, Antwort im Chat, bei Qualität Einsatz auf Partys mit Reputation
+- 10 neue Ziele
+
+**Abnahme:** jedes Genre produzierbar (Test) ✓; besseres Equipment/Skill/Aufwand = bessere Tracks (Test) ✓; Streams respektieren Offline-Deckel (Test) ✓; Mobile ✓.
 
 ## Phase 5 – Crew, Soundsysteme, Fahrzeuge ⏳
 

@@ -300,19 +300,23 @@ Neue Bedingungen: `knows`, `trust`, `contacts`, `knowsRole`, `trusted`, `channel
 
 ## Phase 4 – Equipment & Musik
 
-- Items erhalten Verschleiß (`condition` sinkt durch Nutzung), Ausfallrisiko bei niedrigem Zustand, Reparatur als Aktivität (Kanal `workshop`) oder über Techniker-Connections.
-- Studio-Geräte liefern **Elemente** mit Bewertungen: `stats: { kick, bass, hats, perc, synth, acid, fx, melody, sound }`.
+- `ItemInstance.broken` markiert Defekte; Verschleiß über `wearItem`, Reparatur als Aktivität `repair` (Kanal `workshop`, Item gesperrt `repair:<id>`).
+- Studio-Geräte liefern Elemente über `stats`: `kick, bass, hats, perc, synth, acid, fx, melody` (+ `sound`, `monitoring`, `originality`).
 
 ```ts
-interface GenreDef { id; name; bpm: [min, max]; weights: Partial<Record<TrackStat, number>>; requires?: Condition[] }
+interface GenreDef { id; name; description; bpm: [min, max]; required: ElementId[]; weights: Partial<Record<TrackStat, number>>; requires?: Condition[] }
 type TrackStat = 'energie'|'druck'|'groove'|'haerte'|'melodie'|'atmosphaere'|'originalitaet'|'qualitaet'
 
 interface Track {
-  id; name; genreId; bpm; elements: Record<ElementId, string /* itemUid */>
-  arrangement: 'tool'|'banger'|'hypnotisch'|'story'
-  stats: Record<TrackStat, number>; score: number; hype: number
-  createdAt; status: 'producing'|'done'|'released'
+  id; name; genreId; bpm
+  elements: Partial<Record<ElementId, itemDefId>>
+  arrangement: 'tool'|'banger'|'hypnotisch'|'story'; effort: 'quick'|'normal'|'careful'|'perfect'
+  stats: Record<TrackStat, number>; score: number
+  createdAt; status: 'producing'|'done'
+  uploadedAt?; hype: number      // Stream-Multiplikator (verblasst täglich)
+  givenTo: string[]; playedBy: string[]
 }
+interface MusicState { tracks: Track[]; nextId }
 ```
 
 ## Phase 5 – Crew, Soundsysteme, Fahrzeuge

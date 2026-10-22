@@ -9,6 +9,8 @@ export interface ItemInstance {
   paid: number;
   /** Set while the item is bound elsewhere (e.g. "listing:a12"); locked items cannot be sold or used. */
   locked?: string;
+  /** Defective: unusable until repaired, worth much less. */
+  broken?: boolean;
 }
 
 export interface InventoryState {

@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { Bell, Briefcase, Home, Map as MapIcon, Package, Users, Settings, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
+import { Bell, Briefcase, Disc3, Home, Map as MapIcon, Package, Users, Settings, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
 import type { Condition } from '../game/core/types';
 import type { GameState } from '../game/state';
 import { unreadCount } from '../game/core/notify';
@@ -14,6 +14,7 @@ import { FeedScreen } from './screens/feed/FeedScreen';
 import { SettingsScreen } from './screens/settings/SettingsScreen';
 import { MapScreen } from './screens/map/MapScreen';
 import { NetworkScreen } from './screens/network/NetworkScreen';
+import { StudioScreen } from './screens/studio/StudioScreen';
 import { openMessages, unreadMessages } from '../game/systems/messages/logic';
 
 export interface RouteDef {
@@ -43,6 +44,24 @@ export const ROUTES: RouteDef[] = [
     badge: (s) => Math.max(openMessages(s).length, unreadMessages(s)),
   },
   { path: '/jobs', label: 'Jobs', icon: Briefcase, component: JobsScreen, nav: 'more', group: 'Spiel' },
+  {
+    path: '/studio',
+    label: 'Studio',
+    icon: Disc3,
+    component: StudioScreen,
+    nav: 'more',
+    group: 'Spiel',
+    requires: [
+      {
+        t: 'any',
+        of: [
+          { t: 'itemTag', tag: 'drums' },
+          { t: 'itemTag', tag: 'synth' },
+          { t: 'itemTag', tag: 'sampler' },
+        ],
+      },
+    ],
+  },
   { path: '/markt', label: 'Markt', icon: ShoppingBag, component: MarketScreen, nav: 'primary', group: 'Spiel' },
   { path: '/inventar', label: 'Inventar', icon: Package, component: InventoryScreen, nav: 'more', group: 'Spiel' },
   { path: '/finanzen', label: 'Finanzen', icon: Wallet, component: FinanceScreen, nav: 'more', group: 'Übersicht' },

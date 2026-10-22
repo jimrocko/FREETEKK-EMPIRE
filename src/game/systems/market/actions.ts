@@ -86,7 +86,7 @@ export function listingPrice(s: Parameters<typeof listingBonus>[0], uid: string,
   const def = ITEMS.get(it.defId);
   if (!def) return 0;
   const p = LISTING_PRESETS.find((x) => x.id === preset)!;
-  return nicePrice(resaleValue(def, it.condition) * it.qty * (p.factor + listingBonus(s)));
+  return nicePrice(resaleValue(def, it.condition, it.broken) * it.qty * (p.factor + listingBonus(s)));
 }
 
 export const createListing = defineAction<{ uid: string; preset: ListingPresetId }>({

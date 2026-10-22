@@ -14,15 +14,15 @@ export const RARITY_LABELS: Record<Rarity, string> = {
   legendary: 'Legendär',
 };
 
-/** Fair second-hand value per unit. */
-export function resaleValue(def: ItemDef, condition: number): number {
+/** Fair second-hand value per unit (broken items are worth half). */
+export function resaleValue(def: ItemDef, condition: number, broken = false): number {
   const rarity = RARITY_VALUE[def.rarity ?? 'common'];
-  return roundMoney(def.price * 0.6 * (0.25 + 0.75 * (condition / 100)) * rarity);
+  return roundMoney(def.price * 0.6 * (0.25 + 0.75 * (condition / 100)) * rarity * (broken ? 0.5 : 1));
 }
 
 /** What the second-hand dealer pays instantly per unit. */
-export function dealerPrice(def: ItemDef, condition: number): number {
-  return roundMoney(resaleValue(def, condition) * 0.7);
+export function dealerPrice(def: ItemDef, condition: number, broken = false): number {
+  return roundMoney(resaleValue(def, condition, broken) * 0.7);
 }
 
 export function getItem(s: GameState, uid: string): ItemInstance | undefined {
@@ -74,7 +74,7 @@ export function inventoryValue(s: GameState): number {
   let v = 0;
   for (const it of Object.values(s.inventory.items)) {
     const def = ITEMS.get(it.defId);
-    if (def) v += resaleValue(def, it.condition) * it.qty;
+    if (def) v += resaleValue(def, it.condition, it.broken) * it.qty;
   }
   return roundMoney(v);
 }

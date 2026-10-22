@@ -8,6 +8,7 @@ import { mapSystem } from './systems/map/system';
 import { spotsSystem } from './systems/spots/system';
 import { peopleSystem } from './systems/people/system';
 import { messagesSystem } from './systems/messages/system';
+import { musicSystem } from './systems/music/system';
 
 /**
  * All simulation systems in processing order.
@@ -21,6 +22,7 @@ export const SYSTEMS: readonly GameSystem[] = [
   spotsSystem,
   peopleSystem,
   messagesSystem,
+  musicSystem,
   marketSystem,
   goalsSystem,
 ];

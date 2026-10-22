@@ -13,7 +13,7 @@ export const sellToDealer = defineAction<{ uid: string; qty?: number }>({
     const it = getItem(d, p.uid)!;
     const def = itemDef(it.defId);
     const qty = Math.min(it.qty, p.qty ?? it.qty);
-    const amount = dealerPrice(def, it.condition) * qty;
+    const amount = dealerPrice(def, it.condition, it.broken) * qty;
     earn(d, amount, 'market', `Ankauf: ${def.name}${qty > 1 ? ` ×${qty}` : ''}`);
     removeItem(d, p.uid, qty);
     incStat(d, 'itemsSold', qty);
