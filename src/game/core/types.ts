@@ -17,13 +17,14 @@ export const LEDGER_CATEGORIES = [
   'property',
   'music',
   'network',
+  'lifestyle',
   'other',
 ] as const;
 export type LedgerCategory = (typeof LEDGER_CATEGORIES)[number];
 
 export type Tone = 'info' | 'success' | 'warning' | 'danger' | 'discovery';
 
-export type ActivityChannel = 'job' | 'explore' | 'social' | 'studio' | 'workshop' | 'errand' | 'event' | 'market';
+export type ActivityChannel = 'job' | 'explore' | 'social' | 'studio' | 'workshop' | 'errand' | 'event' | 'market' | 'leisure';
 
 /** Data-driven requirement. Every condition can describe itself for the UI. */
 export type Condition =
@@ -56,6 +57,10 @@ export type Condition =
   | { t: 'rivalActive'; rival: string }
   /** How well a city's scene knows you (0–100). */
   | { t: 'cityFame'; city: string; gte: number }
+  /** Style points from your lifestyle. */
+  | { t: 'flair'; gte: number }
+  /** Lifestyle collection: things owned plus experiences made. */
+  | { t: 'collection'; gte: number }
   /** More reputation than this crew. */
   | { t: 'outrank'; rival: string }
   | { t: 'channelFree'; channel: ActivityChannel }
@@ -102,7 +107,14 @@ export type Effect =
   | { t: 'discoverSpot'; intel?: number }
   | { t: 'lineupSwap'; event: string; person: string; to: 'self' | 'sub' | 'none' }
   /** A special offer on the used market. */
-  | { t: 'rareOffer'; item: string; factor: number };
+  | { t: 'rareOffer'; item: string; factor: number }
+  // ── Lifestyle ──
+  /** Motivation of every crew member. */
+  | { t: 'crewMorale'; amount: number }
+  /** Explores a random open district of the current city a bit. */
+  | { t: 'exploreSomewhere'; amount: number }
+  /** Coin flip: `effects` with probability `p`, else `otherwise`. */
+  | { t: 'chance'; p: number; effects: Effect[]; otherwise?: Effect[] };
 
 export type ModifierKind = 'demand' | 'police' | 'jobPay' | 'goodsPrice';
 

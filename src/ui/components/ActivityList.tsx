@@ -1,4 +1,4 @@
-import { Briefcase, Compass, Disc3, Hammer, Package, PartyPopper, Tag, Users, X } from 'lucide-react';
+import { Briefcase, Compass, Disc3, Hammer, Package, PartyPopper, Sun, Tag, Users, X } from 'lucide-react';
 import type { ActivityChannel } from '../../game/core/types';
 import type { Activity } from '../../game/systems/activities/state';
 import { activityProgress, CHANNEL_LABELS } from '../../game/systems/activities/logic';
@@ -18,6 +18,7 @@ const CHANNEL_ICONS: Record<ActivityChannel, typeof Briefcase> = {
   errand: Package,
   event: PartyPopper,
   market: Tag,
+  leisure: Sun,
 };
 
 export function ActivityRow({ a, now }: { a: Activity; now: number }) {

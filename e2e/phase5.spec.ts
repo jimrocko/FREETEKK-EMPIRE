@@ -1,11 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { expectNoHorizontalScroll, newGame, openRoute, trackErrors } from './helpers';
+import { expectNoHorizontalScroll, hack, newGame, openRoute, trackErrors } from './helpers';
 
 test('build a sound system, rent a van, see the crew founding requirements', async ({ page, isMobile }) => {
   const errors = trackErrors(page);
   await newGame(page);
-  await openRoute(page, '/einstellungen', !!isMobile);
-  await page.getByTestId('debug-money').click();
+  await hack(page, 'geld 10k', !!isMobile);
 
   await page.evaluate(() => (location.hash = '/markt/shop'));
   await page.getByTestId('buynew-item.pa-active-12').first().click();

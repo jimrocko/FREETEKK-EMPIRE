@@ -70,3 +70,12 @@ export async function loadGame(page: Page, mutate: (s: GameState) => void) {
   if (await report.isVisible().catch(() => false)) await report.click();
   await expect(page.getByTestId('screen-dashboard')).toBeVisible();
 }
+
+/** Runs a hack menu quick command (button test id `hack-<cmd with dashes>`), opened from the settings. */
+export async function hack(page: Page, cmd: string, isMobile: boolean) {
+  await openRoute(page, '/einstellungen', isMobile);
+  await page.getByTestId('open-hack').click();
+  await page.getByTestId(`hack-${cmd.replace(/\s+/g, '-')}`).click();
+  const close = page.getByTestId('hack-close');
+  if (await close.isVisible().catch(() => false)) await close.click();
+}

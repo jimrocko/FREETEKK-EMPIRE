@@ -15,6 +15,7 @@ import { competition, coopDemand } from '../rivals/logic';
 import { networkSize } from './util';
 import { dayFactor, eventCapacity, goodsLoad, performerFee, soundSummary, type SoundSummary } from './plan';
 import type { EventPlanInput, EventScores, Weather } from './state';
+import { flairBonus } from '../lifestyle/logic';
 
 /** Randomness source: returns a value in [0, 1). Forecasts pass a constant 0.5. */
 export type Roll = () => number;
@@ -124,7 +125,7 @@ export function demandFor(s: GameState, plan: EventPlanInput, flyerDone: boolean
   const weekday = gameTimeAt(s.clock, plan.startsAt).weekday;
   const random = 0.85 + roll() * 0.3;
   const boosts = 'boosts' in plan && Array.isArray(plan.boosts) ? plan.boosts.reduce((sum, b) => sum + b.value, 0) : 0;
-  const scene = (1 + modifierValue(s, 'demand')) * competition(s, plan.startsAt).factor * Math.max(0.2, 1 + boosts) * eventFormat(plan.format).demand;
+  const scene = (1 + modifierValue(s, 'demand') + flairBonus(s)) * competition(s, plan.startsAt).factor * Math.max(0.2, 1 + boosts) * eventFormat(plan.format).demand;
   const total = (base * dayFactor(weekday) * cityCrowdFactor(s, spot.cityId) + coopDemand(s, plan.startsAt, weekday)) * scene;
   const city = cityDef(spot.cityId);
   return Math.max(0, Math.round(total * priceFactor(plan.entry / city.priceLevel) * weatherAttendance(weather, spot.stats.weather) * random));

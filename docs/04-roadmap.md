@@ -147,7 +147,23 @@ Ziel: TEKK LIFE soll sich wie ein Spiel anfühlen, nicht wie eine Verwaltungs-Ap
 
 **Abnahme:** E2E (iPhone + Desktop): Titelbildschirm → neues Spiel mit Hero und Kacheln, HUD-Geld mit Abzug-Animation, Feier bei Freischaltung, Mittelknopf, Sound-Schalter bleibt nach Reload, kein horizontales Scrollen auf Start, Karte, Events, Fortschritt ✓.
 
-## Phase 11 – Balancing & Feinschliff ⏳
+## Phase 11 – Lifestyle & Hack-Menü ✅
+
+Ziel: Wofür man das ganze Geld verdient – und ein Admin-Zugang für den eigenen Spielstand.
+
+- **Lifestyle-Shop** (`/lifestyle`, Kachel im HQ) mit 50 Spaß-Käufen in sechs Kategorien: Style (Bucket Hat bis Diamant-Grill), Bude (Lavalampe, Arcade-Automat, Whirlpool, goldene Turntables …), Tiere (Goldfisch „Subwoofer“, Hund „Bass“, Lama „Lars“, Rennpferd), Fahrspaß (Skateboard bis Privatjet), Erlebnisse und Luxus & Wahnsinn (Mondgrundstück, Hüpfburg, Eiswagen, Statue, eigene Insel)
+- **Seltenheit nach Preis** wie Loot: Gewöhnlich, Selten, Episch, Legendär (Farben, Glanz, Vollbild-Feier bei legendären Käufen)
+- **Style-Punkte und Style-Ränge** (Abgerockt → Mythos): jeder Rang bringt +2 % Gäste bei deinen Partys (bis +10 %), Rang-Aufstiege werden einmal gefeiert
+- **Benutzen mit Abklingzeit:** Gassi gehen (erkundet nebenbei), Zocken und Platten hören (XP), Kicker-Turnier und Whirlpool (Crew-Motivation), Pferderennen mit Preisgeld-Chance, Bootsparty, Inselparty …
+- **Erlebnisse** laufen als Freizeit-Aktivität im Hintergrund (Kino bis Weltreise und Flug ins All) und geben Boni, z. B. Urlaub: +15 % Job-Lohn für zwei Tage, Goa: +10 % Gäste
+- **Wohnen:** sieben Zuhause vom WG-Zimmer bis zur Villa – mehr Lagerplatz und Style, dafür Miete; Umzug nur, wenn dein Zeug reinpasst
+- Unterhalt (Futter, Versicherung, Liegeplatz) und Miete laufen über die Tageskosten; Verkaufen bringt 40 % zurück, Kauf-Effekte gibt es nur beim ersten Mal
+- Neue Effekte (`crewMorale`, `exploreSomewhere`, `chance`) und Bedingungen (`flair`, `collection`), sechs neue Ziele
+- **Hack-Menü** im Terminal-Look (Einstellungen → Admin, oder fünfmal schnell aufs Wappen tippen): Knöpfe und getippte Befehle (`geld 50k`, `rep 500`, `zeit 2d`, `help` …) für Geld, Reputation, Szenepunkte, Fähigkeiten, Zeitsprung, Karte aufdecken, alle Kontakte, Reparieren, Crew-Laune, „Turbo“ (alles sofort fertig), Freischaltungen, Schulden löschen, Nachrichten und Ereignisse. Cheat-Geld zählt nicht als verdient; jede Nutzung wird gezählt. Ersetzt das alte Entwickler-Panel.
+
+**Abnahme:** Unit-Tests für Kaufen/Verkaufen, Style-Ränge und Partybonus, Benutzen mit Abklingzeit, Erlebnisse, Unterhalt und Miete, Umzug mit Platzprüfung, alle Cheats und das Befehls-Parsing ✓; E2E (iPhone + Desktop): Lifestyle von der HQ-Kachel bis zum Umzug, Hack-Menü über die Geheimtür, Knöpfe, getippte Befehle und Zeitsprung ✓.
+
+## Phase 12 – Balancing & Feinschliff ⏳
 
 - Balancing über Wirtschafts-Simulationen (automatisierte Durchläufe)
 - Barrierefreiheit (Kontraste, Screenreader-Texte, Tastatur), Performance

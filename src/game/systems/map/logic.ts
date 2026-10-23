@@ -46,6 +46,21 @@ export function exploreGain(s: GameState, d: DistrictDef): number {
   return Math.max(3, Math.round(d.exploreGain * (1 - explored / 140) * skill));
 }
 
+/** A bit of exploring on the side (walks, rides): a random open district of the current city. Returns its name. */
+export function exploreSomewhere(d: GameState, amount: number): string | null {
+  const open = cityDistricts(d).filter((x) => !districtLockReason(d, x) && districtState(d, x.id).explored < 100);
+  if (open.length === 0) return null;
+  const def = pick(d, open);
+  const st = (d.map.districts[def.id] ??= { explored: 0, visits: 0 });
+  st.explored = Math.min(100, st.explored + amount);
+  const next = findableIn(d, def.id, st.explored).sort((a, b) => a.threshold - b.threshold)[0];
+  if (next && chance(d, 0.3)) {
+    if (next.kind === 'spot') revealSpot(d, next.id, 'explore', 25);
+    else revealPoi(d, next.id, 'explore');
+  }
+  return def.name;
+}
+
 // ── Knowledge ─────────────────────────────────────────────
 
 export function isPoiKnown(s: GameState, id: string): boolean {
@@ -96,6 +111,7 @@ export const VIA_LABELS: Record<string, string> = {
   contact: 'Von einem Kontakt',
   rival: 'Bei einer anderen Crew entdeckt',
   project: 'Dein eigenes Projekt',
+  admin: 'Per Hack aufgedeckt',
 };
 
 export function revealPoi(d: GameState, id: string, via: string, opts: { silent?: boolean } = {}): boolean {

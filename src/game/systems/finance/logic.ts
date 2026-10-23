@@ -23,6 +23,7 @@ export const CATEGORY_LABELS: Record<LedgerCategory, string> = {
   property: 'Immobilien',
   music: 'Musik',
   network: 'Netzwerk',
+  lifestyle: 'Lifestyle',
   other: 'Sonstiges',
 };
 
@@ -152,9 +153,12 @@ export function receiveLoan(d: GameState, amount: number, label: string): void {
   book(d, value, 'other', label);
 }
 
-/** Debug helper (only reachable from the developer panel). */
-export function debugGrant(d: GameState, amount: number): void {
-  earn(d, amount, 'other', 'Entwickler-Geld');
+/** Hack menu: money from nowhere – booked, but not counted as earned. */
+export function adminGrant(d: GameState, amount: number): void {
+  const value = roundMoney(amount);
+  if (value <= 0) return;
+  d.finance.cash += value;
+  book(d, value, 'other', 'Admin-Hack');
 }
 
 /** Sum of ledger income within the last real hour. */

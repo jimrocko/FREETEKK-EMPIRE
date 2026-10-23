@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectNoHorizontalScroll, newGame, openRoute, skipTime, trackErrors } from './helpers';
+import { expectNoHorizontalScroll, hack, newGame, openRoute, skipTime, trackErrors } from './helpers';
 
 test('contacts, profile, writing and meeting up', async ({ page, isMobile }) => {
   const errors = trackErrors(page);
@@ -33,8 +33,7 @@ test('contacts, profile, writing and meeting up', async ({ page, isMobile }) => 
 test('a message with a decision can be answered', async ({ page, isMobile }) => {
   const errors = trackErrors(page);
   await newGame(page);
-  await openRoute(page, '/einstellungen', !!isMobile);
-  await page.getByTestId('debug-message').click();
+  await hack(page, 'nachricht', !!isMobile);
   await page.waitForTimeout(1500);
   await openRoute(page, '/netzwerk', !!isMobile);
   await page.getByRole('tab', { name: /Nachrichten/ }).click();

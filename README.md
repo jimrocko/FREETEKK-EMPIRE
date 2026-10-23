@@ -18,13 +18,14 @@ Mobile-first Web-App (React + TypeScript), läuft komplett im Browser, speichert
 | 8 | Fünf KI-Crews mit eigener Simulation (Partys, Spots, Wachstum, Razzien, Pleiten), Konkurrenz und Kooperation, Szene-Ticker, 30 Zufallsereignisse mit Entscheidungen, Stadt-Modifikatoren | ✅ |
 | 9 | Freischaltungsbaum (21 Knoten, Szenepunkte), Open-Air & Teknival, Live-Act, Remix, Verleih, Eigenbau, Bergheim & Nordhafen, Großprojekte (Location, Label, Festival), Vermächtnis mit Startszenarien | ✅ |
 | 10 | Spiel-Look: Neon-/Flyer-Optik, lebendiger Himmel nach Spieluhr, HUD mit Crew-Wappen, Aktionskacheln, Party-Flyer, Sterne-Wertung, Vollbild-Feiern, Sound-Effekte | ✅ |
-| 11 | Balancing, Barrierefreiheit, Feinschliff | siehe [Roadmap](docs/04-roadmap.md) |
+| 11 | Lifestyle: 50 Spaß-Käufe mit Seltenheit, Style-Ränge, Haustiere, Erlebnisse, Wohnungen bis zur Villa · Hack-Menü im Terminal-Look | ✅ |
+| 12 | Balancing, Barrierefreiheit, Feinschliff | siehe [Roadmap](docs/04-roadmap.md) |
 
 ## Schnellstart
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173 (mit Entwickler-Zeitsprung in den Einstellungen)
+npm run dev        # http://localhost:5173 (Zeitsprung & Cheats: Einstellungen → Admin → Hack-Menü)
 npm test           # Unit-Tests der Spiellogik
 npm run build      # Produktions-Build nach dist/
 npm run e2e        # Playwright-Tests (iPhone + Desktop) gegen den Build

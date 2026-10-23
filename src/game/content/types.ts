@@ -91,6 +91,49 @@ export interface HomeDef {
   name: string;
   capacityL: number;
   description: string;
+  /** One-off cost to move in (deposit, move, furniture). */
+  price?: number;
+  /** Rent or upkeep per game day. */
+  rent?: number;
+  /** Style points while you live here. */
+  flair?: number;
+  /** Lucide icon name (mapped in the UI). */
+  icon?: string;
+  requires?: Condition[];
+}
+
+export type LifestyleCategory = 'style' | 'bude' | 'tiere' | 'fahrspass' | 'erlebnisse' | 'luxus';
+
+/** Something you can do with an owned lifestyle item every now and then. */
+export interface LifestyleUseDef {
+  /** Button label, e.g. „Gassi gehen“. */
+  label: string;
+  /** Game hours until it can be used again. */
+  cooldownH: number;
+  effects?: Effect[];
+  /** One line is picked at random for the result. */
+  lines: string[];
+}
+
+/** Fun purchases: nothing you need, everything you want. */
+export interface LifestyleDef {
+  id: string;
+  name: string;
+  category: LifestyleCategory;
+  price: number;
+  /** Style points while owned – experiences count once, forever. */
+  flair: number;
+  /** Lucide icon name (mapped in the UI). */
+  icon: string;
+  description: string;
+  /** Costs per game day while owned (food, insurance, berth …). */
+  upkeep?: number;
+  /** Applied the first time you buy it (experiences: when they end). */
+  effects?: Effect[];
+  /** Experiences take game hours and can be repeated after the cooldown. */
+  experience?: { hours: number; cooldownDays?: number };
+  use?: LifestyleUseDef;
+  requires?: Condition[];
 }
 
 export type SpotType =

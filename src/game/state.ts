@@ -21,6 +21,7 @@ import { createRivalsState, type RivalsState } from './systems/rivals/state';
 import { createHappeningsState, type HappeningsState } from './systems/happenings/state';
 import { createProjectsState, type ProjectsState } from './systems/projects/state';
 import { createLegacyState, type LegacyState } from './systems/legacy/state';
+import { createLifestyleState, type LifestyleState } from './systems/lifestyle/state';
 import type { ScenarioDef } from './content/legacy';
 import { applyStart } from './systems/legacy/logic';
 import { SCENARIOS } from './content/legacy';
@@ -73,6 +74,7 @@ export interface GameState {
   happenings: HappeningsState;
   projects: ProjectsState;
   legacy: LegacyState;
+  lifestyle: LifestyleState;
   notifications: NotificationsState;
 }
 
@@ -113,6 +115,7 @@ export function createSlices(now: number, seed: number): GameState {
     happenings: createHappeningsState(now),
     projects: createProjectsState(),
     legacy: createLegacyState(),
+    lifestyle: createLifestyleState(),
     notifications: createNotificationsState(),
   };
 }

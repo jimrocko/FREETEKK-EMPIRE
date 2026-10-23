@@ -11,6 +11,7 @@ export const BASE_CAPACITY: Record<ActivityChannel, number> = {
   errand: 1,
   event: 1,
   market: 3,
+  leisure: 1,
 };
 
 export const CHANNEL_LABELS: Record<ActivityChannel, string> = {
@@ -22,6 +23,7 @@ export const CHANNEL_LABELS: Record<ActivityChannel, string> = {
   errand: 'Besorgungen',
   event: 'Event-Vorbereitung',
   market: 'Inserate',
+  leisure: 'Freizeit',
 };
 
 const CHANNEL_BUSY: Record<ActivityChannel, string> = {
@@ -33,6 +35,7 @@ const CHANNEL_BUSY: Record<ActivityChannel, string> = {
   errand: 'Alle Besorgungs-Slots sind belegt.',
   event: 'Alle Vorbereitungs-Slots sind belegt.',
   market: 'Maximale Anzahl Inserate erreicht.',
+  leisure: 'Du bist schon unterwegs und genießt das Leben.',
 };
 
 /** Crew roles that add a parallel slot to a channel (when motivated). */

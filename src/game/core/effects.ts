@@ -7,13 +7,14 @@ import { DISTRICTS_BY_ID, ITEMS, PERSONS_BY_ID, POIS_BY_ID, SPOTS_BY_ID } from '
 import { earn, spend } from '../systems/finance/logic';
 import { addRep, addXp, setFlag, unlock } from '../systems/progression/logic';
 import { addItem } from '../systems/inventory/logic';
-import { hearRumor, revealPoi, revealSpot } from '../systems/map/logic';
+import { exploreSomewhere, hearRumor, revealPoi, revealSpot } from '../systems/map/logic';
+import { boostMorale } from '../systems/crew/logic';
 import { adjustFavor, adjustRelation, adjustTrust, meetPerson, meetSomeone } from '../systems/people/logic';
 import { queueMessage } from '../systems/messages/logic';
 import { CHANNEL_LABELS, startActivity } from '../systems/activities/logic';
 import { GAME_DAY_MS, minutes } from './time';
 import { RIVALS_BY_ID } from '../content/registry';
-import { pick } from './rng';
+import { chance, pick } from './rng';
 import { addModifier } from '../systems/happenings/logic';
 import { addNews, adjustRivalRelation } from '../systems/rivals/logic';
 import { wearItem } from '../systems/equipment/logic';
@@ -157,6 +158,15 @@ export function applyEffect(d: GameState, e: Effect): void {
       if (offer) d.market.offers.push(offer);
       return;
     }
+    case 'crewMorale':
+      boostMorale(d, e.amount);
+      return;
+    case 'exploreSomewhere':
+      exploreSomewhere(d, e.amount);
+      return;
+    case 'chance':
+      applyEffects(d, chance(d, e.p) ? e.effects : e.otherwise);
+      return;
   }
 }
 
@@ -225,6 +235,14 @@ export function describeEffect(e: Effect): string {
       return e.to === 'self' ? 'du spielst selbst' : e.to === 'sub' ? 'Ersatz-DJ' : 'Line-up ohne Ersatz';
     case 'rareOffer':
       return `Angebot: ${ITEMS.get(e.item)?.name ?? e.item}`;
+    case 'crewMorale':
+      return `${e.amount >= 0 ? '+' : ''}${e.amount} Crew-Motivation`;
+    case 'exploreSomewhere':
+      return `+${e.amount} % Erkundung`;
+    case 'chance': {
+      const win = describeEffects(e.effects);
+      return win ? `${Math.round(e.p * 100)} % Chance: ${win}` : '';
+    }
   }
 }
 

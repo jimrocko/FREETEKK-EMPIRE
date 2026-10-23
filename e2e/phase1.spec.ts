@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectNoHorizontalScroll, newGame, openRoute, trackErrors } from './helpers';
+import { expectNoHorizontalScroll, hack, newGame, openRoute, trackErrors } from './helpers';
 
 test('start screen requires a name', async ({ page }) => {
   const errors = trackErrors(page);
@@ -49,8 +49,7 @@ test('a job pays out, survives a reload and shows up in finances', async ({ page
   await openRoute(page, '/jobs', !!isMobile);
   await expect(page.getByTestId('activity')).toHaveCount(1);
 
-  await openRoute(page, '/einstellungen', !!isMobile);
-  await page.getByTestId('debug-+10 Min').click();
+  await hack(page, 'zeit 10h', !!isMobile);
   await expect(page.getByTestId('offline-report')).toBeVisible();
   await expect(page.getByTestId('offline-report')).toContainText('Flyer verteilen');
   await page.getByTestId('offline-continue').click();

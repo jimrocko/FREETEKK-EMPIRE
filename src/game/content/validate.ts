@@ -26,6 +26,7 @@ import { EVENT_FORMATS } from './events';
 import { HAPPENINGS } from './happenings';
 import { GENRES } from './music';
 import { RIVALS_BY_ID } from './registry';
+import { LIFESTYLE } from './lifestyle';
 
 /** Ray casting point-in-polygon test. */
 export function pointInPolygon([x, y]: [number, number], poly: [number, number][]): boolean {
@@ -62,6 +63,7 @@ export function validateContent(): string[] {
   checkUnique('rumor', RUMORS);
   checkUnique('person', PEOPLE);
   checkUnique('template', MESSAGE_TEMPLATES);
+  checkUnique('lifestyle', LIFESTYLE);
 
   const checkCondition = (where: string, c: Condition) => {
     switch (c.t) {
@@ -118,6 +120,11 @@ export function validateContent(): string[] {
     }
     if (e.t === 'message' && !TEMPLATES_BY_ID.has(e.template)) problems.push(`${where}: unbekannte Nachricht ${e.template}`);
     if (e.t === 'task') e.effects.forEach((x) => checkEffect(where, x));
+    if (e.t === 'chance') {
+      if (!(e.p > 0 && e.p < 1)) problems.push(`${where}: Chance muss zwischen 0 und 1 liegen`);
+      e.effects.forEach((x) => checkEffect(where, x));
+      e.otherwise?.forEach((x) => checkEffect(where, x));
+    }
     if (e.t === 'explore' && !DISTRICTS_BY_ID.has(e.district)) problems.push(`${where}: unbekannter Bezirk ${e.district}`);
     if (e.t === 'item' && !ITEMS.has(e.item)) problems.push(`${where}: unbekanntes Item ${e.item}`);
     if (e.t === 'xp' && !SKILLS.includes(e.skill)) problems.push(`${where}: unbekannte Fähigkeit ${e.skill}`);
@@ -139,6 +146,21 @@ export function validateContent(): string[] {
     if (!it.shops?.length && !it.usedMarket && it.category !== 'goods' && !it.tags?.includes('crafted')) problems.push(`${it.id}: weder im Shop noch auf dem Gebrauchtmarkt`);
     if (it.unlock && !UNLOCKS.some((u) => u.id === it.unlock)) problems.push(`${it.id}: unbekannte Freischaltung ${it.unlock}`);
     for (const shop of it.shops ?? []) if (!SHOPS_BY_ID.has(shop)) problems.push(`${it.id}: unbekannter Laden ${shop}`);
+  }
+  for (const l of LIFESTYLE) {
+    if (!(l.price > 0)) problems.push(`${l.id}: Preis muss > 0 sein`);
+    if (l.flair < 0) problems.push(`${l.id}: Style-Punkte negativ`);
+    if (l.use && (l.use.lines.length === 0 || !(l.use.cooldownH > 0))) problems.push(`${l.id}: Benutzen braucht Texte und eine Abklingzeit`);
+    if (l.experience && l.use) problems.push(`${l.id}: Erlebnisse kann man nicht benutzen`);
+    if (l.experience && !(l.experience.hours > 0)) problems.push(`${l.id}: Erlebnis ohne Dauer`);
+    l.requires?.forEach((c) => checkCondition(l.id, c));
+    l.effects?.forEach((e) => checkEffect(l.id, e));
+    l.use?.effects?.forEach((e) => checkEffect(l.id, e));
+  }
+  for (const h of HOMES) {
+    if (h.price !== undefined && h.price < 0) problems.push(`${h.id}: Preis negativ`);
+    if (!(h.capacityL > 0)) problems.push(`${h.id}: kein Platz`);
+    h.requires?.forEach((c) => checkCondition(h.id, c));
   }
   for (const job of JOBS) {
     if (!(job.durationMin > 0) || !(job.pay > 0)) problems.push(`${job.id}: Dauer und Lohn müssen > 0 sein`);

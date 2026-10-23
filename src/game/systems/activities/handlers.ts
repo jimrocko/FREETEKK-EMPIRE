@@ -15,6 +15,7 @@ import { rentalHandler } from '../sound/rental';
 import { customBuildHandler } from '../equipment/custom';
 import { travelHandler } from '../map/cities';
 import { releaseHandler } from '../projects/actions';
+import { experienceHandler } from '../lifestyle/handler';
 
 /** Registry: activity kind → completion handler. New systems register here. */
 export const ACTIVITY_HANDLERS: Record<string, ActivityHandler> = {
@@ -36,4 +37,5 @@ export const ACTIVITY_HANDLERS: Record<string, ActivityHandler> = {
   'custom-build': customBuildHandler,
   travel: travelHandler,
   release: releaseHandler,
+  experience: experienceHandler,
 };

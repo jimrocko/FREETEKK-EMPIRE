@@ -8,6 +8,7 @@ import { CrewEmblem } from '../components/CrewEmblem';
 import { phaseForHour } from '../components/Sky';
 import { navigate } from '../router';
 import { sfx } from '../fx/sound';
+import { secretTap } from './hackState';
 
 interface Delta {
   id: number;
@@ -58,7 +59,14 @@ export function Hud() {
   const PhaseIcon = PHASE_ICONS[phaseForHour(time.hour)];
   return (
     <header className="topbar">
-      <button className="hud__id" onClick={() => navigate('/')} aria-label="Zum HQ">
+      <button
+        className="hud__id"
+        onClick={() => {
+          if (!secretTap(Date.now())) navigate('/');
+        }}
+        aria-label="Zum HQ"
+        data-testid="hud-emblem"
+      >
         <CrewEmblem seed={name} size={42} progress={rep.next ? rep.progress : 1} />
         <span style={{ minWidth: 0 }}>
           <div className="hud__name">{name}</div>

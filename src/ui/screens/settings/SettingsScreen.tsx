@@ -1,16 +1,14 @@
 import { useRef, useState } from 'react';
-import { Bug, Copy, Download, FileUp, HardDrive, RotateCcw, Save, Upload, UserRound, Volume2, VolumeX } from 'lucide-react';
+import { Copy, Download, FileUp, HardDrive, RotateCcw, Save, Terminal, Upload, UserRound, Volume2, VolumeX } from 'lucide-react';
 import { setSoundEnabled, sfx, soundEnabled } from '../../fx/sound';
 import { appStore, useApp, useGameState } from '../../../app/store';
-import { debugAdvance, dispatch, importGame, resetGame, saveNow } from '../../../app/runtime';
-import { debugMoney, debugNextMessage } from '../../../game/systems/messages/actions';
-import { debugHappening } from '../../../game/systems/happenings/actions';
-import { DEBUG_ENABLED, addDebugOffset, now } from '../../../app/clock';
+import { importGame, resetGame, saveNow } from '../../../app/runtime';
+import { now } from '../../../app/clock';
+import { openHack } from '../../layout/hackState';
 import { pushToast } from '../../../app/toasts';
 import { exportSave } from '../../../game/save/saveManager';
 import { renamePlayer } from '../../../game/systems/progression/actions';
 import { fmtDuration } from '../../../game/core/format';
-import { MINUTE, HOUR } from '../../../game/core/time';
 import { STATE_VERSION } from '../../../game/state';
 import { ActionButton } from '../../components/ActionButton';
 import { Banner, Button, Card, CardHead, Modal, PageHeader } from '../../components/ui';
@@ -148,35 +146,15 @@ export function SettingsScreen() {
         </Button>
       </Card>
 
-      {DEBUG_ENABLED && (
-        <Card>
-          <CardHead icon={<Bug size={15} />} title="Entwickler: Zeit vorspulen" />
-          <p className="tiny faint" style={{ marginBottom: 12 }}>
-            Nur in Entwicklungs-Builds sichtbar. Spult die Spielzeit vor, um Timer und Offline-Fortschritt zu testen.
-          </p>
-          <div className="row row--wrap">
-            {[
-              ['+1 Min', MINUTE],
-              ['+10 Min', 10 * MINUTE],
-              ['+1 Std', HOUR],
-              ['+8 Std', 8 * HOUR],
-            ].map(([label, ms]) => (
-              <Button key={label as string} small onClick={() => debugAdvance(ms as number, addDebugOffset)} testId={`debug-${label}`}>
-                {label}
-              </Button>
-            ))}
-            <Button small onClick={() => dispatch(debugNextMessage, {}, { silent: true })} testId="debug-message">
-              Nachricht auslösen
-            </Button>
-            <Button small onClick={() => dispatch(debugMoney, { amount: 5000 }, { silent: true })} testId="debug-money">
-              +5.000 €
-            </Button>
-            <Button small onClick={() => dispatch(debugHappening, {}, { silent: true })} testId="debug-happening">
-              Ereignis auslösen
-            </Button>
-          </div>
-        </Card>
-      )}
+      <Card testId="admin-card">
+        <CardHead icon={<Terminal size={15} />} title="Admin" />
+        <p className="small dim" style={{ marginBottom: 12 }}>
+          Das Hack-Menü für deinen eigenen Spielstand: Geld, Reputation, Zeit vorspulen, Karte aufdecken und mehr. Geheimer Zugang: fünfmal schnell auf dein Wappen oben links tippen.
+        </p>
+        <Button variant="primary" onClick={openHack} testId="open-hack">
+          <Terminal size={16} /> Hack-Menü öffnen
+        </Button>
+      </Card>
 
       {confirmReset && (
         <Modal

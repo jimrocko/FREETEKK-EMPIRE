@@ -176,6 +176,7 @@ Start → Spielstand laden (oder neu) → advanceTo(jetzt) mit Bericht
 - **Navigation datengetrieben:** Jeder Screen hat eine Freischaltbedingung. Noch nicht freigeschaltete Systeme stehen deaktiviert im „Mehr“-Menü mit Bedingung („Ab Reputation ‚Local‘“). Es gibt keine „Coming soon“-Buttons.
 - **Routing:** Hash-Routing (`#/inventar`), funktioniert auf jedem statischen Hosting und überlebt Reloads.
 - **Designsystem:** CSS-Variablen in `styles/tokens.css` (dunkel, Acid-Grün/Magenta/UV), Basis-Komponenten in `components.css`, die Spiel-Optik (Schriften, HUD-Ecken, Flyer, Feiern, Neon-Karte) als eigene Schicht in `styles/game.css`. Komponenten `Card`, `Button`, `Tabs`, `Modal`, `ProgressBar`, `Stat`, `Badge`, `Toast`, dazu `CrewEmblem`, `Equalizer`, `CountUp`.
+- **Hack-Menü:** `layout/HackMenu.tsx` ist ein Terminal über dem Spiel. Befehle (`layout/hackCommands.ts`) rufen normale Aktionen aus `systems/admin` auf; Zeitsprünge verschieben die App-Uhr (`app/clock.ts`), damit die Simulation wie beim Wegsein aufholt.
 - **Feiern & Sound:** Feed-Einträge mit `big: true` (aus `notify`) zeigt `layout/Celebration.tsx` als Vollbild-Moment (nicht während des Offline-Aufholens). `ui/fx` erzeugt Sound-Effekte per WebAudio, abschaltbar in den Einstellungen; die Spiellogik weiß davon nichts.
 - **Komponenten lesen State nur über Selektoren** und lösen Änderungen nur über Aktionen aus.
 
@@ -189,3 +190,5 @@ Start → Spielstand laden (oder neu) → advanceTo(jetzt) mit Bericht
 | Neuer Bedingungs-/Effekttyp | Typ ergänzen + eine Funktion in `core/conditions.ts` / `core/effects.ts` |
 | Neues System | Ordner in `systems/`, Slice im State, `GameSystem` registrieren, ggf. Screen + Navigationseintrag |
 | Neue Stadt / Spots / Personen (ab Phase 2/3) | Daten in `content/` |
+| Neuer Spaß-Kauf / neue Wohnung | Eintrag in `content/lifestyle.ts` / `content/homes.ts` (Icon-Name ggf. in `ui/components/LifeIcon.tsx` ergänzen) |
+| Neuer Cheat | Aktion in `systems/admin/actions.ts` + Befehl in `ui/layout/hackCommands.ts` |

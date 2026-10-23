@@ -1,4 +1,4 @@
-import { Briefcase, Compass, MapPin, PartyPopper, Users } from 'lucide-react';
+import { Briefcase, Compass, Gem, MapPin, PartyPopper, Sparkles, Users } from 'lucide-react';
 import { useGameState } from '../../../app/store';
 import { cityDef, repTierFor } from '../../../game/content/registry';
 import { fmtCountdown, fmtMoney, fmtNumber } from '../../../game/core/format';
@@ -9,6 +9,8 @@ import { cityDistricts, districtState } from '../../../game/systems/map/logic';
 import { metPeople } from '../../../game/systems/people/logic';
 import { knownSpots } from '../../../game/systems/spots/logic';
 import { activitiesByChannel } from '../../../game/systems/activities/logic';
+import { collectionCount, flairTier } from '../../../game/systems/lifestyle/logic';
+import { LIFESTYLE } from '../../../game/content/lifestyle';
 import { CrewEmblem } from '../../components/CrewEmblem';
 import { Equalizer } from '../../components/Equalizer';
 import { Badge } from '../../components/ui';
@@ -61,6 +63,11 @@ export function HqHero() {
         <Badge tone="info">
           <MapPin size={11} /> {city.name}
         </Badge>
+        {flairTier(s).index > 0 && (
+          <Badge tone="discovery">
+            <Sparkles size={11} /> {flairTier(s).name}
+          </Badge>
+        )}
         {s.crew.founded && s.crew.members.length > 0 && (
           <Badge tone="discovery">
             <Users size={11} /> {s.crew.members.length + 1} in der Crew
@@ -83,6 +90,7 @@ export function ActionTiles() {
     .sort((a, b) => jobPayPerHour(b.job) - jobPayPerHour(a.job))[0];
   const exploring = activitiesByChannel(s, 'explore')[0];
   const next = upcomingEvents(s)[0];
+  const trip = activitiesByChannel(s, 'leisure')[0];
   const tiles = [
     {
       id: 'jobs',
@@ -116,13 +124,22 @@ export function ActionTiles() {
       color: 'var(--uv)',
       to: '/events',
     },
+    {
+      id: 'lifestyle',
+      label: 'Lifestyle',
+      sub: trip ? `unterwegs: ${trip.label}` : `${flairTier(s).name} · ${collectionCount(s)} / ${LIFESTYLE.length} gesammelt`,
+      icon: Gem,
+      color: '#ffc93d',
+      to: '/lifestyle',
+      wide: true,
+    },
   ];
   return (
     <div className="tiles" data-testid="action-tiles">
       {tiles.map((t) => {
         const Icon = t.icon;
         return (
-          <button key={t.id} className="tile" style={{ ['--tile' as string]: t.color }} onClick={() => navigate(t.to)} data-testid={`tile-${t.id}`}>
+          <button key={t.id} className={t.wide ? 'tile tile--wide' : 'tile'} style={{ ['--tile' as string]: t.color }} onClick={() => navigate(t.to)} data-testid={`tile-${t.id}`}>
             <span className="tile__icon">
               <Icon size={20} />
             </span>

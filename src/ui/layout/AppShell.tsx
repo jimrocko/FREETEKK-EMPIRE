@@ -11,6 +11,7 @@ import { Hud } from './Hud';
 import { Celebration } from './Celebration';
 import { Sky } from '../components/Sky';
 import { UiSounds } from '../fx/UiSounds';
+import { HackMenu } from './HackMenu';
 
 function routeLocked(s: ReturnType<typeof useGameState>, r: RouteDef): string | null {
   return r.requires && !checkAll(s, r.requires) ? requirementReason(s, r.requires) : null;
@@ -149,6 +150,7 @@ export function AppShell() {
       <FeedToaster />
       <Toasts />
       <Celebration />
+      <HackMenu />
       <UiSounds />
     </div>
   );

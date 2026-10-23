@@ -15,6 +15,11 @@ export const CREW_FOUND_REQUIRES: Condition[] = [
 
 export const RECRUIT_TRUST = 40;
 
+/** Lifts (or lowers) everyone's motivation. */
+export function boostMorale(d: GameState, amount: number): void {
+  for (const m of d.crew.members) m.morale = Math.max(0, Math.min(100, m.morale + amount));
+}
+
 /** What each role adds to the crew (shown in the UI). */
 export const ROLE_BENEFITS: Partial<Record<Role, string>> = {
   technician: '+1 Werkstatt-Slot, Reparaturen nur zum Teilepreis',

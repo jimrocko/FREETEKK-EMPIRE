@@ -100,6 +100,10 @@ export const sfx = {
   error(): void {
     tone({ freq: 220, to: 110, dur: 0.18, type: 'sawtooth', gain: 0.035, cutoff: 1200 });
   },
+  /** Hack menu: modem chatter. */
+  hack(): void {
+    [880, 1320, 660, 1760, 990, 2200, 1480].forEach((f, i) => tone({ freq: f, dur: 0.035, type: 'square', gain: 0.02, delay: i * 0.045 }));
+  },
   /** Level up, new status, big goal: a little acid line on a kick. */
   fanfare(): void {
     tone({ freq: 150, to: 40, dur: 0.3, type: 'sine', gain: 0.22 });

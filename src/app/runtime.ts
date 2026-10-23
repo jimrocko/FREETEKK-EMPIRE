@@ -1,6 +1,6 @@
 import { produce } from 'immer';
 import { appStore, updateGame } from './store';
-import { now } from './clock';
+import { addClockOffset, now } from './clock';
 import { pushToast } from './toasts';
 import { createInitialState, type GameState } from '../game/state';
 import { OFFLINE_REPORT_THRESHOLD, catchUp, performAction, tick, type CatchUpReport } from '../game/engine';
@@ -143,8 +143,8 @@ export function dispatch<P>(action: ActionDef<P>, payload: P, opts: { silent?: b
   return result;
 }
 
-/** Debug: jump forward in time (dev builds only). */
-export function debugAdvance(ms: number, addOffset: (ms: number) => void): void {
-  addOffset(ms);
+/** Hack menu: jump forward in time; long jumps show the offline report. */
+export function skipTime(ms: number): void {
+  addClockOffset(ms);
   step();
 }

@@ -10,6 +10,7 @@ import { countItem, countTag } from '../systems/inventory/logic';
 import { CHANNEL_LABELS, channelCapacity, channelUsage } from '../systems/activities/logic';
 import { CITIES_BY_ID, PERSONS_BY_ID, RIVALS_BY_ID } from '../content/registry';
 import { systemStats } from '../systems/sound/logic';
+import { collectionCount, flair } from '../systems/lifestyle/logic';
 import { fmtNumber as fmtN } from './format';
 
 /** Kept here (not in map/cities) to avoid an import cycle. */
@@ -85,6 +86,10 @@ export function checkCondition(s: GameState, c: Condition): boolean {
       return s.progression.reputation > (s.rivals.crews[c.rival]?.rep ?? 0);
     case 'cityFame':
       return cityFameOf(s, c.city) >= c.gte;
+    case 'flair':
+      return flair(s) >= c.gte;
+    case 'collection':
+      return collectionCount(s) >= c.gte;
     case 'all':
       return c.of.every((x) => checkCondition(s, x));
     case 'any':
@@ -202,6 +207,10 @@ export function describeCondition(c: Condition): string {
       return `Mehr Reputation als ${RIVALS_BY_ID.get(c.rival)?.name ?? 'die Crew'}`;
     case 'cityFame':
       return `Bekanntheit in ${CITIES_BY_ID.get(c.city)?.name ?? c.city}: ${c.gte} %`;
+    case 'flair':
+      return `${fmtN(c.gte)} Style-Punkte`;
+    case 'collection':
+      return `${fmtN(c.gte)} Dinge in der Lifestyle-Sammlung`;
     case 'all':
       return c.of.map(describeCondition).join(' und ');
     case 'any':
@@ -267,6 +276,10 @@ export function conditionProgress(s: GameState, c: Condition): ConditionProgress
       return { current: Math.floor(s.progression.reputation), target: Math.floor(s.rivals.crews[c.rival]?.rep ?? 0) + 1 };
     case 'cityFame':
       return { current: Math.floor(cityFameOf(s, c.city)), target: c.gte };
+    case 'flair':
+      return { current: flair(s), target: c.gte };
+    case 'collection':
+      return { current: collectionCount(s), target: c.gte };
     default:
       return null;
   }
