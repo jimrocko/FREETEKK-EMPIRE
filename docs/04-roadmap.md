@@ -161,7 +161,9 @@ Ziel: Wofür man das ganze Geld verdient – und ein Admin-Zugang für den eigen
 - Neue Effekte (`crewMorale`, `exploreSomewhere`, `chance`) und Bedingungen (`flair`, `collection`), sechs neue Ziele
 - **Hack-Menü** im Terminal-Look (Einstellungen → Admin, oder fünfmal schnell aufs Wappen tippen): Knöpfe und getippte Befehle (`geld 50k`, `rep 500`, `zeit 2d`, `help` …) für Geld, Reputation, Szenepunkte, Fähigkeiten, Zeitsprung, Karte aufdecken, alle Kontakte, Reparieren, Crew-Laune, „Turbo“ (alles sofort fertig), Freischaltungen, Schulden löschen, Nachrichten und Ereignisse. Cheat-Geld zählt nicht als verdient; jede Nutzung wird gezählt. Ersetzt das alte Entwickler-Panel.
 
-**Abnahme:** Unit-Tests für Kaufen/Verkaufen, Style-Ränge und Partybonus, Benutzen mit Abklingzeit, Erlebnisse, Unterhalt und Miete, Umzug mit Platzprüfung, alle Cheats und das Befehls-Parsing ✓; E2E (iPhone + Desktop): Lifestyle von der HQ-Kachel bis zum Umzug, Hack-Menü über die Geheimtür, Knöpfe, getippte Befehle und Zeitsprung ✓.
+- **Spielbar auf claude.ai:** Ein-Datei-Build (`npm run build:single`) als private Seite, Spielstand zusätzlich im Cloud-Speicher des Claude-Kontos, Datei-Sicherung über den Speichern-Dialog der Seite
+
+**Abnahme:** Unit-Tests für Kaufen/Verkaufen, Style-Ränge und Partybonus, Benutzen mit Abklingzeit, Erlebnisse, Unterhalt und Miete, Umzug mit Platzprüfung, alle Cheats und das Befehls-Parsing, Cloud-Speicher (Hin und zurück, neues Gerät lädt den Cloud-Stand, Neuanfang löscht ihn) ✓; E2E (iPhone + Desktop): Lifestyle von der HQ-Kachel bis zum Umzug, Hack-Menü über die Geheimtür, Knöpfe, getippte Befehle und Zeitsprung ✓.
 
 ## Phase 12 – Balancing & Feinschliff ⏳
 

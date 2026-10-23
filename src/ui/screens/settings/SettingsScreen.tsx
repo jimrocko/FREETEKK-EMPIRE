@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
-import { Copy, Download, FileUp, HardDrive, RotateCcw, Save, Terminal, Upload, UserRound, Volume2, VolumeX } from 'lucide-react';
+import { Cloud, Copy, Download, FileUp, HardDrive, RotateCcw, Save, Terminal, Upload, UserRound, Volume2, VolumeX } from 'lucide-react';
 import { setSoundEnabled, sfx, soundEnabled } from '../../fx/sound';
 import { appStore, useApp, useGameState } from '../../../app/store';
 import { importGame, resetGame, saveNow } from '../../../app/runtime';
 import { now } from '../../../app/clock';
+import { viewerDownload } from '../../../app/cloudSave';
 import { openHack } from '../../layout/hackState';
 import { pushToast } from '../../../app/toasts';
 import { exportSave } from '../../../game/save/saveManager';
@@ -19,6 +20,8 @@ export function SettingsScreen() {
   const lastSavedAt = useApp((a) => a.lastSavedAt);
   const saveError = useApp((a) => a.saveError);
   const volatile = useApp((a) => a.volatileStorage);
+  const cloud = useApp((a) => a.cloud);
+  const cloudSavedAt = useApp((a) => a.cloudSavedAt);
   const [name, setName] = useState(s.player.name);
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
@@ -40,12 +43,19 @@ export function SettingsScreen() {
     }
   };
 
-  const download = () => {
+  const download = async () => {
+    const filename = `tekklife-${s.player.name.replace(/[^a-z0-9]+/gi, '_')}-${new Date().toISOString().slice(0, 10)}.txt`;
+    // Inside the claude.ai viewer the file goes through its save dialog.
+    const viaViewer = await viewerDownload(filename, code());
+    if (viaViewer) {
+      if (viaViewer === 'saved') pushToast({ tone: 'success', title: 'Sicherung gespeichert.' });
+      return;
+    }
     const blob = new Blob([code()], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `tekklife-${s.player.name.replace(/[^a-z0-9]+/gi, '_')}-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.download = filename;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
@@ -104,7 +114,16 @@ export function SettingsScreen() {
               <Download size={16} /> Als Datei sichern
             </Button>
           </div>
-          <p className="tiny faint">Tipp: Browser auf dem iPhone löschen Website-Daten manchmal nach längerer Pause. Ein Export als Datei ist die sicherste Sicherung.</p>
+          {cloud === 'off' ? (
+            <p className="tiny faint">Tipp: Browser auf dem iPhone löschen Website-Daten manchmal nach längerer Pause. Ein Export als Datei ist die sicherste Sicherung.</p>
+          ) : (
+            <p className="small" data-testid="cloud-status">
+              <Cloud size={14} style={{ verticalAlign: '-2px' }} />{' '}
+              {cloud === 'on' && `Cloud-Speicher aktiv – dein Spielstand liegt auch in deinem Claude-Konto${cloudSavedAt ? ` (zuletzt ${timeAgo(now(), cloudSavedAt)})` : ''} und ist auf jedem Gerät da.`}
+              {cloud === 'error' && 'Cloud-Speicher gerade nicht erreichbar – lokal wird weiter gespeichert.'}
+              {cloud === 'too-large' && 'Spielstand ist zu groß für den Cloud-Speicher – sichere ihn per Export.'}
+            </p>
+          )}
         </div>
       </Card>
 

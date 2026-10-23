@@ -6,7 +6,8 @@ import { createInitialState, type GameState } from '../game/state';
 import { OFFLINE_REPORT_THRESHOLD, catchUp, performAction, tick, type CatchUpReport } from '../game/engine';
 import type { ActionDef, ActionResult } from '../game/core/actions';
 import { createLocalStorage, createMemoryStorage, type SaveStorage } from '../game/save/storage';
-import { deleteSave, importSave, loadSave, writeSave } from '../game/save/saveManager';
+import { deleteSave, importSave, loadSave, serializeSave, writeSave } from '../game/save/saveManager';
+import { cloudAvailable, deleteCloud, readCloud, writeCloud, type CloudSave } from './cloudSave';
 
 const TICK_MS = 1000;
 const AUTOSAVE_MS = 10_000;
@@ -15,7 +16,14 @@ const AWAY_GAP_MS = OFFLINE_REPORT_THRESHOLD;
 /** Play time counts at most this much per tick (protects against sleep gaps). */
 const MAX_PLAYTIME_STEP = 5000;
 
+/** Cloud writes after player actions at most this often; idle ticking alone only syncs when leaving. */
+const CLOUD_ACTION_MS = 60_000;
+const CLOUD_IDLE_MS = 5 * 60_000;
+
 let storage: SaveStorage = createMemoryStorage();
+let cloudReady = false;
+let lastCloudPush = 0;
+let actedSinceCloud = false;
 let tickTimer: ReturnType<typeof setInterval> | null = null;
 let saveTimer: ReturnType<typeof setInterval> | null = null;
 let listenersAttached = false;
@@ -41,11 +49,71 @@ export function saveNow(): boolean {
   try {
     writeSave(storage, { ...game, meta: { ...game.meta, lastSavedAt: t } }, t);
     appStore.setState({ lastSavedAt: t, dirty: false, saveError: null });
+    if (actedSinceCloud && t - lastCloudPush >= CLOUD_ACTION_MS) pushCloud();
     return true;
   } catch (err) {
     appStore.setState({ saveError: `Speichern fehlgeschlagen: ${(err as Error).message}` });
     return false;
   }
+}
+
+/** Mirrors the current game into the cloud save (viewer only). */
+function pushCloud(): void {
+  const { game } = appStore.getState();
+  if (!cloudReady || !game) return;
+  const t = now();
+  lastCloudPush = t;
+  actedSinceCloud = false;
+  const save: CloudSave = { text: serializeSave({ ...game, meta: { ...game.meta, lastSavedAt: t } }, t), savedAt: t, playTimeMs: game.meta.playTimeMs };
+  writeCloud(save)
+    .then((r) => {
+      if (r === 'saved') appStore.setState({ cloud: 'on', cloudSavedAt: t });
+      else if (r === 'too-large') appStore.setState({ cloud: 'too-large' });
+    })
+    .catch(() => appStore.setState({ cloud: 'error' }));
+}
+
+/** The next save also goes to the cloud (new game, import). */
+function forceCloudSync(): void {
+  actedSinceCloud = true;
+  lastCloudPush = 0;
+}
+
+/** Leaving the page: sync if anything happened. */
+function flushCloud(): void {
+  if (actedSinceCloud || now() - lastCloudPush >= CLOUD_IDLE_MS) pushCloud();
+}
+
+/**
+ * After boot: compare with the cloud copy and keep the newer game. A game
+ * started on this device before the cloud answered loses against a cloud
+ * game with more play time (a fresh phone must not wipe the real save).
+ */
+async function syncCloud(bootAt: number, localSavedAt: number): Promise<void> {
+  if (!(await cloudAvailable())) return;
+  let remote: CloudSave | null = null;
+  try {
+    remote = await readCloud();
+  } catch {
+    appStore.setState({ cloud: 'error' });
+  }
+  const local = appStore.getState().game;
+  const takeRemote =
+    remote !== null &&
+    (!local ||
+      (local.meta.createdAt >= bootAt ? remote.playTimeMs > local.meta.playTimeMs : remote.savedAt > localSavedAt + 2000));
+  if (remote && takeRemote) {
+    const parsed = importSave(remote.text);
+    if (parsed.ok) {
+      const { game, report } = applyCatchUp(parsed.state, now());
+      appStore.setState({ game, report, loadError: null, loadWarning: null, dirty: true });
+      pushToast({ tone: 'success', title: 'Cloud-Spielstand geladen.' });
+    }
+  }
+  cloudReady = true;
+  appStore.setState({ cloud: appStore.getState().cloud === 'error' ? 'error' : 'on', cloudSavedAt: remote?.savedAt ?? null });
+  if (remote && takeRemote) saveNow();
+  else if (appStore.getState().game) pushCloud();
 }
 
 function step(): void {
@@ -73,10 +141,15 @@ function startLoop(): void {
   if (!listenersAttached && typeof document !== 'undefined') {
     listenersAttached = true;
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') saveNow();
-      else step();
+      if (document.visibilityState === 'hidden') {
+        saveNow();
+        flushCloud();
+      } else step();
     });
-    window.addEventListener('pagehide', () => saveNow());
+    window.addEventListener('pagehide', () => {
+      saveNow();
+      flushCloud();
+    });
     window.addEventListener('beforeunload', () => saveNow());
   }
 }
@@ -87,6 +160,7 @@ export function boot(): void {
   storage = local ?? createMemoryStorage();
   appStore.setState({ volatileStorage: !local });
   const loaded = loadSave(storage);
+  void syncCloud(now(), loaded.state?.meta.lastSavedAt ?? 0);
   if (loaded.state) {
     const { game, report } = applyCatchUp(loaded.state, now());
     appStore.setState({
@@ -106,6 +180,7 @@ export function boot(): void {
 export function startNewGame(playerName: string): void {
   const game = createInitialState({ now: now(), seed: randomSeed(), playerName });
   appStore.setState({ game, report: null, loadError: null, loadWarning: null, dirty: true });
+  forceCloudSync();
   saveNow();
 }
 
@@ -114,12 +189,14 @@ export function importGame(text: string): ActionResult {
   if (!parsed.ok) return { ok: false, reason: parsed.error };
   const { game, report } = applyCatchUp(parsed.state, now());
   appStore.setState({ game, report, loadError: null, loadWarning: null, dirty: true });
+  forceCloudSync();
   saveNow();
   return { ok: true, message: 'Spielstand importiert.' };
 }
 
 export function resetGame(): void {
   deleteSave(storage);
+  void deleteCloud();
   appStore.setState({ game: null, report: null, dirty: false, lastSavedAt: null, loadError: null, loadWarning: null });
 }
 
@@ -136,6 +213,7 @@ export function dispatch<P>(action: ActionDef<P>, payload: P, opts: { silent?: b
   updateGame((d) => {
     result = performAction(d, action, payload, now());
   });
+  if (result.ok) actedSinceCloud = true;
   if (!opts.silent) {
     if (result.ok && result.message) pushToast({ tone: 'success', title: result.message });
     else if (!result.ok) pushToast({ tone: 'warning', title: result.reason });
@@ -147,4 +225,5 @@ export function dispatch<P>(action: ActionDef<P>, payload: P, opts: { silent?: b
 export function skipTime(ms: number): void {
   addClockOffset(ms);
   step();
+  actedSinceCloud = true;
 }

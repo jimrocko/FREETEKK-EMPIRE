@@ -18,6 +18,9 @@ export interface AppState {
   dirty: boolean;
   /** Storage is not persistent (private mode etc.). */
   volatileStorage: boolean;
+  /** Cloud save in the claude.ai viewer ('off' everywhere else). */
+  cloud: 'off' | 'on' | 'error' | 'too-large';
+  cloudSavedAt: number | null;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -29,6 +32,8 @@ export const appStore = createStore<AppState>(() => ({
   lastSavedAt: null,
   dirty: false,
   volatileStorage: false,
+  cloud: 'off',
+  cloudSavedAt: null,
 }));
 
 /** Applies an immer recipe to the game state. */

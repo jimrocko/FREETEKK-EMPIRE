@@ -159,6 +159,7 @@ Jede Bedingung kann sich selbst als Text beschreiben („Benötigt Technik Lv. 3
 - **Migrationen:** `migrations[v]` hebt alte Stände Schritt für Schritt an. Zusätzlich füllt `hydrate()` fehlende Slices/Felder mit Startwerten auf.
 - **Export/Import:** Spielstand als Text (Base64) kopieren/einfügen oder als Datei herunterladen/hochladen.
 - **Gespeichert wird alles** – inkl. laufender Timer und Zufallszustand –, deshalb geht durch Reload nichts verloren.
+- **Cloud-Speicher (nur auf claude.ai):** `app/cloudSave.ts` spiegelt den Spielstand gzip-komprimiert in das private Dokument `data/users/<id>/save` der Artifact-Datenbank – nach Spieler-Aktionen höchstens einmal pro Minute und beim Verlassen der Seite. Beim Start gewinnt der neuere Stand; ein gerade erst begonnenes Spiel verliert gegen einen Cloud-Stand mit mehr Spielzeit. „Neu anfangen“ löscht auch die Cloud-Kopie. Außerhalb von claude.ai (Dev-Server, eigener Webspace, Tests) ist das Modul wirkungslos.
 
 ## Spielschleife (App-Runtime)
 

@@ -33,6 +33,12 @@ npm run e2e        # Playwright-Tests (iPhone + Desktop) gegen den Build
 
 Der Build ist eine statische Seite (`dist/`) und läuft auf jedem Webspace. Auf dem iPhone über „Teilen → Zum Home-Bildschirm“ als App nutzbar.
 
+## Spielen
+
+Die spielbare Version liegt als private Seite auf claude.ai: <https://claude.ai/artifact/UJo1nokgLbLPekSFCdyzn2> (nur mit dem eigenen Claude-Konto zu öffnen). Dort wird der Spielstand zusätzlich im Konto gespeichert (Cloud-Speicher) und ist auf jedem Gerät da.
+
+Neue Version dafür bauen: `npm run build:single` packt Spielcode, Styles und Schriften in eine einzige Datei (`dist-single/tekk-life.html`), die als Seite veröffentlicht wird.
+
 ## Dokumentation
 
 - [01 – Analyse](docs/01-analyse.md): Säulen, Spielschleifen, Wege, Abhängigkeiten, Risiken
