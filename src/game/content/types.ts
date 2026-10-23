@@ -1,4 +1,4 @@
-import type { Condition, Effect, LedgerCategory, SkillId } from '../core/types';
+import type { Condition, Effect, LedgerCategory, SkillId, Tone } from '../core/types';
 
 export type ItemCategory = 'gadget' | 'music' | 'sound' | 'light' | 'power' | 'vehicle' | 'goods' | 'merch' | 'media' | 'misc';
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'legendary';
@@ -291,7 +291,9 @@ export interface ChoiceDef {
 export type MessageSender =
   | { person: string }
   /** Any met contact with one of these roles. */
-  | { role: Role[] };
+  | { role: Role[] }
+  /** The leader of a rival crew – sent by the scene simulation, never randomly. */
+  | { rival: true };
 
 export interface MessageTemplateDef {
   id: string;
@@ -310,6 +312,33 @@ export interface MessageTemplateDef {
   /** Effects applied when the message arrives (for messages without choices). */
   onDeliver?: Effect[];
   /** Real hours until an unanswered message expires. */
+  expiresHours?: number;
+  onExpire?: Effect[];
+  /** Kind of rival contact (sender is a crew leader; '$rival' refers to the crew, {crew} to its name). */
+  rival?: 'coop' | 'booking' | 'tip' | 'hostile';
+}
+
+/** What a random event is about – picked when it fires. */
+export type HappeningTarget = 'gear' | 'soundGear' | 'eventDj' | 'nextEvent' | 'unknownSpot' | 'knownSpot';
+
+/**
+ * A random event. Text may use {item}, {person}, {event}, {spot}; effects may
+ * use '$item', '$person', '$event', '$spot' for the picked target.
+ */
+export interface HappeningDef {
+  id: string;
+  title: string;
+  text: string;
+  tone: Tone;
+  weight: number;
+  cooldownDays?: number;
+  once?: boolean;
+  when?: Condition[];
+  target?: HappeningTarget;
+  /** Applied when it happens (events without choices are plain notices). */
+  effects?: Effect[];
+  choices?: ChoiceDef[];
+  /** Real hours until an open decision expires. */
   expiresHours?: number;
   onExpire?: Effect[];
 }

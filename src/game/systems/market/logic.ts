@@ -60,8 +60,8 @@ export function usedPool(): ItemDef[] {
   return ALL_ITEMS.filter((def) => def.usedMarket);
 }
 
-export function generateOffer(d: GameState, opts: { factor?: number } = {}): MarketOffer | null {
-  const def = pickWeighted(d, usedPool(), (it) => RARITY_WEIGHT[it.rarity ?? 'common'] * tierWeight(it.tier));
+export function generateOffer(d: GameState, opts: { factor?: number; defId?: string } = {}): MarketOffer | null {
+  const def = opts.defId ? ALL_ITEMS.find((it) => it.id === opts.defId) : pickWeighted(d, usedPool(), (it) => RARITY_WEIGHT[it.rarity ?? 'common'] * tierWeight(it.tier));
   if (!def) return null;
   const condition = randInt(d, 30, 95);
   const roll = randRange(d, 0, 1);

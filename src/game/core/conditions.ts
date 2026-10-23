@@ -8,7 +8,7 @@ import { gameDayAt } from './time';
 import { hasFlag, isUnlocked, skillLevel, stat } from '../systems/progression/logic';
 import { countItem, countTag } from '../systems/inventory/logic';
 import { CHANNEL_LABELS, channelCapacity, channelUsage } from '../systems/activities/logic';
-import { PERSONS_BY_ID } from '../content/registry';
+import { PERSONS_BY_ID, RIVALS_BY_ID } from '../content/registry';
 import { systemStats } from '../systems/sound/logic';
 import { fmtNumber as fmtN } from './format';
 
@@ -72,6 +72,12 @@ export function checkCondition(s: GameState, c: Condition): boolean {
       return s.merch.brand >= c.gte;
     case 'bank':
       return s.finance.bank >= c.gte;
+    case 'rivalRelation':
+      return (s.rivals.crews[c.rival]?.relation ?? 0) >= c.gte;
+    case 'rivalActive':
+      return s.rivals.crews[c.rival]?.active === true;
+    case 'outrank':
+      return s.progression.reputation > (s.rivals.crews[c.rival]?.rep ?? 0);
     case 'all':
       return c.of.every((x) => checkCondition(s, x));
     case 'any':
@@ -181,6 +187,12 @@ export function describeCondition(c: Condition): string {
       return `Markenwert ${fmtN(c.gte)}`;
     case 'bank':
       return `${fmtN(c.gte)} € auf dem Konto`;
+    case 'rivalRelation':
+      return `Verhältnis zu ${RIVALS_BY_ID.get(c.rival)?.name ?? 'Crew'}: ${c.gte}`;
+    case 'rivalActive':
+      return `${RIVALS_BY_ID.get(c.rival)?.name ?? 'Crew'} ist aktiv`;
+    case 'outrank':
+      return `Mehr Reputation als ${RIVALS_BY_ID.get(c.rival)?.name ?? 'die Crew'}`;
     case 'all':
       return c.of.map(describeCondition).join(' und ');
     case 'any':
@@ -242,6 +254,8 @@ export function conditionProgress(s: GameState, c: Condition): ConditionProgress
       return { current: Math.floor(s.finance.bank), target: c.gte };
     case 'trust':
       return { current: Math.floor(s.people.people[c.person]?.trust ?? 0), target: c.gte };
+    case 'outrank':
+      return { current: Math.floor(s.progression.reputation), target: Math.floor(s.rivals.crews[c.rival]?.rep ?? 0) + 1 };
     default:
       return null;
   }

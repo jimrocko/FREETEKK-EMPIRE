@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { RIVAL_CREWS } from '../content/rivals';
 import { act, advance, newGame } from '../../test/helpers';
 import { MINUTE, GAME_DAY_MS } from '../core/time';
 import { tick } from '../engine';
@@ -194,7 +195,8 @@ describe('messages', () => {
       for (const c of t.choices) {
         const s = newGame(3);
         s.finance.cash = 5000;
-        const from = 'person' in t.from ? t.from.person : 'p.miro';
+        s.progression.stats.tracksMade = 1;
+        const from = 'person' in t.from ? t.from.person : 'rival' in t.from ? 'p.jonte' : 'p.miro';
         meetPerson(s, from, 'intro');
         const msg = deliverTemplate(s, t.id, from, { online: true });
         expect(choiceReason(s, msg, c.id)).toBeNull();
@@ -206,12 +208,16 @@ describe('messages', () => {
 
   it('random rolls respect conditions', () => {
     const s = newGame(4);
+    // Random events introduce extra contacts; keep this about message rolls.
+    s.happenings.nextRollAt = s.clock.now + 1e12;
     for (let i = 0; i < 30; i++) {
       const m = rollMessage(s);
       if (m?.open) answerMessage(s, m.id, s.messages.list.find((x) => x.id === m.id)!.templateId === 'm.jule-loan' ? 'no' : 'no');
       tick(s, s.clock.now + GAME_DAY_MS);
     }
-    expect(openMessages(s).length).toBeLessThanOrEqual(3);
+    // Crews write on their own (see rivals); only count random messages here.
+    const leaders = new Set(RIVAL_CREWS.map((r) => r.leaderId));
+    expect(openMessages(s).filter((m) => !leaders.has(m.from)).length).toBeLessThanOrEqual(3);
     expect(checkCondition(s, { t: 'contacts', gte: 3 })).toBe(true);
   });
 });

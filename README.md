@@ -15,7 +15,8 @@ Mobile-first Web-App (React + TypeScript), läuft komplett im Browser, speichert
 | 5 | PA-Katalog, Soundsystem-Builder, Fahrzeuge & Mietwagen, Crew mit Gagen, Stimmung und Delegation | ✅ |
 | 6 | Event-Planer mit Prognose, Vorbereitung, Simulation der Nacht, ausführlicher Bericht, Versorgung – **vertikaler Slice komplett** | ✅ |
 | 7 | Konto mit Zinsen, Kredite, Merch (Designs, Hersteller, Lager, Stand, Großhandel, Onlineshop, Markenwert), Handel über Kontakte, Lagerhalle | ✅ |
-| 8–10 | Rivalen & Zufallsereignisse, Städte & Endgame, Feinschliff | siehe [Roadmap](docs/04-roadmap.md) |
+| 8 | Fünf KI-Crews mit eigener Simulation (Partys, Spots, Wachstum, Razzien, Pleiten), Konkurrenz und Kooperation, Szene-Ticker, 30 Zufallsereignisse mit Entscheidungen, Stadt-Modifikatoren | ✅ |
+| 9–10 | Städte & Endgame, Feinschliff | siehe [Roadmap](docs/04-roadmap.md) |
 
 ## Schnellstart
 

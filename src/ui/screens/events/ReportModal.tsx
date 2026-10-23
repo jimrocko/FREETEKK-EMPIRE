@@ -92,7 +92,7 @@ export function ReportModal({ eventId, onClose }: { eventId: string; onClose: ()
           </div>
           {r.played.length > 0 && (
             <p className="small dim">
-              Gespielt: {r.played.map((id) => (id === 'self' ? 'du' : shortName(PERSONS_BY_ID.get(id)!))).join(', ')}
+              Gespielt: {r.played.map((id) => (id === 'self' ? 'du' : id === 'sub' ? 'Ersatz-DJ' : shortName(PERSONS_BY_ID.get(id)!))).join(', ')}
             </p>
           )}
           {r.newPeople.length > 0 && (

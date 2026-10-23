@@ -394,12 +394,40 @@ EventPlanInput.merch?: boolean               // Merch-Stand
 Condition += { t: 'brand'; gte } | { t: 'bank'; gte }
 ```
 
-## Phase 8 – Rivalen & Zufallsereignisse
+## Phase 8 – Rivalen & Zufallsereignisse ✅
 
 ```ts
-interface RivalCrewDef { id; name; cityId; style; aggression; cooperation; growth; description }
-interface RivalState { money; rep; power; knownSpots: string[]; nextEventAt?; relation; history: string[] }
-interface RandomEventDef { id; weight; cooldownDays; requires?: Condition[]; kind: 'notice'|'message'|'offer'; text; effects?; choices? }
+// content/rivals.ts
+interface RivalCrewDef {
+  id; name; leaderId /* Person */; cityId; style /* Genre */; description
+  aggression; cooperation; ambition; sloppiness            // 0–100
+  start: { rep; money; reach; quality; members }; spots: spotId[]
+  appears?: Condition[]; color; plural?
+}
+// state.rivals
+interface RivalsState { crews: Record<id, RivalCrewState>; events: RivalEvent[]; news: SceneNews[]; nextId; seenNews; coop?: { crewId; until; share } }
+interface RivalCrewState {
+  active; appearedAt?; dissolved?; rep; money; reach; quality; members; knownSpots: string[]
+  relation /* −100…100 */; nextActionAt; brokeDays; eventsHeld; bestVisitors; pendingGuest?; lastContactAt?; tipDay?
+}
+interface RivalEvent { id; crewId; spotId; startsAt; durationH; status: 'scheduled'|'done'|'cancelled'; visitors?; mood?; raided?; guest?; note? }
+interface SceneNews { id; at; text; tone; crewId?; spotId? }
+
+// content/happenings.ts
+type HappeningTarget = 'gear'|'soundGear'|'eventDj'|'nextEvent'|'unknownSpot'|'knownSpot'
+interface HappeningDef {
+  id; title; text /* {item} {event} {person} {spot} */; tone; weight; cooldownDays?; once?; when?: Condition[]
+  target?: HappeningTarget; effects?: Effect[] /* '$item' '$event' '$person' '$spot' */; choices?: ChoiceDef[]; expiresHours?; onExpire?: Effect[]
+}
+// state.happenings
+interface HappeningsState { open: OpenHappening[]; log: HappeningLog[]; last: Record<defId, at>; nextRollAt; modifiers: Modifier[]; nextId }
+interface Modifier { id; kind: 'demand'|'police'|'jobPay'|'goodsPrice'; value /* +0.2 = +20 % */; until; label }
+
+GameEvent.boosts?: { label; value }[]               // Nachfrage-Änderungen für eine Party
+MessageSender += { rival: true }; MessageTemplateDef.rival?: 'coop'|'booking'|'tip'|'hostile'   // '$rival', {crew}
+Condition += rivalRelation | rivalActive | outrank
+Effect += rivalRelation | coop | rivalBooking | rivalSpotTip | eventBoost | spotChange | modifier | wearItem | discoverSpot | lineupSwap | rareOffer
+CatchUpReport.scene: SceneNews[]
 ```
 
 ## Phase 9 – Städte, Endgame, Prestige

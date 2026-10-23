@@ -133,6 +133,11 @@ describe('spots', () => {
 
   it('famous unofficial spots get closed and reopen later', () => {
     const s = newGame(5);
+    // Other crews would party (and get raided) here too – leave them out.
+    for (const c of Object.values(s.rivals.crews)) {
+      c.active = false;
+      c.appearedAt = s.clock.now;
+    }
     const st = s.spots.spots['spot.industrial-north'];
     st.known = true;
     st.fame = 100;

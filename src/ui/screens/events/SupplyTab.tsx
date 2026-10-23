@@ -39,7 +39,7 @@ export function SupplyTab() {
                 {GOODS_ITEMS.map((g) => (
                   <div key={g.id} className="row row--wrap" style={{ justifyContent: 'space-between' }}>
                     <span className="small">
-                      {g.name} · {fmtMoney(goodsPrice(sup.id, g.id))}
+                      {g.name} · {fmtMoney(goodsPrice(s, sup.id, g.id))}
                     </span>
                     <div className="row">
                       {amounts.map((n) => (

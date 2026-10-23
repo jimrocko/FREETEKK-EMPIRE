@@ -4,6 +4,7 @@ import type { JobDef } from '../../content/types';
 import { JOBS } from '../../content/jobs';
 import { checkAll, requirementReason } from '../../core/conditions';
 import { channelReason } from '../activities/logic';
+import { modifierValue } from '../happenings/logic';
 
 export function jobRequirementReason(s: GameState, job: JobDef): Reason {
   return requirementReason(s, job.requires);
@@ -11,6 +12,11 @@ export function jobRequirementReason(s: GameState, job: JobDef): Reason {
 
 export function jobReason(s: GameState, job: JobDef): Reason {
   return jobRequirementReason(s, job) ?? channelReason(s, 'job');
+}
+
+/** Pay for one shift including city-wide modifiers (e.g. a trade fair). */
+export function jobPay(s: GameState, job: JobDef): number {
+  return Math.round(job.pay * (1 + modifierValue(s, 'jobPay')));
 }
 
 /** Hourly pay (without bonus) – used for comparison in the UI. */

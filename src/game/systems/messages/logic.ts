@@ -37,7 +37,7 @@ export function sendDirect(d: GameState, from: string, text: string, opts: { onl
 export function deliverTemplate(d: GameState, templateId: string, from: string, opts: { online?: boolean } = {}): Message {
   const t = templateDef(templateId);
   const def = personDef(from);
-  const text = fillText(t.text, { name: shortName(def), player: d.player.name });
+  const text = fillText(t.text, { name: shortName(def), player: d.player.name, from });
   const hasChoices = !!t.choices?.length;
   const msg = pushMessage(d, {
     from,
@@ -71,6 +71,7 @@ function hasOpenFrom(s: GameState, personId: string): boolean {
 function senderCandidates(s: GameState, t: MessageTemplateDef): string[] {
   const minTrust = t.minTrust ?? 0;
   const ok = (id: string) => knowsPerson(s, id) && (s.people.people[id]?.trust ?? 0) >= minTrust && !hasOpenFrom(s, id);
+  if ('rival' in t.from) return [];
   if ('person' in t.from) return ok(t.from.person) ? [t.from.person] : [];
   const roles = t.from.role;
   return metPeople(s)
@@ -144,7 +145,8 @@ export function answerMessage(d: GameState, msgId: string, choiceId: string): st
   }
   if (reply) {
     const def = PERSONS_BY_ID.get(msg.from)!;
-    pushMessage(d, { from: msg.from, at: d.clock.now, text: fillText(reply, { name: shortName(def), player: d.player.name }), read: true });
+    reply = fillText(reply, { name: shortName(def), player: d.player.name, from: msg.from });
+    pushMessage(d, { from: msg.from, at: d.clock.now, text: reply, read: true });
   }
   return reply;
 }

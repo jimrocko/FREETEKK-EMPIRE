@@ -128,6 +128,8 @@ describe('vehicles', () => {
   it('vehicles cost upkeep every day', () => {
     const s = newGame();
     addItem(s, 'item.car-kombi');
+    // No random events (a repair bill would blur the number).
+    s.happenings.nextRollAt = s.clock.now + 1e12;
     const cash = s.finance.cash;
     tick(s, s.clock.now + GAME_DAY_MS);
     expect(cash - s.finance.cash).toBeCloseTo(5 + 4, 1);

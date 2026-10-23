@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { Bell, Briefcase, Disc3, Flag, Home, Map as MapIcon, Package, PartyPopper, Users, Settings, Shirt, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
+import { Bell, Briefcase, Disc3, Flag, Home, Map as MapIcon, Package, PartyPopper, Users, Radio, Settings, Shirt, ShoppingBag, Trophy, Wallet, type LucideIcon } from 'lucide-react';
 import type { Condition } from '../game/core/types';
 import type { GameState } from '../game/state';
 import { unreadCount } from '../game/core/notify';
@@ -18,6 +18,8 @@ import { StudioScreen } from './screens/studio/StudioScreen';
 import { CrewScreen } from './screens/crew/CrewScreen';
 import { EventsScreen } from './screens/events/EventsScreen';
 import { MerchScreen } from './screens/merch/MerchScreen';
+import { SceneScreen } from './screens/scene/SceneScreen';
+import { unseenNews } from '../game/systems/rivals/logic';
 import { upcomingEvents } from '../game/systems/events/plan';
 import { openMessages, unreadMessages } from '../game/systems/messages/logic';
 
@@ -47,6 +49,7 @@ export const ROUTES: RouteDef[] = [
     group: 'Spiel',
     badge: (s) => Math.max(openMessages(s).length, unreadMessages(s)),
   },
+  { path: '/szene', label: 'Szene', icon: Radio, component: SceneScreen, nav: 'more', group: 'Spiel', badge: unseenNews },
   { path: '/crew', label: 'Crew & Anlage', icon: Flag, component: CrewScreen, nav: 'more', group: 'Spiel' },
   { path: '/jobs', label: 'Jobs', icon: Briefcase, component: JobsScreen, nav: 'more', group: 'Spiel' },
   {

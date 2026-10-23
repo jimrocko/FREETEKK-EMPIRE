@@ -65,6 +65,8 @@ export interface GameEvent extends EventPlanInput {
   weather?: Weather;
   report?: EventReport;
   cancelReason?: string;
+  /** Demand changes from random events (+0.2 = +20 %). */
+  boosts?: { label: string; value: number }[];
 }
 
 export interface EventsState {

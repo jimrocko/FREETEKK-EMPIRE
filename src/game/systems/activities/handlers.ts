@@ -9,6 +9,7 @@ import { repairHandler } from '../equipment/handler';
 import { produceHandler } from '../music/handler';
 import { eventTaskHandler } from '../events/handlers';
 import { designHandler } from '../merch/handler';
+import { rivalVisitHandler } from '../rivals/handler';
 
 /** Registry: activity kind → completion handler. New systems register here. */
 export const ACTIVITY_HANDLERS: Record<string, ActivityHandler> = {
@@ -24,4 +25,5 @@ export const ACTIVITY_HANDLERS: Record<string, ActivityHandler> = {
   produce: produceHandler,
   'event-task': eventTaskHandler,
   design: designHandler,
+  'rival-visit': rivalVisitHandler,
 };

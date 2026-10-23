@@ -3,6 +3,7 @@ import { Bug, Copy, Download, FileUp, HardDrive, RotateCcw, Save, Upload, UserRo
 import { appStore, useApp, useGameState } from '../../../app/store';
 import { debugAdvance, dispatch, importGame, resetGame, saveNow } from '../../../app/runtime';
 import { debugMoney, debugNextMessage } from '../../../game/systems/messages/actions';
+import { debugHappening } from '../../../game/systems/happenings/actions';
 import { DEBUG_ENABLED, addDebugOffset, now } from '../../../app/clock';
 import { pushToast } from '../../../app/toasts';
 import { exportSave } from '../../../game/save/saveManager';
@@ -166,6 +167,9 @@ export function SettingsScreen() {
             </Button>
             <Button small onClick={() => dispatch(debugMoney, { amount: 5000 }, { silent: true })} testId="debug-money">
               +5.000 €
+            </Button>
+            <Button small onClick={() => dispatch(debugHappening, {}, { silent: true })} testId="debug-happening">
+              Ereignis auslösen
             </Button>
           </div>
         </Card>

@@ -17,6 +17,8 @@ import { createSoundState, type SoundState } from './systems/sound/state';
 import { createTransportState, type TransportState } from './systems/transport/state';
 import { createEventsState, type EventsState } from './systems/events/state';
 import { createMerchState, type MerchState } from './systems/merch/state';
+import { createRivalsState, type RivalsState } from './systems/rivals/state';
+import { createHappeningsState, type HappeningsState } from './systems/happenings/state';
 import { addItem } from './systems/inventory/logic';
 import { refreshOffers } from './systems/market/logic';
 
@@ -59,6 +61,8 @@ export interface GameState {
   transport: TransportState;
   events: EventsState;
   merch: MerchState;
+  rivals: RivalsState;
+  happenings: HappeningsState;
   notifications: NotificationsState;
 }
 
@@ -91,6 +95,8 @@ export function createSlices(now: number, seed: number): GameState {
     transport: createTransportState(),
     events: createEventsState(),
     merch: createMerchState(),
+    rivals: createRivalsState(now),
+    happenings: createHappeningsState(now),
     notifications: createNotificationsState(),
   };
 }

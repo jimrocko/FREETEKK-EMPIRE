@@ -11,7 +11,27 @@ import { hearRumor, revealPoi, revealSpot } from '../systems/map/logic';
 import { adjustFavor, adjustRelation, adjustTrust, meetPerson, meetSomeone } from '../systems/people/logic';
 import { queueMessage } from '../systems/messages/logic';
 import { CHANNEL_LABELS, startActivity } from '../systems/activities/logic';
-import { minutes } from './time';
+import { GAME_DAY_MS, minutes } from './time';
+import { RIVALS_BY_ID } from '../content/registry';
+import { pick } from './rng';
+import { addModifier } from '../systems/happenings/logic';
+import { addNews, adjustRivalRelation } from '../systems/rivals/logic';
+import { wearItem } from '../systems/equipment/logic';
+import { generateOffer } from '../systems/market/logic';
+import { SPOTS } from '../content/spots';
+import type { GameEvent } from '../systems/events/state';
+
+function targetEvent(d: GameState, id?: string): GameEvent | undefined {
+  if (id) return d.events.list.find((e) => e.id === id && e.status === 'scheduled');
+  return d.events.list.filter((e) => e.status === 'scheduled').sort((a, b) => a.startsAt - b.startsAt)[0];
+}
+
+function targetSpot(d: GameState, id?: string): string | undefined {
+  if (id) return id;
+  const next = targetEvent(d);
+  if (next) return next.spotId;
+  return [...d.events.list].reverse().find((e) => e.status === 'done')?.spotId;
+}
 
 export function applyEffect(d: GameState, e: Effect): void {
   switch (e.t) {
@@ -73,6 +93,70 @@ export function applyEffect(d: GameState, e: Effect): void {
       st.visits++;
       return;
     }
+    case 'rivalRelation':
+      adjustRivalRelation(d, e.rival, e.amount);
+      return;
+    case 'coop': {
+      const def = RIVALS_BY_ID.get(e.rival);
+      if (!def) return;
+      d.rivals.coop = { crewId: e.rival, until: d.clock.now + e.days * GAME_DAY_MS, share: e.share };
+      addNews(d, `${def.name} und du planen eine gemeinsame Party.`, 'success', { crewId: e.rival });
+      return;
+    }
+    case 'rivalBooking': {
+      const crew = d.rivals.crews[e.rival];
+      if (!crew) return;
+      const next = d.rivals.events.filter((x) => x.crewId === e.rival && x.status === 'scheduled').sort((a, b) => a.startsAt - b.startsAt)[0];
+      if (next) next.guest = true;
+      else crew.pendingGuest = true;
+      return;
+    }
+    case 'rivalSpotTip': {
+      const crew = d.rivals.crews[e.rival];
+      const unknown = (crew?.knownSpots ?? []).filter((id) => !d.spots.spots[id]?.known);
+      if (unknown.length === 0) return;
+      revealSpot(d, pick(d, unknown), 'contact', 45);
+      if (crew) crew.tipDay = Math.floor((d.clock.now - d.clock.origin) / GAME_DAY_MS);
+      return;
+    }
+    case 'eventBoost': {
+      const ev = targetEvent(d, e.event);
+      if (ev) (ev.boosts ??= []).push({ label: e.label, value: e.amount });
+      return;
+    }
+    case 'spotChange': {
+      const id = targetSpot(d, e.spot);
+      const st = id ? d.spots.spots[id] : undefined;
+      if (!st) return;
+      if (e.fame) st.fame = Math.max(0, Math.min(100, st.fame + e.fame));
+      if (e.condition) st.condition = Math.max(10, Math.min(100, st.condition + e.condition));
+      return;
+    }
+    case 'modifier':
+      addModifier(d, e.kind, e.value, e.hours, e.label);
+      return;
+    case 'wearItem':
+      wearItem(d, e.uid, e.amount);
+      return;
+    case 'discoverSpot': {
+      const pool = SPOTS.filter((sp) => sp.cityId === d.map.cityId && !d.spots.spots[sp.id]?.known);
+      if (pool.length > 0) revealSpot(d, pick(d, pool).id, 'contact', e.intel ?? 30);
+      return;
+    }
+    case 'lineupSwap': {
+      const ev = d.events.list.find((x) => x.id === e.event && x.status === 'scheduled');
+      if (!ev) return;
+      const rest = ev.lineup.filter((id) => id !== e.person);
+      if (e.to === 'self' && !rest.includes('self')) rest.push('self');
+      if (e.to === 'sub') rest.push('sub');
+      ev.lineup = rest;
+      return;
+    }
+    case 'rareOffer': {
+      const offer = generateOffer(d, { factor: e.factor, defId: e.item });
+      if (offer) d.market.offers.push(offer);
+      return;
+    }
   }
 }
 
@@ -119,6 +203,28 @@ export function describeEffect(e: Effect): string {
     case 'flag':
     case 'notify':
       return '';
+    case 'rivalRelation':
+      return `${e.amount >= 0 ? '+' : ''}${fmtNumber(e.amount)} Verhältnis (${RIVALS_BY_ID.get(e.rival)?.name ?? 'Crew'})`;
+    case 'coop':
+      return `Gemeinsame Party mit ${RIVALS_BY_ID.get(e.rival)?.name ?? 'Crew'} (${Math.round(e.share * 100)} % Anteil für sie)`;
+    case 'rivalBooking':
+      return `Gastset bei ${RIVALS_BY_ID.get(e.rival)?.name ?? 'Crew'}`;
+    case 'rivalSpotTip':
+      return 'ein Spot-Tipp';
+    case 'eventBoost':
+      return `${e.amount >= 0 ? '+' : ''}${Math.round(e.amount * 100)} % Gäste beim nächsten Event`;
+    case 'spotChange':
+      return [e.fame ? `Bekanntheit ${e.fame > 0 ? '+' : ''}${e.fame}` : '', e.condition ? `Zustand ${e.condition > 0 ? '+' : ''}${e.condition}` : ''].filter(Boolean).join(', ');
+    case 'modifier':
+      return e.label;
+    case 'wearItem':
+      return `Verschleiß −${e.amount}`;
+    case 'discoverSpot':
+      return 'ein neuer Spot';
+    case 'lineupSwap':
+      return e.to === 'self' ? 'du spielst selbst' : e.to === 'sub' ? 'Ersatz-DJ' : 'Line-up ohne Ersatz';
+    case 'rareOffer':
+      return `Angebot: ${ITEMS.get(e.item)?.name ?? e.item}`;
   }
 }
 

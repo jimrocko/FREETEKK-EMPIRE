@@ -52,6 +52,10 @@ export type Condition =
   | { t: 'systemQuality'; gte: number }
   | { t: 'brand'; gte: number }
   | { t: 'bank'; gte: number }
+  | { t: 'rivalRelation'; rival: string; gte: number }
+  | { t: 'rivalActive'; rival: string }
+  /** More reputation than this crew. */
+  | { t: 'outrank'; rival: string }
   | { t: 'channelFree'; channel: ActivityChannel }
   | { t: 'all'; of: Condition[] }
   | { t: 'any'; of: Condition[] }
@@ -77,6 +81,27 @@ export type Effect =
   | { t: 'meetSomeone'; roles?: string[] }
   | { t: 'message'; template: string; from?: string; delayMin?: number }
   | { t: 'task'; channel: ActivityChannel; minutes: number; label: string; effects: Effect[] }
-  | { t: 'explore'; district: string; amount: number };
+  | { t: 'explore'; district: string; amount: number }
+  // ── Phase 8: scene & random events ──
+  | { t: 'rivalRelation'; rival: string; amount: number }
+  /** Joint party: your next event within `days` draws their crowd, they get `share` of entry and bar. */
+  | { t: 'coop'; rival: string; days: number; share: number }
+  /** You play a set at their next party. */
+  | { t: 'rivalBooking'; rival: string }
+  /** They tell you one of their spots. */
+  | { t: 'rivalSpotTip'; rival: string }
+  /** Demand change for your next scheduled event (or `event`). */
+  | { t: 'eventBoost'; amount: number; label: string; event?: string }
+  /** Changes a spot – `spot` or the spot of your next (else last) event. */
+  | { t: 'spotChange'; spot?: string; fame?: number; condition?: number }
+  /** Temporary city-wide modifier. */
+  | { t: 'modifier'; kind: ModifierKind; value: number; hours: number; label: string }
+  | { t: 'wearItem'; uid: string; amount: number }
+  | { t: 'discoverSpot'; intel?: number }
+  | { t: 'lineupSwap'; event: string; person: string; to: 'self' | 'sub' | 'none' }
+  /** A special offer on the used market. */
+  | { t: 'rareOffer'; item: string; factor: number };
+
+export type ModifierKind = 'demand' | 'police' | 'jobPay' | 'goodsPrice';
 
 export type Reason = string | null;

@@ -15,7 +15,7 @@ import { Avatar } from '../network/Avatar';
 import { upcomingEvents } from '../../../game/systems/events/plan';
 import { EventCard } from '../events/EventsScreen';
 import { activeGoals } from '../../../game/systems/goals/logic';
-import { jobListings } from '../../../game/systems/jobs/logic';
+import { jobListings, jobPay } from '../../../game/systems/jobs/logic';
 import { startJob } from '../../../game/systems/jobs/actions';
 import { ActivityList } from '../../components/ActivityList';
 import { FeedList } from '../../components/FeedList';
@@ -24,6 +24,7 @@ import { GoalCard } from '../../components/GoalCard';
 import { ActionButton } from '../../components/ActionButton';
 import { Banner, Button, Card, CardHead, EmptyState, PageHeader, ProgressBar, Stat } from '../../components/ui';
 import { navigate } from '../../router';
+import { HappeningCard, ModifierList } from '../../components/HappeningCard';
 
 export function DashboardScreen() {
   const s = useGameState();
@@ -114,7 +115,13 @@ export function DashboardScreen() {
             </Card>
           )}
 
+          {s.happenings.open.map((h) => (
+            <HappeningCard key={h.id} h={h} />
+          ))}
+
           {events.length > 0 && events.slice(0, 2).map((ev) => <EventCard key={ev.id} ev={ev} />)}
+
+          <ModifierList />
 
           <Card className="card--flush" testId="card-activities">
             <div style={{ padding: '16px 16px 0' }}>
@@ -143,7 +150,7 @@ export function DashboardScreen() {
                   <div className="grow">
                     <div style={{ fontWeight: 650 }}>{job.name}</div>
                     <div className="tiny dim">
-                      {job.durationMin} Min · {fmtMoney(job.pay)}
+                      {job.durationMin} Min · {fmtMoney(jobPay(s, job))}
                     </div>
                   </div>
                   <ActionButton action={startJob} payload={{ jobId: job.id }} small showReason={false} testId={`quickjob-${job.id}`}>

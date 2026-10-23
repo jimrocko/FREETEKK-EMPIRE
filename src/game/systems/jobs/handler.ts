@@ -9,13 +9,15 @@ import { earn } from '../finance/logic';
 import { addRep, addXp, incStat } from '../progression/logic';
 import { rollRumor } from '../map/logic';
 import { rollMeet } from '../people/logic';
+import { jobPay } from './logic';
 
 export const jobHandler: ActivityHandler = {
   cancelLabel: 'Schicht abbrechen',
   complete(d, a) {
     const job = jobDef(String(a.payload.jobId));
-    earn(d, job.pay, 'job', job.name);
-    const parts = [fmtMoney(job.pay, { sign: true })];
+    const pay = jobPay(d, job);
+    earn(d, pay, 'job', job.name);
+    const parts = [fmtMoney(pay, { sign: true })];
     if (job.bonus && chance(d, job.bonus.chance)) {
       const extra = randInt(d, job.bonus.min, job.bonus.max);
       earn(d, extra, 'job', `${job.bonus.text} (${job.name})`);

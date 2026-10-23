@@ -7,6 +7,8 @@ import { requirementReason } from '../../core/conditions';
 import { channelReason, startActivity } from '../activities/logic';
 import { earn, moneyReason, spend } from '../finance/logic';
 import { incStat } from '../progression/logic';
+import { modifierValue } from '../happenings/logic';
+import type { GameState } from '../../state';
 import { addItem, freeVolume } from '../inventory/logic';
 import { adjustRelation, adjustTrust, shortName } from '../people/logic';
 import { eventTasksFor, findEvent, planReason, taskDef, upfrontCosts } from './plan';
@@ -51,7 +53,7 @@ export const cancelEvent = defineAction<{ eventId: string }>({
     let refund = 0;
     for (const [label, amount] of Object.entries(ev.paid)) if (refundable.includes(label) || label.startsWith('Helfer')) refund += amount * 0.5;
     if (refund > 0) earn(d, refund, 'event', `Erstattung: ${ev.name}`);
-    for (const id of ev.lineup) if (id !== 'self') adjustRelation(d, id, -3);
+    for (const id of ev.lineup) if (id !== 'self' && id !== 'sub') adjustRelation(d, id, -3);
     for (const a of d.activities.running.filter((x) => x.kind === 'event-task' && x.payload.eventId === ev.id)) {
       d.activities.running = d.activities.running.filter((x) => x.id !== a.id);
     }
@@ -92,9 +94,9 @@ export function supplierReason(s: Parameters<typeof requirementReason>[0], suppl
   return requirementReason(s, sup.requires);
 }
 
-export function goodsPrice(supplierId: string, defId: string): number {
+export function goodsPrice(s: GameState, supplierId: string, defId: string): number {
   const sup = SUPPLIERS.find((x) => x.id === supplierId)!;
-  return Math.round((ITEMS.get(defId)?.price ?? 0) * sup.priceFactor * 100) / 100;
+  return Math.round((ITEMS.get(defId)?.price ?? 0) * sup.priceFactor * (1 + modifierValue(s, 'goodsPrice')) * 100) / 100;
 }
 
 export const buyGoods = defineAction<{ supplierId: string; defId: string; qty: number }>({
@@ -108,12 +110,12 @@ export const buyGoods = defineAction<{ supplierId: string; defId: string; qty: n
     if (!Number.isInteger(p.qty) || p.qty < sup.minOrder) return `Mindestens ${sup.minOrder} Kisten pro Bestellung.`;
     if (p.qty > sup.maxOrder) return `Höchstens ${sup.maxOrder} Kisten pro Bestellung.`;
     if (def.volumeL * p.qty > freeVolume(s)) return `Kein Platz: ${def.volumeL * p.qty} L nötig.`;
-    return moneyReason(s, goodsPrice(p.supplierId, p.defId) * p.qty + sup.deliveryFee);
+    return moneyReason(s, goodsPrice(s, p.supplierId, p.defId) * p.qty + sup.deliveryFee);
   },
   run: (d, p) => {
     const sup = SUPPLIERS.find((x) => x.id === p.supplierId)!;
     const def = ITEMS.get(p.defId)!;
-    const total = goodsPrice(p.supplierId, p.defId) * p.qty;
+    const total = goodsPrice(d, p.supplierId, p.defId) * p.qty;
     spend(d, total, 'supply', `${p.qty}× ${def.name} (${sup.name})`);
     if (sup.deliveryFee > 0) spend(d, sup.deliveryFee, 'supply', `Lieferung ${sup.name}`);
     addItem(d, def.id, { qty: p.qty, paid: total });

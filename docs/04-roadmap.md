@@ -100,10 +100,20 @@ Legende: ✅ fertig · 🔨 in Arbeit · ⏳ geplant
 
 **Abnahme:** Unit-Tests für Konto, Zinsen, Kredite (Raten, Tilgung, Limits), Merch (Freischaltung, Designs, Aufträge, Lagerplatz, Preise, Großhandel, Onlineshop), Merch-Stand im Event, Handel, Lagerhalle und alte Spielstände ✓; E2E (iPhone + Desktop): Konto → Kredit → Design → Auftrag → Lieferung → Preis → Handel → Reload ✓.
 
-## Phase 8 – Welt-Simulation ⏳
+## Phase 8 – Welt-Simulation ✅
 
-- Rivalisierende Crews (eigene Events, Spot-Entdeckung, Wachstum, Fehler, Kooperationen)
-- Zufallsereignis-System mit Gewichten, Cooldowns, Bedingungen und Entscheidungen
+- Fünf KI-Crews in Steinhafen (Bunkerkinder, Acid Kollektiv Ostend, Hafenlärm, Waldfrequenz, Nordlicht Events) mit Persönlichkeit (Aggression, Kooperation, Ehrgeiz, Schlampigkeit), Stil, Startwerten und eigenen Spots; drei tauchen erst später auf („neue Crew in der Stadt“)
+- Crews entscheiden mehrmals pro Spieltag – online und offline: Partys planen (Nacht nach Wochentag, passender Spot), Spots entdecken (bekannte Spots zuerst), aufrüsten, Leute holen, dich kontaktieren
+- Ihre Partys werden simuliert: Nachfrage, Kapazität, Stimmung, Geld, Reputation, Technik-Ausfall, Streit, Razzien – auf denselben Spots wie deine (Bekanntheit steigt, Zustand sinkt, Absperrung trifft auch dich); Pleite → Boxen verkaufen → Auflösung → späteres Comeback
+- Konkurrenz: Partys in derselben Nacht teilen das Publikum (Prognose-Warnung, Zeile im Bericht), ein von einer Crew belegter Spot ist in der Nacht tabu, feindselige Crews setzen sich absichtlich gegen dich, „ihre“ Spots zu bespielen kostet Sympathie
+- Kooperation: gemeinsame Party (deren Publikum kommt mit, Anteil an Eintritt und Bar), Gastsets bei anderen Crews (Gage, Reputation), Spot-Tipps; alles auch als Nachrichten der Crew-Köpfe mit Entscheidungen (Zusagen, Gegenangebot, Ablehnen) – oder Konflikte (Plakate überklebt, Drohungen, Polizei-Tipps)
+- Party anderer Crews besuchen: Kontakte, Verhältnis, Spot entdecken
+- Szene-Screen `/szene` mit Crews, angekündigten Partys, Ticker; Crew-Detail mit Werten, Verhältnis, Spots, Historie; Offline-Bericht zeigt, was in der Szene passiert ist
+- Zufallsereignisse: 30 datengetriebene Ereignisse mit Gewicht, Cooldown, „einmalig“, Bedingungen und Ziel (eigenes Gerät, nächstes Event, DJ im Line-up, unbekannter/bekannter Spot) – als Hinweis oder Entscheidung mit Ablaufzeit und Folgen beim Ignorieren (Geräte-Schäden, Spot-Tipps, unerwartete Nachfrage, DJ fällt aus, Lieferanten-Angebote, seltene Geräte auf dem Gebrauchtmarkt, neue Kontakte, Anwohner, Interview …)
+- Temporäre Stadt-Modifikatoren (Nachfrage, Polizei-Risiko, Job-Lohn, Getränkepreise) wirken in alle Systeme
+- 7 neue Ziele, u. a. „Platzhirsch“ (mehr Reputation als die Bunkerkinder)
+
+**Abnahme:** Unit-Tests für Crew-Simulation (inkl. offline), Auftauchen, Konkurrenz, belegte Spots, Razzien an geteilten Spots, Besuch, Kooperation, Spot-Tipps, Crew-Nachrichten, Gastsets, alle Ereignisse und jede Antwort, Cooldowns/Ziele, Ignorieren, Modifikatoren, seltene Angebote, alte Spielstände ✓; Balance-Lauf (30 Spieltage: ~25–30 Partys der Crews, 1–3 Razzien, langsames Wachstum) ✓; E2E (iPhone + Desktop): Ereignis entscheiden → Szene → Party besuchen → Crew-Detail → Offline-Bericht mit Szene → Neuigkeiten ✓.
 
 ## Phase 9 – Große Progression ⏳
 

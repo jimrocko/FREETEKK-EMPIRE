@@ -1,6 +1,6 @@
 import { Eye, MapPin } from 'lucide-react';
 import { useGameState } from '../../../app/store';
-import { districtDef, spotDef } from '../../../game/content/registry';
+import { RIVALS_BY_ID, districtDef, spotDef } from '../../../game/content/registry';
 import { fmtMoney } from '../../../game/core/format';
 import { checkSpot } from '../../../game/systems/spots/actions';
 import {
@@ -13,6 +13,9 @@ import {
   statView,
 } from '../../../game/systems/spots/logic';
 import { VIA_LABELS } from '../../../game/systems/map/logic';
+import { activeCrews, upcomingRivalEvents } from '../../../game/systems/rivals/logic';
+import { crewVerb } from '../../../game/content/rivals';
+import { gameTimeAt } from '../../../game/core/time';
 import { ActionButton } from '../../components/ActionButton';
 import { Badge, Modal, ProgressBar, type BadgeTone } from '../../components/ui';
 
@@ -79,6 +82,8 @@ export function SpotDetail({ spotId, onClose }: { spotId: string; onClose: () =>
         </div>
       </div>
 
+      <SpotScene spotId={spotId} />
+
       <div className="stack stack--s">
         <div className="small">
           <strong>Kosten:</strong> {def.rent > 0 ? `${fmtMoney(def.rent)} Miete pro Event` : 'keine Miete'}
@@ -101,5 +106,23 @@ export function SpotDetail({ spotId, onClose }: { spotId: string; onClose: () =>
         Spot checken ({spotCheckMinutes(s, spotId)} Min)
       </ActionButton>
     </Modal>
+  );
+}
+
+/** Which other crews know this place and party here. */
+function SpotScene({ spotId }: { spotId: string }) {
+  const s = useGameState();
+  const crews = activeCrews(s).filter((c) => c.st.knownSpots.includes(spotId));
+  const parties = upcomingRivalEvents(s).filter((e) => e.spotId === spotId);
+  if (crews.length === 0 && parties.length === 0) return null;
+  return (
+    <div className="stack stack--s" data-testid="spot-scene">
+      {crews.length > 0 && <div className="small dim">Kennen den Spot auch: {crews.map((c) => c.def.name).join(', ')}</div>}
+      {parties.map((e) => (
+        <div key={e.id} className="small tone-warning">
+          {RIVALS_BY_ID.get(e.crewId)?.name} {crewVerb(RIVALS_BY_ID.get(e.crewId), 'feiern', 'feiert')} hier am {gameTimeAt(s.clock, e.startsAt).weekdayName}.
+        </div>
+      ))}
+    </div>
   );
 }

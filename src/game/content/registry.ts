@@ -12,6 +12,7 @@ import { SHOPS } from './shops';
 import { RUMORS } from './rumors';
 import { PEOPLE } from './people';
 import { MESSAGE_TEMPLATES } from './messages';
+import { RIVAL_CREWS, type RivalCrewDef } from './rivals';
 
 function indexById<T extends { id: string }>(list: readonly T[]): ReadonlyMap<string, T> {
   const map = new Map<string, T>();
@@ -31,6 +32,9 @@ export const SHOPS_BY_ID = indexById(SHOPS);
 export const RUMORS_BY_ID = indexById(RUMORS);
 export const PERSONS_BY_ID = indexById(PEOPLE);
 export const TEMPLATES_BY_ID = indexById(MESSAGE_TEMPLATES);
+export const RIVALS_BY_ID = indexById(RIVAL_CREWS);
+/** Leader person id → crew. */
+export const RIVAL_BY_LEADER: ReadonlyMap<string, RivalCrewDef> = new Map(RIVAL_CREWS.map((r) => [r.leaderId, r]));
 
 function getter<T>(map: ReadonlyMap<string, T>, kind: string): (id: string) => T {
   return (id) => {
@@ -47,6 +51,7 @@ export const poiDef: (id: string) => PoiDef = getter(POIS_BY_ID, 'poi');
 export const shopDef: (id: string) => ShopDef = getter(SHOPS_BY_ID, 'shop');
 export const rumorDef: (id: string) => RumorDef = getter(RUMORS_BY_ID, 'rumor');
 export const personDef: (id: string) => PersonDef = getter(PERSONS_BY_ID, 'person');
+export const rivalDef: (id: string) => RivalCrewDef = getter(RIVALS_BY_ID, 'rival crew');
 export const templateDef: (id: string) => MessageTemplateDef = getter(TEMPLATES_BY_ID, 'message template');
 
 export function itemDef(id: string): ItemDef {

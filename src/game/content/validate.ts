@@ -18,6 +18,10 @@ import { TEMPLATES_BY_ID, PERSONS_BY_ID } from './registry';
 import { MANUFACTURERS, MERCH_PRODUCTS } from './merch';
 import { TRADE_PARTNERS } from './trade';
 import { LOAN_OFFERS } from './finance';
+import { RIVAL_CREWS } from './rivals';
+import { HAPPENINGS } from './happenings';
+import { GENRES } from './music';
+import { RIVALS_BY_ID } from './registry';
 
 /** Ray casting point-in-polygon test. */
 export function pointInPolygon([x, y]: [number, number], poly: [number, number][]): boolean {
@@ -82,6 +86,11 @@ export function validateContent(): string[] {
       case 'trust':
         if (c.person !== '$from' && !PERSONS_BY_ID.has(c.person)) problems.push(`${where}: unbekannte Person ${c.person}`);
         break;
+      case 'rivalRelation':
+      case 'rivalActive':
+      case 'outrank':
+        if (c.rival !== '$rival' && !RIVALS_BY_ID.has(c.rival)) problems.push(`${where}: unbekannte Crew ${c.rival}`);
+        break;
       case 'all':
       case 'any':
         c.of.forEach((x) => checkCondition(where, x));
@@ -94,7 +103,7 @@ export function validateContent(): string[] {
     }
   };
   const checkEffect = (where: string, e: Effect): void => {
-    if ((e.t === 'trust' || e.t === 'relation' || e.t === 'favor' || e.t === 'meet') && e.person !== '$from' && !PERSONS_BY_ID.has(e.person)) {
+    if ((e.t === 'trust' || e.t === 'relation' || e.t === 'favor' || e.t === 'meet') && !e.person.startsWith('$') && !PERSONS_BY_ID.has(e.person)) {
       problems.push(`${where}: unbekannte Person ${e.person}`);
     }
     if (e.t === 'message' && !TEMPLATES_BY_ID.has(e.template)) problems.push(`${where}: unbekannte Nachricht ${e.template}`);
@@ -102,7 +111,12 @@ export function validateContent(): string[] {
     if (e.t === 'explore' && !DISTRICTS_BY_ID.has(e.district)) problems.push(`${where}: unbekannter Bezirk ${e.district}`);
     if (e.t === 'item' && !ITEMS.has(e.item)) problems.push(`${where}: unbekanntes Item ${e.item}`);
     if (e.t === 'xp' && !SKILLS.includes(e.skill)) problems.push(`${where}: unbekannte Fähigkeit ${e.skill}`);
-    if (e.t === 'revealSpot' && !SPOTS_BY_ID.has(e.spot)) problems.push(`${where}: unbekannter Spot ${e.spot}`);
+    if (e.t === 'revealSpot' && !e.spot.startsWith('$') && !SPOTS_BY_ID.has(e.spot)) problems.push(`${where}: unbekannter Spot ${e.spot}`);
+    if ((e.t === 'rivalRelation' || e.t === 'coop' || e.t === 'rivalBooking' || e.t === 'rivalSpotTip') && e.rival !== '$rival' && !RIVALS_BY_ID.has(e.rival)) {
+      problems.push(`${where}: unbekannte Crew ${e.rival}`);
+    }
+    if (e.t === 'rareOffer' && !ITEMS.has(e.item)) problems.push(`${where}: unbekanntes Item ${e.item}`);
+    if (e.t === 'spotChange' && e.spot && !e.spot.startsWith('$') && !SPOTS_BY_ID.has(e.spot)) problems.push(`${where}: unbekannter Spot ${e.spot}`);
     if (e.t === 'revealPoi' && !POIS_BY_ID.has(e.poi)) problems.push(`${where}: unbekannter Ort ${e.poi}`);
     if (e.t === 'rumor' && !RUMORS_BY_ID.has(e.rumor)) problems.push(`${where}: unbekanntes Gerücht ${e.rumor}`);
   };
@@ -189,6 +203,7 @@ export function validateContent(): string[] {
   for (const t of MESSAGE_TEMPLATES) {
     if ('person' in t.from && !PERSONS_BY_ID.has(t.from.person)) problems.push(`${t.id}: unbekannter Absender ${t.from.person}`);
     if ('role' in t.from && t.from.role.length === 0) problems.push(`${t.id}: keine Rollen`);
+    if ('rival' in t.from !== !!t.rival) problems.push(`${t.id}: Crew-Nachrichten brauchen from: { rival: true } und eine Art`);
     t.when?.forEach((c) => checkCondition(t.id, c));
     t.onDeliver?.forEach((e) => checkEffect(t.id, e));
     t.onExpire?.forEach((e) => checkEffect(t.id, e));
@@ -221,6 +236,42 @@ export function validateContent(): string[] {
     l.requires?.forEach((c) => checkCondition(l.id, c));
   }
   for (const poi of POIS) poi.storage?.requires?.forEach((c) => checkCondition(poi.id, c));
+  checkUnique('rival', RIVAL_CREWS);
+  for (const r of RIVAL_CREWS) {
+    if (!PERSONS_BY_ID.has(r.leaderId)) problems.push(`${r.id}: unbekannte Person ${r.leaderId}`);
+    if (PERSONS_BY_ID.get(r.leaderId)?.crewable !== false) problems.push(`${r.id}: Kopf der Crew darf nicht anwerbbar sein`);
+    if (!CITIES_BY_ID.has(r.cityId)) problems.push(`${r.id}: unbekannte Stadt ${r.cityId}`);
+    if (!GENRES.some((g) => g.id === r.style)) problems.push(`${r.id}: unbekanntes Genre ${r.style}`);
+    for (const sp of r.spots) if (!SPOTS_BY_ID.has(sp)) problems.push(`${r.id}: unbekannter Spot ${sp}`);
+    r.appears?.forEach((c) => checkCondition(r.id, c));
+  }
+  checkUnique('happening', HAPPENINGS);
+  const TARGET_KEYS: Record<string, string[]> = {
+    gear: ['item'],
+    soundGear: ['item'],
+    nextEvent: ['event', 'spot'],
+    eventDj: ['event', 'person'],
+    unknownSpot: ['spot'],
+    knownSpot: ['spot'],
+  };
+  for (const h of HAPPENINGS) {
+    const provided = h.target ? TARGET_KEYS[h.target] : [];
+    const json = JSON.stringify(h);
+    for (const key of ['item', 'event', 'person', 'spot']) {
+      if ((json.includes(`"$${key}"`) || h.text.includes(`{${key}}`)) && !provided.includes(key)) problems.push(`${h.id}: nutzt ${key}, das Ziel liefert es nicht`);
+    }
+    h.when?.forEach((c) => checkCondition(h.id, c));
+    h.effects?.forEach((e) => checkEffect(h.id, e));
+    h.onExpire?.forEach((e) => checkEffect(h.id, e));
+    const ids = new Set<string>();
+    for (const ch of h.choices ?? []) {
+      if (ids.has(ch.id)) problems.push(`${h.id}: doppelte Antwort ${ch.id}`);
+      ids.add(ch.id);
+      ch.requires?.forEach((c) => checkCondition(h.id, c));
+      ch.effects?.forEach((e) => checkEffect(h.id, e));
+      ch.outcomes?.forEach((o) => o.effects.forEach((e) => checkEffect(h.id, e)));
+    }
+  }
   for (let i = 1; i < REP_TIERS.length; i++) {
     if (REP_TIERS[i].min <= REP_TIERS[i - 1].min) problems.push(`Reputation-Stufen nicht aufsteigend bei ${REP_TIERS[i].id}`);
   }

@@ -94,6 +94,7 @@ export const VIA_LABELS: Record<string, string> = {
   explore: 'Beim Erkunden entdeckt',
   rumor: 'Einem Gerücht nachgegangen',
   contact: 'Von einem Kontakt',
+  rival: 'Bei einer anderen Crew entdeckt',
 };
 
 export function revealPoi(d: GameState, id: string, via: string, opts: { silent?: boolean } = {}): boolean {

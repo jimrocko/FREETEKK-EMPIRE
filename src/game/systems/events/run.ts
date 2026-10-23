@@ -14,6 +14,9 @@ import { wearItem } from '../equipment/logic';
 import { removeItem } from '../inventory/logic';
 import { effectiveStats } from '../spots/logic';
 import { addBrand, standSales } from '../merch/logic';
+import { addNews, adjustRivalRelation, competition } from '../rivals/logic';
+import { RIVALS_BY_ID, rivalDef } from '../../content/registry';
+import { crewVerb } from '../../content/rivals';
 import { canPlaySelf, soundSummary, spotName } from './plan';
 import {
   demandFor,
@@ -94,7 +97,7 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
   let present = performers(d, ev.lineup);
   const noShows: string[] = [];
   for (const p of [...present]) {
-    if (p.id === 'self') continue;
+    if (p.id === 'self' || p.id === 'sub') continue;
     const risk = ((100 - p.reliability) / 300) * (ev.tasks['task.lineup'] === 'done' ? 0.5 : 1);
     if (chance(d, risk)) {
       noShows.push(p.id);
@@ -116,6 +119,16 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
       moodPenalty += 8;
     }
   }
+
+  // The scene around the night.
+  const rivalsTonight = competition(d, ev.startsAt).crews;
+  for (const id of rivalsTonight) {
+    const crew = RIVALS_BY_ID.get(id);
+    incidents.push(`Konkurrenz: ${crew?.name} ${crewVerb(crew, 'feierten', 'feierte')} in derselben Nacht.`);
+  }
+  for (const b of ev.boosts ?? []) (b.value >= 0 ? highlights : incidents).push(b.label);
+  const coop = d.rivals.coop && ev.startsAt <= d.rivals.coop.until ? d.rivals.coop : undefined;
+  if (coop) highlights.push(`Gemeinsam mit ${rivalDef(coop.crewId).name} – deren Leute kamen mit.`);
 
   const flyerDone = ev.tasks['task.flyer'] !== 'open';
   const demand = demandFor(d, ev, flyerDone, weather, roll, ev.createdAt);
@@ -216,6 +229,7 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
     if (fee > 0) costs[`Gage ${shortName(PEOPLE.find((x) => x.id === p.id)!)}`] = fee;
   }
   if (ev.sound.kind === 'own' && sound.generatorKw > 0) costs['Sprit Generator'] = Math.round(sound.powerKw * hours * 0.45);
+  if (coop) costs[`Anteil ${rivalDef(coop.crewId).name}`] = Math.round(((revenue['Eintritt'] ?? revenue['Spenden'] ?? 0) + (revenue['Bar'] ?? 0)) * coop.share);
   for (const [label, amount] of Object.entries(revenue)) if (amount > 0) earn(d, amount, 'event', `${label}: ${ev.name}`);
   for (const [label, amount] of Object.entries(costs)) {
     if (label in ev.paid) continue;
@@ -284,11 +298,31 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
     if (met) newPeople.push(met);
   }
   for (const p of present) {
-    if (p.id === 'self' || p.id === 'playlist') continue;
+    if (p.id === 'self' || p.id === 'playlist' || p.id === 'sub') continue;
     adjustRelation(d, p.id, scores.mood >= 50 ? 4 : -2);
     if (scores.mood >= 50) adjustTrust(d, p.id, 3);
   }
   for (const m of d.crew.members) m.morale = Math.max(0, Math.min(100, m.morale + (scores.mood - 50) / 5));
+
+  // The scene reacts.
+  const host = d.crew.founded ? d.crew.name : d.player.name;
+  if (coop) {
+    const partner = rivalDef(coop.crewId);
+    const crew = d.rivals.crews[coop.crewId];
+    crew.rep += Math.round(Math.sqrt(visitors));
+    crew.money += costs[`Anteil ${partner.name}`] ?? 0;
+    adjustRivalRelation(d, coop.crewId, scores.mood >= 50 ? 10 : 2);
+    incStat(d, 'coopEvents');
+    delete d.rivals.coop;
+  }
+  for (const id of rivalsTonight) adjustRivalRelation(d, id, -(RIVALS_BY_ID.get(id)?.aggression ?? 0) / 12);
+  for (const [id, crew] of Object.entries(d.rivals.crews)) {
+    const def = RIVALS_BY_ID.get(id);
+    if (!def || !crew.active || id === coop?.crewId || def.aggression < 50 || !crew.knownSpots.includes(ev.spotId)) continue;
+    // Their turf.
+    adjustRivalRelation(d, id, -3);
+  }
+  addNews(d, `${host}${coop ? ` & ${rivalDef(coop.crewId).name}` : ''} im ${spot.name}: ${fmtNumber(visitors)} Gäste, Stimmung ${scores.mood}.`, 'success', { spotId: ev.spotId });
 
   // Gear wear.
   if (ev.sound.kind === 'own') {

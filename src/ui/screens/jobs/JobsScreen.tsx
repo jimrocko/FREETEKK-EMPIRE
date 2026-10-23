@@ -3,7 +3,7 @@ import { useGameState } from '../../../app/store';
 import type { SkillId } from '../../../game/core/types';
 import { fmtMoney } from '../../../game/core/format';
 import { SKILL_DEFS } from '../../../game/content/skills';
-import { jobListings, jobPayPerHour } from '../../../game/systems/jobs/logic';
+import { jobListings, jobPay, jobPayPerHour } from '../../../game/systems/jobs/logic';
 import { startJob } from '../../../game/systems/jobs/actions';
 import { activitiesByChannel } from '../../../game/systems/activities/logic';
 import { ActivityRow } from '../../components/ActivityList';
@@ -45,7 +45,7 @@ export function JobsScreen() {
                 <Badge>
                   <Clock size={11} /> {job.durationMin} Min
                 </Badge>
-                <Badge tone="accent">{fmtMoney(job.pay)}</Badge>
+                <Badge tone="accent">{fmtMoney(jobPay(s, job))}</Badge>
                 <Badge>{fmtMoney(jobPayPerHour(job))}/Std</Badge>
                 {(Object.entries(job.xp) as [SkillId, number][]).map(([skill, xp]) => (
                   <Badge key={skill} tone="info">

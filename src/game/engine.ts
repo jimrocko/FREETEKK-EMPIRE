@@ -1,4 +1,5 @@
 import type { GameState } from './state';
+import type { SceneNews } from './systems/rivals/state';
 import type { ActionDef, ActionResult } from './core/actions';
 import type { Reason } from './core/types';
 import type { FeedEntry } from './core/notify';
@@ -44,6 +45,8 @@ export interface CatchUpReport {
   daysPassed: number;
   /** Feed entries created while away. */
   entries: FeedEntry[];
+  /** What the other crews did meanwhile (newest last). */
+  scene: SceneNews[];
 }
 
 /**
@@ -60,6 +63,7 @@ export function catchUp(d: GameState, now: number): CatchUpReport | null {
   const cap = offlineCapMs(d);
   const cashBefore = d.finance.cash;
   const firstId = d.notifications.nextId;
+  const firstNews = d.rivals.nextId;
   const dayBefore = gameDayAt(d.clock, from);
   advanceTo(d, now, SYSTEMS, { economyUntil: from + cap, offline: true });
   return {
@@ -71,5 +75,6 @@ export function catchUp(d: GameState, now: number): CatchUpReport | null {
     cashAfter: d.finance.cash,
     daysPassed: gameDayAt(d.clock, now) - dayBefore,
     entries: d.notifications.feed.filter((e) => e.id >= firstId),
+    scene: d.rivals.news.filter((n) => n.id >= firstNews),
   };
 }

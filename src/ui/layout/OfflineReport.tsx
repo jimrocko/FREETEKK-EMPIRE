@@ -42,6 +42,17 @@ export function OfflineReportModal() {
       ) : (
         <p className="small dim">In der Zwischenzeit ist nichts Besonderes passiert.</p>
       )}
+      {report.scene.length > 0 && (
+        <div className="stack stack--s" data-testid="offline-scene">
+          <strong className="small">In der Szene</strong>
+          {report.scene.slice(-5).map((n) => (
+            <div key={n.id} className="tiny dim">
+              {n.text}
+            </div>
+          ))}
+          {report.scene.length > 5 && <div className="tiny faint">… und {report.scene.length - 5} weitere Meldungen im Szene-Ticker.</div>}
+        </div>
+      )}
     </Modal>
   );
 }

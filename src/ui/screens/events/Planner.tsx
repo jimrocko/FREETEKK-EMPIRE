@@ -27,6 +27,9 @@ import { countItem } from '../../../game/systems/inventory/logic';
 import { LEGALITY_LABELS, daysSinceCheck, knownSpots, statView } from '../../../game/systems/spots/logic';
 import { displayName } from '../../../game/systems/people/logic';
 import { totalPieces } from '../../../game/systems/merch/logic';
+import { rivalEventsInNight, spotLabel } from '../../../game/systems/rivals/logic';
+import { RIVALS_BY_ID } from '../../../game/content/registry';
+import { crewVerb } from '../../../game/content/rivals';
 import { ActionButton } from '../../components/ActionButton';
 import { Banner, Button, Card, CardHead, EmptyState } from '../../components/ui';
 import { navigate } from '../../router';
@@ -143,6 +146,11 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
           <p className="tiny faint" style={{ marginTop: 6 }}>
             Beginn in {fmtCountdown(nightValid - s.clock.now)} · ★ Wochenende zieht mehr Leute · mehr Vorlauf = mehr Werbewirkung
           </p>
+          {rivalEventsInNight(s, nightValid).map((ev) => (
+            <p key={ev.id} className="tiny tone-warning" style={{ marginTop: 4 }}>
+              In dieser Nacht: {RIVALS_BY_ID.get(ev.crewId)?.name} ({spotLabel(s, ev.spotId)})
+            </p>
+          ))}
           <div className="chips" style={{ flexWrap: 'wrap', marginTop: 10 }}>
             {DURATIONS.map((h) => (
               <Chip key={h} active={h === durationH} onClick={() => setDurationH(h)}>
@@ -360,6 +368,12 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
                   {f.supplyCoverage === 0 ? 'Keine Getränke dabei – die Leute werden durstig und gehen früher.' : `Die Getränke reichen nur für etwa ${Math.round(f.supplyCoverage * 100)} % des Durstes.`} Unter „Versorgung“ nachkaufen.
                 </Banner>
               )}
+              {f.rivals.length > 0 && (
+                <Banner tone="warning">
+                  Konkurrenz: {f.rivals.map((id) => RIVALS_BY_ID.get(id)?.name).join(', ')} {f.rivals.length === 1 ? crewVerb(RIVALS_BY_ID.get(f.rivals[0]), 'feiern', 'feiert') : 'feiern'} in derselben Nacht – das kostet Gäste und Sympathie.
+                </Banner>
+              )}
+              {f.coop && <Banner tone="info">Gemeinsam mit {RIVALS_BY_ID.get(f.coop)?.name}: Ihre Leute kommen mit, dafür geht ein Anteil an sie.</Banner>}
               {f.noShowRisk > 0.12 && <Banner tone="warning">Risiko, dass jemand aus dem Line-up nicht kommt: {fmtPercent(f.noShowRisk)}. Nach dem Ansetzen das Line-up bestätigen halbiert es.</Banner>}
               <div className="tiny faint">
                 Polizei-Risiko {fmtPercent(f.policeRisk)} · Technik-Ausfall {fmtPercent(f.failureRisk)}

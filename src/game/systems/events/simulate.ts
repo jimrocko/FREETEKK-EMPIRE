@@ -8,6 +8,8 @@ import { activeMembers } from '../crew/logic';
 import { effectiveStats } from '../spots/logic';
 import { doneTracks } from '../music/logic';
 import { standSales } from '../merch/logic';
+import { modifierValue } from '../happenings/logic';
+import { competition, coopDemand } from '../rivals/logic';
 import { networkSize } from './util';
 import { dayFactor, goodsLoad, soundSummary, type SoundSummary } from './plan';
 import type { EventPlanInput, EventScores, Weather } from './state';
@@ -24,6 +26,7 @@ export interface Performer {
 
 export function performers(s: GameState, lineup: string[]): Performer[] {
   return lineup.map((id) => {
+    if (id === 'sub') return { id, draw: 4, skill: 45, reliability: 95 };
     if (id === 'self') {
       const best = doneTracks(s).reduce((m, t) => Math.max(m, t.score), 0);
       const uploaded = doneTracks(s).filter((t) => t.uploadedAt !== undefined).length;
@@ -107,7 +110,10 @@ export function demandFor(s: GameState, plan: EventPlanInput, flyerDone: boolean
   const base = promoReach(s, plan, flyerDone, plannedAt) * 0.35 + s.progression.reputation * 0.6 + draw + (st?.fame ?? 0) * 2 + effectiveStats(s, plan.spotId).atmosphere * 0.3;
   const weekday = gameTimeAt(s.clock, plan.startsAt).weekday;
   const random = 0.85 + roll() * 0.3;
-  return Math.max(0, Math.round(base * dayFactor(weekday) * priceFactor(plan.entry) * weatherAttendance(weather, spot.stats.weather) * random));
+  const boosts = 'boosts' in plan && Array.isArray(plan.boosts) ? plan.boosts.reduce((sum, b) => sum + b.value, 0) : 0;
+  const scene = (1 + modifierValue(s, 'demand')) * competition(s, plan.startsAt).factor * Math.max(0.2, 1 + boosts);
+  const total = (base * dayFactor(weekday) + coopDemand(s, plan.startsAt, weekday)) * scene;
+  return Math.max(0, Math.round(total * priceFactor(plan.entry) * weatherAttendance(weather, spot.stats.weather) * random));
 }
 
 export interface SupplyResult {
@@ -207,6 +213,10 @@ export interface Forecast {
   noShowRisk: number;
   /** Expected merch stand revenue (0 without stand). */
   merchRevenue: number;
+  /** Rival crews partying the same night. */
+  rivals: string[];
+  /** Coop partner for this night. */
+  coop?: string;
 }
 
 export function powerAvailable(s: GameState, plan: EventPlanInput, sound: SoundSummary): boolean {
@@ -222,7 +232,7 @@ export function policeRisk(s: GameState, plan: EventPlanInput, visitors: number)
   const noisy = stats.noise < 50 && visitors > 100 ? 1.3 : 1;
   const security = activeMembers(s, 'security').length > 0 ? 0.8 : 1;
   const promised = plan.spotId === 'spot.kai7' && s.progression.flags['sanne.kai7'] ? 0.4 : 1;
-  return Math.min(0.85, (base * (1 + fame / 50) + promoHeat(plan)) * noisy * (1 - stats.security / 200) * security * promised);
+  return Math.min(0.85, (base * (1 + fame / 50) + promoHeat(plan)) * noisy * (1 - stats.security / 200) * security * promised * (1 + modifierValue(s, 'police')));
 }
 
 /** Expected outcome without randomness – shown while planning. */
@@ -264,7 +274,7 @@ export function forecast(s: GameState, plan: EventPlanInput): Forecast | null {
     sound,
     powerOk,
     mood: scores.mood,
-    revenue: Math.round(entryRevenue + supply.revenue + merchRevenue),
+    revenue: Math.round((entryRevenue + supply.revenue) * (1 - (s.rivals.coop && plan.startsAt <= s.rivals.coop.until ? s.rivals.coop.share : 0)) + merchRevenue),
     costs: fees,
     policeRisk: policeRisk(s, plan, visitors),
     failureRisk: Math.max(0, (100 - sound.reliability) / 120),
@@ -272,6 +282,8 @@ export function forecast(s: GameState, plan: EventPlanInput): Forecast | null {
     supplyCoverage: Object.keys(plan.prices).length > 0 ? supply.coverage : 0,
     noShowRisk: 1 - performers(s, plan.lineup).reduce((p, x) => p * (x.id === 'self' ? 1 : 1 - (100 - x.reliability) / 300), 1),
     merchRevenue: Math.round(merchRevenue),
+    rivals: competition(s, plan.startsAt).crews,
+    ...(s.rivals.coop && plan.startsAt <= s.rivals.coop.until ? { coop: s.rivals.coop.crewId } : {}),
   };
 }
 

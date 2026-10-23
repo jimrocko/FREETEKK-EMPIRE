@@ -17,6 +17,9 @@ import { daysSinceCheck } from '../spots/logic';
 import { doneTracks } from '../music/logic';
 import { skillLevel } from '../progression/logic';
 import { stockLoad, totalPieces } from '../merch/logic';
+import { rivalEventOnSpot } from '../rivals/logic';
+import { RIVALS_BY_ID } from '../../content/registry';
+import { crewVerb } from '../../content/rivals';
 import type { EventPlanInput, GameEvent } from './state';
 
 export const DJ_ROLES = ['dj', 'producer', 'artist'];
@@ -63,7 +66,7 @@ export function repNeededFor(p: PersonDef): number {
   return Math.max(0, (p.stats.bekanntheit - 40) * 5);
 }
 
-function sameNight(a: number, b: number): boolean {
+export function sameNight(a: number, b: number): boolean {
   return Math.abs(a - b) < GAME_DAY_MS / 2;
 }
 
@@ -213,6 +216,11 @@ export function planReason(s: GameState, plan: EventPlanInput): Reason {
   if (spot.cityId !== s.map.cityId) return 'Der Spot liegt nicht in deiner Stadt.';
   if (!upcomingNights(s).some((n) => n.startsAt === plan.startsAt)) return 'Wähle eine der nächsten Nächte.';
   if (s.events.list.some((e) => (e.status === 'scheduled' || e.status === 'running') && sameNight(e.startsAt, plan.startsAt))) return 'In dieser Nacht läuft schon ein Event von dir.';
+  const taken = rivalEventOnSpot(s, plan.spotId, plan.startsAt);
+  if (taken) {
+    const crew = RIVALS_BY_ID.get(taken.crewId);
+    return `In dieser Nacht ${crewVerb(crew, 'feiern', 'feiert')} dort schon ${crew?.name ?? 'eine andere Crew'}.`;
+  }
   if (!DURATIONS.includes(plan.durationH)) return 'Ungültige Dauer.';
   if (!ENTRY_OPTIONS.includes(plan.entry)) return 'Ungültiger Eintritt.';
   if (plan.lineup.length === 0) return 'Ohne Line-up keine Party – wähle mindestens einen DJ.';
