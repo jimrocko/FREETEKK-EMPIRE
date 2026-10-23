@@ -52,6 +52,10 @@ test('vertical slice: from zero to the first party', async ({ page, isMobile }) 
   await report.click();
   await expect(page.getByTestId('event-report')).toContainText('Besucher');
   await expect(page.getByTestId('event-report')).toContainText('Reputation');
+  // Stars and grade come from the same scale.
+  const STARS: Record<string, number> = { Legendär: 5, Stark: 4, Solide: 3, Zäh: 2, Desaster: 1 };
+  const grade = (await page.locator('.result__grade').textContent())!.trim();
+  await expect(page.locator('.result__stars .is-on')).toHaveCount(STARS[grade]);
 
   // Saved: reload keeps the report.
   await page.reload();

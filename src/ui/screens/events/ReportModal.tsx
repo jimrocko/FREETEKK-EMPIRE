@@ -21,11 +21,17 @@ const SCORE_LABELS: Record<string, string> = {
   safety: 'Sicherheit',
 };
 
-/** Grade of a night by its mood. */
+const GRADES = [
+  { min: 85, label: 'Legendär', stars: 5 },
+  { min: 70, label: 'Stark', stars: 4 },
+  { min: 55, label: 'Solide', stars: 3 },
+  { min: 40, label: 'Zäh', stars: 2 },
+  { min: -Infinity, label: 'Desaster', stars: 1 },
+];
+
+/** Grade of a night by its mood; stars and label always agree. */
 export function nightGrade(mood: number): { label: string; stars: number } {
-  const stars = Math.max(1, Math.min(5, Math.ceil(mood / 20)));
-  const label = mood >= 85 ? 'Legendär' : mood >= 70 ? 'Stark' : mood >= 55 ? 'Solide' : mood >= 40 ? 'Zäh' : 'Desaster';
-  return { label, stars };
+  return GRADES.find((g) => mood >= g.min)!;
 }
 
 function ResultBanner({ r }: { r: EventReport }) {
