@@ -40,6 +40,8 @@ import { ActivityRow } from '../../components/ActivityList';
 import { RepairPanel } from '../../components/RepairPanel';
 import { Badge, Button, Card, CardHead, ConditionBar, EmptyState, PageHeader, ProgressBar, Tabs } from '../../components/ui';
 import { useRoute } from '../../router';
+import { isUnlocked } from '../../../game/systems/progression/logic';
+import { REMIX_MINUTES, remixPay, takeRemix } from '../../../game/systems/music/remix';
 
 type StudioTab = 'produce' | 'tracks' | 'gear';
 
@@ -392,6 +394,19 @@ export function StudioScreen() {
           { id: 'gear', label: 'Geräte' },
         ]}
       />
+      {tab === 'produce' && isUnlocked(s, 'u.remix') && (
+        <Card testId="remix">
+          <CardHead icon={<Disc3 size={15} />} title="Remix-Aufträge" />
+          <p className="small dim">
+            Jemand will einen Remix. Dauert {REMIX_MINUTES} Minuten im Studio und bringt etwa {fmtMoney(remixPay(s))} plus Ruf.
+          </p>
+          <div style={{ marginTop: 8 }}>
+            <ActionButton action={takeRemix} payload={{}} testId="take-remix">
+              Auftrag annehmen
+            </ActionButton>
+          </div>
+        </Card>
+      )}
       {tab === 'produce' && <ProduceForm />}
       {tab === 'tracks' &&
         (tracks.length === 0 ? (

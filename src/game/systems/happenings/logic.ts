@@ -78,7 +78,7 @@ export function pickTarget(d: GameState, target: HappeningTarget | undefined): R
       return { event: p.e.id, eventName: p.e.name, person: p.id, personName: shortName(PERSONS_BY_ID.get(p.id)!) };
     }
     case 'unknownSpot': {
-      const pool = SPOTS.filter((sp) => sp.cityId === d.map.cityId && !d.spots.spots[sp.id]?.known);
+      const pool = SPOTS.filter((sp) => sp.cityId === d.map.cityId && !sp.hidden && !d.spots.spots[sp.id]?.known);
       if (pool.length === 0) return null;
       const sp = pickWeighted(d, pool, (x) => 1 + (x.explore === undefined ? 0.5 : 0) + 100 / (50 + x.stats.capacity));
       return sp ? { spot: sp.id, spotName: sp.name } : null;
@@ -132,11 +132,15 @@ export function fireHappening(d: GameState, h: HappeningDef, ctx: Record<string,
   incStat(d, 'happenings');
   applyEffects(d, bindTarget(h.effects, ctx));
   if (h.choices?.length) {
+    // A decision about a party has to be made before the party starts.
+    const ev = ctx.event ? d.events.list.find((e) => e.id === ctx.event) : undefined;
+    let expiresAt = h.expiresHours ? d.clock.now + h.expiresHours * HOUR : undefined;
+    if (ev && expiresAt !== undefined) expiresAt = Math.max(d.clock.now + MINUTE, Math.min(expiresAt, ev.startsAt - MINUTE));
     const open: OpenHappening = {
       id: `h${d.happenings.nextId++}`,
       defId: h.id,
       at: d.clock.now,
-      ...(h.expiresHours ? { expiresAt: d.clock.now + h.expiresHours * HOUR } : {}),
+      ...(expiresAt !== undefined ? { expiresAt } : {}),
       title,
       text,
       ctx,

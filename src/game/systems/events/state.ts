@@ -1,3 +1,5 @@
+import type { EventFormatId } from '../../content/events';
+
 export type SoundChoice = { kind: 'own'; systemId: string } | { kind: 'rental'; optionId: string };
 
 export interface EventPlanInput {
@@ -22,6 +24,8 @@ export interface EventPlanInput {
   medics: boolean;
   /** Bring the merch stock and run a stand. */
   merch?: boolean;
+  /** Default 'party'. */
+  format?: EventFormatId;
 }
 
 export type TaskStatus = 'open' | 'running' | 'done';

@@ -36,6 +36,7 @@ export const visitPoi = defineAction<{ poiId: string }>({
     const def = POIS_BY_ID.get(p.poiId);
     if (!def?.visit) return 'Hier kann man nicht hingehen.';
     if (!isPoiKnown(s, def.id)) return 'Ort ist noch unbekannt.';
+    if (def.cityId !== s.map.cityId) return 'Liegt in einer anderen Stadt.';
     return moneyReason(s, def.visit.cost) ?? channelReason(s, 'explore');
   },
   run: (d, p) => {

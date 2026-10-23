@@ -19,11 +19,17 @@ import { createEventsState, type EventsState } from './systems/events/state';
 import { createMerchState, type MerchState } from './systems/merch/state';
 import { createRivalsState, type RivalsState } from './systems/rivals/state';
 import { createHappeningsState, type HappeningsState } from './systems/happenings/state';
+import { createProjectsState, type ProjectsState } from './systems/projects/state';
+import { createLegacyState, type LegacyState } from './systems/legacy/state';
+import type { ScenarioDef } from './content/legacy';
+import { applyStart } from './systems/legacy/logic';
+import { SCENARIOS } from './content/legacy';
+import { cityDef } from './content/registry';
 import { addItem } from './systems/inventory/logic';
 import { refreshOffers } from './systems/market/logic';
 
 /** Bump when the shape of GameState changes and add a migration in save/migrations.ts. */
-export const STATE_VERSION = 1;
+export const STATE_VERSION = 2;
 
 export interface MetaState {
   version: number;
@@ -38,6 +44,8 @@ export interface PlayerState {
   name: string;
   cityId: string;
   homeId: string;
+  /** Where your scene knows you best (crowds there are not scaled by city fame). */
+  homeCity: string;
 }
 
 export interface GameState {
@@ -63,6 +71,8 @@ export interface GameState {
   merch: MerchState;
   rivals: RivalsState;
   happenings: HappeningsState;
+  projects: ProjectsState;
+  legacy: LegacyState;
   notifications: NotificationsState;
 }
 
@@ -70,6 +80,10 @@ export interface NewGameOptions {
   now: number;
   seed?: number;
   playerName?: string;
+  /** Start scenario (default: the classic start). */
+  scenario?: ScenarioDef;
+  /** Carried over from earlier runs. */
+  legacy?: LegacyState;
 }
 
 /** Fresh slices – also used by `hydrate` to fill in slices missing from old saves. */
@@ -78,7 +92,7 @@ export function createSlices(now: number, seed: number): GameState {
     meta: { version: STATE_VERSION, createdAt: now, lastSavedAt: now, playTimeMs: 0, seed },
     clock: createClock(now),
     rng: createRng(seed),
-    player: { name: 'Namenlos', cityId: 'city.steinhafen', homeId: 'home.zimmer' },
+    player: { name: 'Namenlos', cityId: 'city.steinhafen', homeId: 'home.zimmer', homeCity: 'city.steinhafen' },
     finance: createFinanceState(),
     progression: createProgressionState(),
     inventory: createInventoryState(),
@@ -97,6 +111,8 @@ export function createSlices(now: number, seed: number): GameState {
     merch: createMerchState(),
     rivals: createRivalsState(now),
     happenings: createHappeningsState(now),
+    projects: createProjectsState(),
+    legacy: createLegacyState(),
     notifications: createNotificationsState(),
   };
 }
@@ -109,12 +125,19 @@ export function createInitialState(opts: NewGameOptions): GameState {
 
   addItem(state, 'item.phone-basic', { condition: 55 });
   addItem(state, 'item.headphones-cheap', { condition: 70 });
+  if (opts.legacy) state.legacy = structuredClone(opts.legacy);
+  const scenario = opts.scenario ?? SCENARIOS[0];
+  applyStart(state, scenario);
   refreshOffers(state, 1, { silent: true, count: 5 });
 
+  const city = cityDef(state.map.cityId);
   notify(state, {
     tone: 'info',
-    title: 'Willkommen in Steinhafen',
-    text: '500 € auf der Hand, ein altes Handy und ein kleines Zimmer. Starte mit einem Nebenjob und schau dich auf dem Gebrauchtmarkt um.',
+    title: state.legacy.runs > 0 ? `Kapitel ${state.legacy.runs + 1}: ${scenario.name}` : `Willkommen in ${city.name}`,
+    text:
+      state.legacy.runs > 0
+        ? `${scenario.description} Dein Vermächtnis: ${state.legacy.runs} ${state.legacy.runs === 1 ? 'Lauf' : 'Läufe'} vor dir.`
+        : '500 € auf der Hand, ein altes Handy und ein kleines Zimmer. Starte mit einem Nebenjob und schau dich auf dem Gebrauchtmarkt um.',
     link: '/jobs',
   });
   return state;

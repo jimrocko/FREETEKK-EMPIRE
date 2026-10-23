@@ -1,4 +1,5 @@
 import { defineAction } from '../../core/actions';
+import { needsUnlock } from '../progression/tree';
 import { fmtMoney } from '../../core/format';
 import { minutes } from '../../core/time';
 import { chance, randInt, randRange } from '../../core/rng';
@@ -17,7 +18,7 @@ export const buyNew = defineAction<{ defId: string; shopId: string }>({
     if (!shop) return 'Diesen Laden kennst du nicht.';
     const def = ITEMS.get(p.defId);
     if (!def?.shops?.includes(shop.id)) return 'Nicht im Sortiment.';
-    return moneyReason(s, shopPrice(shop, def)) ?? spaceReason(s, def.id);
+    return needsUnlock(s, def.unlock) ?? moneyReason(s, shopPrice(shop, def)) ?? spaceReason(s, def.id);
   },
   run: (d, p) => {
     const shop = knownShops(d).find((x) => x.id === p.shopId)!;

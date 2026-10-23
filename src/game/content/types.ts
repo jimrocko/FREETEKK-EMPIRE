@@ -30,6 +30,8 @@ export interface ItemDef {
   shops?: string[];
   /** Can show up on the used market. */
   usedMarket?: boolean;
+  /** Unlock (content/unlocks.ts) needed before it can be bought or found. */
+  unlock?: string;
   description: string;
 }
 
@@ -150,6 +152,8 @@ export interface SpotDef {
   features: string[];
   /** Explored % at which exploration can find it; omit for rumor/contact-only spots. */
   explore?: number;
+  /** Only reachable through a project (never found, never used by other crews). */
+  hidden?: boolean;
 }
 
 export type PoiKind = 'shop' | 'hangout' | 'club' | 'storage';
@@ -242,7 +246,7 @@ export type MeetDef =
   | { poi: string; chance: number }
   | { district: string; chance: number; minExplored?: number }
   /** They get in touch by themselves once the condition holds. */
-  | { reaches: Condition[]; text: string };
+  | { reaches: Condition[]; text: string; trust?: number };
 
 export interface PersonDef {
   id: string;

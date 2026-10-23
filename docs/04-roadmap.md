@@ -115,12 +115,18 @@ Legende: ✅ fertig · 🔨 in Arbeit · ⏳ geplant
 
 **Abnahme:** Unit-Tests für Crew-Simulation (inkl. offline), Auftauchen, Konkurrenz, belegte Spots, Razzien an geteilten Spots, Besuch, Kooperation, Spot-Tipps, Crew-Nachrichten, Gastsets, alle Ereignisse und jede Antwort, Cooldowns/Ziele, Ignorieren, Modifikatoren, seltene Angebote, alte Spielstände ✓; Balance-Lauf (30 Spieltage: ~25–30 Partys der Crews, 1–3 Razzien, langsames Wachstum) ✓; E2E (iPhone + Desktop): Ereignis entscheiden → Szene → Party besuchen → Crew-Detail → Offline-Bericht mit Szene → Neuigkeiten ✓.
 
-## Phase 9 – Große Progression ⏳
+## Phase 9 – Große Progression ✅
 
-- Großer Freischaltungsbaum (neue Systeme, nicht nur Prozente)
-- Weitere Städte mit eigener Szene
-- Endgame: Label, Festival, eigene Locations, mehrere Systeme/Crews, seltene Geräte
-- Prestige/Vermächtnis mit neuen Startszenarien
+- **Szenepunkte** für erreichte Ziele (1–4 nach Größe) und jede neue Reputations-Stufe (2); alte Spielstände bekommen sie per Migration (v1 → v2) rückwirkend
+- **Freischaltungsbaum** mit 21 Knoten in fünf Ästen (Sound & Technik, Events, Musik, Netzwerk & Städte, Business) – jeder öffnet etwas Neues:
+  neue Gerätetypen (Laser/Moving Heads, Line-Array, großer und Flüster-Generator mit weniger Polizei-Risiko, Modular-Systeme), Eigenbau (Custom-Stack in der Werkstatt), neue Event-Formate (Open-Air, Teknival), Lkw-Führerschein, Festival-Projekt, Remix-Aufträge, Live-Act als Line-up-Slot, Label-Projekt, neue Crew-Rollen (Manager +2 Plätze, Booker: bekannte DJs früher/günstiger), zwei neue Städte, internationale DJs als neue Kontakt-Kategorie, Anlagenverleih, Merch-Kollektion (Jutebeutel, Fahnen), Großmarkt als Lieferant, Vinyl über ein Presswerk, eigene Location
+- **Event-Formate:** Open-Air (draußen, 6–16 Std, mehr Publikum und Ruf, mehr Polizei) und Teknival (24–48 Std, ab 600 Plätzen, Publikum wechselt durch, doppelter Ruf); Infrastrukturkosten je Format
+- **Städte:** Bergheim (kleine Szene, günstige Preise, entspannte Polizei, Waldspots, Crew „Bergfeuer“) und Nordhafen (große Szene, hohe Preise, harte Polizei, Hallen bis 5.000 Leute, „Kranich Kollektiv“), je 4 Bezirke, 5 Spots, 3 Orte, eigene Leute; Reisen kostet Zeit und Geld (mit eigenem Fahrzeug günstiger); Publikum = Szenengröße × lokale Bekanntheit (wächst mit jeder Party dort), Eintritt und Getränke skalieren mit dem Preisniveau
+- **Großprojekte** mit Etappen über Stunden im Hintergrund: eigene Location (legaler Spot ohne Miete, 150 €/Tag Unterhalt), Label (EPs aus drei Tracks: Verkäufe, Ruf, Streams, Katalog-Einnahmen), Festival (bis 20.000 Leute, wiederholbar mit steigenden Kosten)
+- **Vermächtnis:** ab 10.000 Reputation oder nach einem Festival die Crew übergeben – neues Kapitel mit Vermächtnis-Punkten, sechs Startszenarien (Producer, Soundsystem-Erbe, Netzwerker:in, Startkapital, Bergheim …) und dauerhaften Perks; Historie früherer Kapitel
+- 13 neue Ziele
+
+**Abnahme:** Unit-Tests für Punkte und Migration, Freischaltungen und Gating (Shop, Gebrauchtmarkt, Lieferant, Crew-Rollen), Formate, Live-Act, Remix, Verleih, Eigenbau, Reisen und Stadtfaktoren, Projekte (Location, Festival, Label), Vermächtnis mit Szenario und Perks ✓; E2E (iPhone + Desktop): Freischalten → Format im Planer → Projekt → Reise nach Bergheim → Vermächtnis ✓.
 
 ## Phase 10 – Feinschliff ⏳
 

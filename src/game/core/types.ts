@@ -54,6 +54,8 @@ export type Condition =
   | { t: 'bank'; gte: number }
   | { t: 'rivalRelation'; rival: string; gte: number }
   | { t: 'rivalActive'; rival: string }
+  /** How well a city's scene knows you (0–100). */
+  | { t: 'cityFame'; city: string; gte: number }
   /** More reputation than this crew. */
   | { t: 'outrank'; rival: string }
   | { t: 'channelFree'; channel: ActivityChannel }

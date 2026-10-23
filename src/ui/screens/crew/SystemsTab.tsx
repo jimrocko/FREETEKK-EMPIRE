@@ -10,6 +10,10 @@ import type { SoundSystem } from '../../../game/systems/sound/state';
 import { transportCapacity } from '../../../game/systems/transport/logic';
 import { ActionButton } from '../../components/ActionButton';
 import { Badge, Banner, Button, Card, CardHead, EmptyState, ProgressBar } from '../../components/ui';
+import { isUnlocked } from '../../../game/systems/progression/logic';
+import { rentalFee, rentOutSystem } from '../../../game/systems/sound/rental';
+import { CUSTOM_STACK_COST, CUSTOM_STACK_MINUTES, buildCustomStack } from '../../../game/systems/equipment/custom';
+import { Hammer } from 'lucide-react';
 
 const TYPE_LABELS: Record<string, string> = {
   top: 'Top',
@@ -49,6 +53,11 @@ function SystemCard({ sys }: { sys: SoundSystem }) {
             <Trash2 size={14} /> Auflösen
           </ActionButton>
         </div>
+        {isUnlocked(s, 'u.rental') && (
+          <ActionButton action={rentOutSystem} payload={{ systemId: sys.id }} small testId={`rent-out-${sys.id}`}>
+            Für eine Nacht vermieten ({fmtMoney(rentalFee(s, sys.id))})
+          </ActionButton>
+        )}
         <div className="statgrid">
           <Cell label="Reichweite" value={`${fmtNumber(st.reach)} Leute`} />
           <Cell label="Leistung" value={`${fmtNumber(st.powerW)} W`} />
@@ -136,6 +145,17 @@ export function SystemsTab() {
           <SystemCard key={sys.id} sys={sys} />
         ))}
       </div>
+      {isUnlocked(s, 'u.custombuild') && (
+        <Card testId="custom-build">
+          <CardHead icon={<Hammer size={15} />} title="Werkstatt: Custom-Stack" />
+          <p className="small dim">Ein selbstgebauter Bass-Stack: lauter und besser als alles aus dem Laden. {fmtMoney(CUSTOM_STACK_COST)} Material, {CUSTOM_STACK_MINUTES} Minuten Arbeit.</p>
+          <div style={{ marginTop: 8 }}>
+            <ActionButton action={buildCustomStack} payload={{}} testId="build-stack">
+              Bauen
+            </ActionButton>
+          </div>
+        </Card>
+      )}
       <Card>
         <CardHead icon={<Zap size={15} />} title="Neues System" />
         <div className="row">

@@ -9,6 +9,7 @@ export const checkSpot = defineAction<{ spotId: string }>({
   check: (s, p) => {
     const st = s.spots.spots[p.spotId];
     if (!SPOTS_BY_ID.has(p.spotId) || !st?.known) return 'Spot ist unbekannt.';
+    if (SPOTS_BY_ID.get(p.spotId)!.cityId !== s.map.cityId) return 'Liegt in einer anderen Stadt.';
     if (s.activities.running.some((a) => a.kind === 'spot-check' && a.payload.spotId === p.spotId)) return 'Wird gerade gecheckt.';
     return channelReason(s, 'explore');
   },

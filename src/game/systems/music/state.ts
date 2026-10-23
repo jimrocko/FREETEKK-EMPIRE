@@ -15,6 +15,8 @@ export interface Track {
   createdAt: number;
   status: 'producing' | 'done';
   uploadedAt?: number;
+  /** Released on your label (EP). */
+  releasedAt?: number;
   /** Stream multiplier for uploaded tracks (decays daily). */
   hype: number;
   givenTo: string[];

@@ -9,6 +9,8 @@ export interface MerchProductDef {
   basePrice: number;
   /** Share of buyers who want this product. */
   appeal: number;
+  /** Unlock needed before it can be produced. */
+  unlock?: string;
 }
 
 export const MERCH_PRODUCTS: readonly MerchProductDef[] = [
@@ -18,6 +20,9 @@ export const MERCH_PRODUCTS: readonly MerchProductDef[] = [
   { id: 'merch.hoodie', name: 'Hoodie', volumeL: 1.6, basePrice: 48, appeal: 0.5 },
   { id: 'merch.cap', name: 'Cap', volumeL: 1.2, basePrice: 24, appeal: 0.45 },
   { id: 'merch.poster', name: 'Poster', volumeL: 0.2, basePrice: 10, appeal: 0.4 },
+  { id: 'merch.bag', name: 'Jutebeutel', volumeL: 0.3, basePrice: 12, appeal: 0.8, unlock: 'u.merchline' },
+  { id: 'merch.flag', name: 'Fahne', volumeL: 0.5, basePrice: 30, appeal: 0.3, unlock: 'u.merchline' },
+  { id: 'merch.vinyl', name: 'Vinyl-EP', volumeL: 0.4, basePrice: 25, appeal: 0.35, unlock: 'u.vinyl' },
 ];
 
 export interface ManufacturerOffer {
@@ -50,6 +55,8 @@ export const MANUFACTURERS: readonly ManufacturerDef[] = [
       'merch.hoodie': { unitCost: 18, minQty: 10 },
       'merch.cap': { unitCost: 8, minQty: 10 },
       'merch.poster': { unitCost: 2.5, minQty: 20 },
+      'merch.bag': { unitCost: 3, minQty: 25 },
+      'merch.flag': { unitCost: 11, minQty: 10 },
     },
   },
   {
@@ -65,6 +72,7 @@ export const MANUFACTURERS: readonly ManufacturerDef[] = [
       'merch.hoodie': { unitCost: 16, minQty: 20 },
       'merch.patch': { unitCost: 1.5, minQty: 50 },
       'merch.poster': { unitCost: 2, minQty: 20 },
+      'merch.bag': { unitCost: 2.5, minQty: 30 },
     },
   },
   {
@@ -83,6 +91,19 @@ export const MANUFACTURERS: readonly ManufacturerDef[] = [
       'merch.hoodie': { unitCost: 11, minQty: 100 },
       'merch.cap': { unitCost: 4, minQty: 200 },
       'merch.patch': { unitCost: 0.6, minQty: 500 },
+      'merch.bag': { unitCost: 1.8, minQty: 200 },
+      'merch.flag': { unitCost: 6, minQty: 50 },
+    },
+  },
+  {
+    id: 'man.presswerk',
+    name: 'Presswerk Nordhafen',
+    description: 'Schwarzes Vinyl, 180 Gramm, mit Innenhülle. Lange Wartezeit, dafür hält es ewig.',
+    quality: 88,
+    minutes: 120,
+    requires: [{ t: 'unlocked', id: 'u.vinyl', label: 'Vinyl-Pressung' }],
+    products: {
+      'merch.vinyl': { unitCost: 7, minQty: 100 },
     },
   },
 ];

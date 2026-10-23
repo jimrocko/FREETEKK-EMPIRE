@@ -13,5 +13,5 @@ export interface RentalOption {
 export const RENTAL_OPTIONS: readonly RentalOption[] = [
   { id: 'rent.kombi', defId: 'item.car-kombi', label: 'Kombi mieten', perDay: 45 },
   { id: 'rent.sprinter', defId: 'item.van-sprinter', label: 'Sprinter mieten', perDay: 110 },
-  { id: 'rent.truck', defId: 'item.truck-75', label: '7,5-Tonner mieten', perDay: 260, requires: [{ t: 'skill', skill: 'organisation', gte: 4 }] },
+  { id: 'rent.truck', defId: 'item.truck-75', label: '7,5-Tonner mieten', perDay: 260, requires: [{ t: 'skill', skill: 'organisation', gte: 4 }, { t: 'unlocked', id: 'u.trucklicense', label: 'Lkw-Führerschein' }] },
 ];

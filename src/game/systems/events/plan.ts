@@ -3,7 +3,7 @@ import type { Reason } from '../../core/types';
 import type { PersonDef } from '../../content/types';
 import { PEOPLE } from '../../content/people';
 import { ITEMS, spotDef, SPOTS_BY_ID } from '../../content/registry';
-import { EVENT_TASKS, HELPER_COST, AWARENESS_COST, MEDICS_COST, MIN_LEAD_MIN, PA_RENTALS, PROMO_CHANNELS } from '../../content/events';
+import { EVENT_FORMATS, EVENT_TASKS, HELPER_COST, AWARENESS_COST, MEDICS_COST, MIN_LEAD_MIN, PA_RENTALS, PROMO_CHANNELS, eventFormat } from '../../content/events';
 import { RENTAL_OPTIONS } from '../../content/vehicles';
 import { checkAll, requirementReason } from '../../core/conditions';
 import { GAME_DAY_MS, GAME_HOUR_MS, MINUTE, dayStartAt, gameDayAt, gameTimeAt } from '../../core/time';
@@ -11,11 +11,13 @@ import { fmtMoney } from '../../core/format';
 import { moneyReason } from '../finance/logic';
 import { findSystem, systemStats } from '../sound/logic';
 import { transportCapacity } from '../transport/logic';
-import { isCrewMember } from '../crew/logic';
+import { hasBooker, isCrewMember } from '../crew/logic';
 import { knowsPerson, shortName } from '../people/logic';
 import { daysSinceCheck } from '../spots/logic';
 import { doneTracks } from '../music/logic';
-import { skillLevel } from '../progression/logic';
+import { isUnlocked, skillLevel } from '../progression/logic';
+import { needsUnlock } from '../progression/tree';
+import { countTag } from '../inventory/logic';
 import { stockLoad, totalPieces } from '../merch/logic';
 import { rivalEventOnSpot } from '../rivals/logic';
 import { RIVALS_BY_ID } from '../../content/registry';
@@ -55,15 +57,46 @@ export function dayFactor(weekday: number): number {
 }
 
 export function maxLineup(durationH: number): number {
-  return Math.max(1, Math.floor(durationH / 2));
+  return Math.max(1, Math.min(8, Math.floor(durationH / 2)));
+}
+
+/** People who fit in over the whole event (formats with turnover fit more). */
+export function eventCapacity(capacity: number, plan: Pick<EventPlanInput, 'format'>): number {
+  return Math.round(capacity * eventFormat(plan.format).turnover);
+}
+
+export function formatReason(s: GameState, plan: Pick<EventPlanInput, 'format' | 'spotId'>): Reason {
+  const f = eventFormat(plan.format);
+  const locked = needsUnlock(s, f.unlock);
+  if (locked) return locked;
+  const spot = SPOTS_BY_ID.get(plan.spotId);
+  if (!spot) return null;
+  if (f.minWeather !== undefined && spot.stats.weather < f.minWeather) return `${f.label} geht nur draußen – ${spot.name} ist ein Innenraum.`;
+  if (f.minCapacity !== undefined && spot.stats.capacity < f.minCapacity) return `Für ein ${f.label} ist ${spot.name} zu klein (mind. ${f.minCapacity} Leute).`;
+  return null;
 }
 
 export function canPlaySelf(s: GameState): boolean {
   return doneTracks(s).length > 0 || skillLevel(s, 'produktion') >= 2;
 }
 
-export function repNeededFor(p: PersonDef): number {
-  return Math.max(0, (p.stats.bekanntheit - 40) * 5);
+/** Why you can't play a live set (null = you can). */
+export function liveReason(s: GameState): Reason {
+  const locked = needsUnlock(s, 'u.liveact');
+  if (locked) return locked;
+  if (doneTracks(s).length < 3) return 'Für ein Live-Set brauchst du mindestens drei eigene Tracks.';
+  if (countTag(s, 'synth') + countTag(s, 'drums') === 0) return 'Ohne Synth oder Drum-Machine kein Live-Set.';
+  return null;
+}
+
+/** Line-up slots that are real people (not you, your live set or a stand-in). */
+export function isPersonSlot(id: string): boolean {
+  return PEOPLE.some((p) => p.id === id);
+}
+
+export function repNeededFor(p: PersonDef, s?: GameState): number {
+  const base = Math.max(0, (p.stats.bekanntheit - 40) * 5);
+  return s && hasBooker(s) ? Math.round(base * 0.6) : base;
 }
 
 export function sameNight(a: number, b: number): boolean {
@@ -72,11 +105,12 @@ export function sameNight(a: number, b: number): boolean {
 
 export function performerReason(s: GameState, id: string, startsAt: number, ignoreEvent?: string): Reason {
   if (id === 'self') return canPlaySelf(s) ? null : 'Du brauchst eigene Tracks oder Produktion Lv. 2 für ein eigenes Set.';
+  if (id === 'live') return liveReason(s);
   const p = PEOPLE.find((x) => x.id === id);
   if (!p || !knowsPerson(s, id)) return 'Unbekannt.';
   if (!p.roles.some((r) => DJ_ROLES.includes(r))) return `${shortName(p)} legt nicht auf.`;
   if (!isCrewMember(s, id) && s.people.people[id].trust < 20) return `${shortName(p)} kennt dich zu wenig (Vertrauen 20).`;
-  if (s.progression.reputation < repNeededFor(p)) return `${shortName(p)} spielt erst ab Reputation ${repNeededFor(p)}.`;
+  if (s.progression.reputation < repNeededFor(p, s)) return `${shortName(p)} spielt erst ab Reputation ${repNeededFor(p, s)}.`;
   if (s.events.list.some((e) => e.id !== ignoreEvent && (e.status === 'scheduled' || e.status === 'running') && e.lineup.includes(id) && sameNight(e.startsAt, startsAt))) {
     return `${shortName(p)} spielt in der Nacht schon woanders.`;
   }
@@ -85,12 +119,14 @@ export function performerReason(s: GameState, id: string, startsAt: number, igno
 
 export function performerFee(s: GameState, id: string): number {
   if (id === 'self' || isCrewMember(s, id)) return 0;
-  return PEOPLE.find((p) => p.id === id)?.price ?? 0;
+  const price = PEOPLE.find((p) => p.id === id)?.price ?? 0;
+  return hasBooker(s) ? Math.round(price * 0.85) : price;
 }
 
 export function lineupCandidates(s: GameState): string[] {
   const out: string[] = [];
   if (canPlaySelf(s)) out.push('self');
+  if (isUnlocked(s, 'u.liveact')) out.push('live');
   for (const p of PEOPLE) if (knowsPerson(s, p.id) && p.roles.some((r) => DJ_ROLES.includes(r))) out.push(p.id);
   return out;
 }
@@ -168,6 +204,8 @@ export function upfrontCosts(s: GameState, plan: EventPlanInput): CostLineItem[]
   const out: CostLineItem[] = [];
   const spot = SPOTS_BY_ID.get(plan.spotId);
   if (spot && spot.rent > 0) out.push({ label: 'Miete Spot', amount: spot.rent });
+  const fmt = eventFormat(plan.format);
+  if (fmt.orgCost > 0) out.push({ label: `Infrastruktur ${fmt.label}`, amount: fmt.orgCost });
   const sound = soundSummary(s, plan);
   if (sound && sound.rentalCost > 0) out.push({ label: 'Verleih-PA', amount: sound.rentalCost });
   for (const id of plan.promo) {
@@ -198,7 +236,7 @@ export function eventTasksFor(s: GameState, plan: EventPlanInput): Record<string
   const tasks: Record<string, 'open' | 'done'> = {};
   tasks['task.check'] = daysSinceCheck(s, plan.spotId) <= 7 ? 'done' : 'open';
   if (plan.promo.includes('promo.flyer')) tasks['task.flyer'] = 'open';
-  if (plan.lineup.some((id) => id !== 'self' && !isCrewMember(s, id))) tasks['task.lineup'] = 'open';
+  if (plan.lineup.some((id) => isPersonSlot(id) && !isCrewMember(s, id))) tasks['task.lineup'] = 'open';
   return tasks;
 }
 
@@ -221,11 +259,15 @@ export function planReason(s: GameState, plan: EventPlanInput): Reason {
     const crew = RIVALS_BY_ID.get(taken.crewId);
     return `In dieser Nacht ${crewVerb(crew, 'feiern', 'feiert')} dort schon ${crew?.name ?? 'eine andere Crew'}.`;
   }
-  if (!DURATIONS.includes(plan.durationH)) return 'Ungültige Dauer.';
+  if (!EVENT_FORMATS.some((f) => f.id === (plan.format ?? 'party'))) return 'Unbekanntes Format.';
+  const fmt = formatReason(s, plan);
+  if (fmt) return fmt;
+  if (!eventFormat(plan.format).durations.includes(plan.durationH)) return 'Ungültige Dauer.';
   if (!ENTRY_OPTIONS.includes(plan.entry)) return 'Ungültiger Eintritt.';
   if (plan.lineup.length === 0) return 'Ohne Line-up keine Party – wähle mindestens einen DJ.';
   if (plan.lineup.length > maxLineup(plan.durationH)) return `Für ${plan.durationH} Stunden passen höchstens ${maxLineup(plan.durationH)} Sets.`;
   if (new Set(plan.lineup).size !== plan.lineup.length) return 'Jede Person nur einmal im Line-up.';
+  if (plan.lineup.includes('self') && plan.lineup.includes('live')) return 'DJ-Set oder Live-Set – beides gleichzeitig schaffst du nicht.';
   for (const id of plan.lineup) {
     const r = performerReason(s, id, plan.startsAt);
     if (r) return r;
@@ -239,6 +281,8 @@ export function planReason(s: GameState, plan: EventPlanInput): Reason {
     const sys = findSystem(s, plan.sound.systemId);
     if (!sys) return 'Soundsystem nicht gefunden.';
     if (systemStats(s, sys).reach <= 0) return `„${sys.name}“ macht noch keinen Ton – Boxen fehlen.`;
+    const rental = s.activities.running.find((a) => a.kind === 'system-rental' && a.payload.systemId === sys.id);
+    if (rental && rental.endsAt > plan.startsAt) return `„${sys.name}“ ist in der Nacht vermietet.`;
     if (s.events.list.some((e) => (e.status === 'scheduled' || e.status === 'running') && e.sound.kind === 'own' && e.sound.systemId === sys.id && sameNight(e.startsAt, plan.startsAt))) {
       return 'Das System ist in der Nacht schon verplant.';
     }

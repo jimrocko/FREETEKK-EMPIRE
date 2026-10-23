@@ -1,6 +1,7 @@
 import type { GameState } from '../../state';
 import type { ItemDef, Rarity, ShopDef } from '../../content/types';
 import { ALL_ITEMS } from '../../content/items';
+import { isUnlocked } from '../progression/logic';
 import { SELLER_NAMES, SELLER_NOTES } from '../../content/market';
 import { SHOPS } from '../../content/shops';
 import { fmtMoney } from '../../core/format';
@@ -61,7 +62,8 @@ export function usedPool(): ItemDef[] {
 }
 
 export function generateOffer(d: GameState, opts: { factor?: number; defId?: string } = {}): MarketOffer | null {
-  const def = opts.defId ? ALL_ITEMS.find((it) => it.id === opts.defId) : pickWeighted(d, usedPool(), (it) => RARITY_WEIGHT[it.rarity ?? 'common'] * tierWeight(it.tier));
+  const pool = usedPool().filter((it) => !it.unlock || isUnlocked(d, it.unlock));
+  const def = opts.defId ? ALL_ITEMS.find((it) => it.id === opts.defId) : pickWeighted(d, pool, (it) => RARITY_WEIGHT[it.rarity ?? 'common'] * tierWeight(it.tier));
   if (!def) return null;
   const condition = randInt(d, 30, 95);
   const roll = randRange(d, 0, 1);

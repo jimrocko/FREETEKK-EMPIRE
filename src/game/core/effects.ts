@@ -139,7 +139,7 @@ export function applyEffect(d: GameState, e: Effect): void {
       wearItem(d, e.uid, e.amount);
       return;
     case 'discoverSpot': {
-      const pool = SPOTS.filter((sp) => sp.cityId === d.map.cityId && !d.spots.spots[sp.id]?.known);
+      const pool = SPOTS.filter((sp) => sp.cityId === d.map.cityId && !sp.hidden && !d.spots.spots[sp.id]?.known);
       if (pool.length > 0) revealSpot(d, pick(d, pool).id, 'contact', e.intel ?? 30);
       return;
     }

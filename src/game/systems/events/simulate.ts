@@ -1,17 +1,19 @@
 import type { GameState } from '../../state';
 import { PEOPLE } from '../../content/people';
-import { ITEMS, spotDef } from '../../content/registry';
-import { CONSUMPTION, PROMO_CHANNELS } from '../../content/events';
+import { ITEMS, cityDef, spotDef } from '../../content/registry';
+import { cityCrowdFactor } from '../map/cities';
+import { CONSUMPTION, PROMO_CHANNELS, eventFormat } from '../../content/events';
 import { gameTimeAt } from '../../core/time';
 import { skillLevel } from '../progression/logic';
 import { activeMembers } from '../crew/logic';
 import { effectiveStats } from '../spots/logic';
+import { findSystem } from '../sound/logic';
 import { doneTracks } from '../music/logic';
 import { standSales } from '../merch/logic';
 import { modifierValue } from '../happenings/logic';
 import { competition, coopDemand } from '../rivals/logic';
 import { networkSize } from './util';
-import { dayFactor, goodsLoad, soundSummary, type SoundSummary } from './plan';
+import { dayFactor, eventCapacity, goodsLoad, performerFee, soundSummary, type SoundSummary } from './plan';
 import type { EventPlanInput, EventScores, Weather } from './state';
 
 /** Randomness source: returns a value in [0, 1). Forecasts pass a constant 0.5. */
@@ -27,6 +29,17 @@ export interface Performer {
 export function performers(s: GameState, lineup: string[]): Performer[] {
   return lineup.map((id) => {
     if (id === 'sub') return { id, draw: 4, skill: 45, reliability: 95 };
+    if (id === 'live') {
+      const tracks = doneTracks(s);
+      const best = tracks.reduce((m, t) => Math.max(m, t.score), 0);
+      const uploaded = tracks.filter((t) => t.uploadedAt !== undefined).length;
+      return {
+        id,
+        draw: Math.round(s.progression.reputation / 12 + best / 2 + uploaded * 4),
+        skill: Math.min(100, 35 + 6 * skillLevel(s, 'produktion') + best * 0.35),
+        reliability: 100,
+      };
+    }
     if (id === 'self') {
       const best = doneTracks(s).reduce((m, t) => Math.max(m, t.score), 0);
       const uploaded = doneTracks(s).filter((t) => t.uploadedAt !== undefined).length;
@@ -111,9 +124,10 @@ export function demandFor(s: GameState, plan: EventPlanInput, flyerDone: boolean
   const weekday = gameTimeAt(s.clock, plan.startsAt).weekday;
   const random = 0.85 + roll() * 0.3;
   const boosts = 'boosts' in plan && Array.isArray(plan.boosts) ? plan.boosts.reduce((sum, b) => sum + b.value, 0) : 0;
-  const scene = (1 + modifierValue(s, 'demand')) * competition(s, plan.startsAt).factor * Math.max(0.2, 1 + boosts);
-  const total = (base * dayFactor(weekday) + coopDemand(s, plan.startsAt, weekday)) * scene;
-  return Math.max(0, Math.round(total * priceFactor(plan.entry) * weatherAttendance(weather, spot.stats.weather) * random));
+  const scene = (1 + modifierValue(s, 'demand')) * competition(s, plan.startsAt).factor * Math.max(0.2, 1 + boosts) * eventFormat(plan.format).demand;
+  const total = (base * dayFactor(weekday) * cityCrowdFactor(s, spot.cityId) + coopDemand(s, plan.startsAt, weekday)) * scene;
+  const city = cityDef(spot.cityId);
+  return Math.max(0, Math.round(total * priceFactor(plan.entry / city.priceLevel) * weatherAttendance(weather, spot.stats.weather) * random));
 }
 
 export interface SupplyResult {
@@ -183,7 +197,7 @@ export function scoresFor(s: GameState, plan: EventPlanInput, i: ScoreInput, rol
   const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v)));
   const base =
     0.32 * clamp(sound) + 0.25 * clamp(lineup) + 0.15 * clamp(location) + 0.1 * clamp(supply) + 0.1 * clamp(organisation) + 0.08 * clamp(safety) + light + (plan.freeWater ? 4 : 0);
-  const mood = base + (roll() - 0.5) * 12;
+  const mood = base + eventFormat(plan.format).mood + (roll() - 0.5) * 12;
   return {
     mood: clamp(mood),
     sound: clamp(sound),
@@ -232,7 +246,8 @@ export function policeRisk(s: GameState, plan: EventPlanInput, visitors: number)
   const noisy = stats.noise < 50 && visitors > 100 ? 1.3 : 1;
   const security = activeMembers(s, 'security').length > 0 ? 0.8 : 1;
   const promised = plan.spotId === 'spot.kai7' && s.progression.flags['sanne.kai7'] ? 0.4 : 1;
-  return Math.min(0.85, (base * (1 + fame / 50) + promoHeat(plan)) * noisy * (1 - stats.security / 200) * security * promised * (1 + modifierValue(s, 'police')));
+  const silent = plan.sound.kind === 'own' && (findSystem(s, plan.sound.systemId)?.components ?? []).some((uid) => ITEMS.get(s.inventory.items[uid]?.defId ?? '')?.stats?.silent) ? 0.75 : 1;
+  return Math.min(0.85, (base * (1 + fame / 50) + promoHeat(plan)) * noisy * (1 - stats.security / 200) * security * promised * silent * eventFormat(plan.format).police * cityDef(spot.cityId).police * (1 + modifierValue(s, 'police')));
 }
 
 /** Expected outcome without randomness – shown while planning. */
@@ -243,7 +258,8 @@ export function forecast(s: GameState, plan: EventPlanInput): Forecast | null {
   const stats = effectiveStats(s, plan.spotId);
   const half: Roll = () => 0.5;
   const demand = demandFor(s, plan, true, 'klar', half, s.clock.now);
-  const visitors = Math.min(demand, stats.capacity);
+  const capacity = eventCapacity(stats.capacity, plan);
+  const visitors = Math.min(demand, capacity);
   const powerOk = powerAvailable(s, plan, sound);
   const supply = supplyResult(s, plan, visitors, plan.durationH);
   const scores = scoresFor(
@@ -266,11 +282,11 @@ export function forecast(s: GameState, plan: EventPlanInput): Forecast | null {
   );
   const entryRevenue = plan.entry > 0 ? visitors * plan.entry * 0.92 : visitors * 1.8 * (scores.mood / 100);
   const merchRevenue = plan.merch ? standSales(s, visitors, scores.mood, 1).revenue : 0;
-  const fees = plan.lineup.reduce((sum, id) => sum + (id === 'self' ? 0 : performerFeeSafe(s, id)), 0);
+  const fees = plan.lineup.reduce((sum, id) => sum + performerFee(s, id), 0);
   return {
     demand,
     visitors,
-    capacity: stats.capacity,
+    capacity,
     sound,
     powerOk,
     mood: scores.mood,
@@ -287,7 +303,3 @@ export function forecast(s: GameState, plan: EventPlanInput): Forecast | null {
   };
 }
 
-function performerFeeSafe(s: GameState, id: string): number {
-  const isCrew = s.crew.members.some((m) => m.personId === id);
-  return isCrew ? 0 : (PEOPLE.find((p) => p.id === id)?.price ?? 0);
-}

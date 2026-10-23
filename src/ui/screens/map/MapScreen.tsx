@@ -25,6 +25,7 @@ import { ActionButton } from '../../components/ActionButton';
 import { Badge, Card, CardHead, EmptyState, PageHeader, ProgressBar, Tabs } from '../../components/ui';
 import { timeAgo } from '../../components/FeedList';
 import { navigate, useRoute } from '../../router';
+import { CityTravel } from './CityTravel';
 import { CityMap, POI_COLORS } from './CityMap';
 import { SpotDetail } from './SpotDetail';
 import { PoiDetail, POI_KIND_LABELS } from './PoiDetail';
@@ -123,6 +124,7 @@ export function MapScreen() {
   const resolved = RUMORS.filter((r) => s.map.rumors[r.id] && !rumors.includes(r));
   const exploring = activitiesByChannel(s, 'explore');
   const districts = cityDistricts(s);
+  const district = districts.some((d) => d.id === selected) ? selected : districts[0].id;
   const overall = Math.round(districts.reduce((sum, d) => sum + districtState(s, d.id).explored, 0) / districts.length);
 
   const openSpot = (id: string) => navigate(`/karte/spot/${id}`);
@@ -157,7 +159,7 @@ export function MapScreen() {
       {tab === 'map' && (
         <div className="dash">
           <div className="stack">
-            <CityMap selected={selected} onSelectDistrict={setSelected} onSelectSpot={openSpot} onSelectPoi={openPoi} />
+            <CityMap selected={district} onSelectDistrict={setSelected} onSelectSpot={openSpot} onSelectPoi={openPoi} />
             <div className="legend">
               <span>
                 <span className="legend__dot legend__dot--spot" />
@@ -174,7 +176,7 @@ export function MapScreen() {
               </span>
             </div>
           </div>
-          <DistrictPanel districtId={selected} onSpot={openSpot} onPoi={openPoi} />
+          <DistrictPanel districtId={district} onSpot={openSpot} onPoi={openPoi} />
         </div>
       )}
 
@@ -281,6 +283,7 @@ export function MapScreen() {
 
       {sub === 'spot' && subId && <SpotDetail spotId={subId} onClose={closeDetail} />}
       {sub === 'ort' && subId && <PoiDetail poiId={subId} onClose={closeDetail} />}
+      <CityTravel />
     </div>
   );
 }

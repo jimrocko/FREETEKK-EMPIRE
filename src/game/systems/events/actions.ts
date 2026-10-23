@@ -1,7 +1,7 @@
 import { defineAction } from '../../core/actions';
 import { minutes } from '../../core/time';
 import { fmtMoney } from '../../core/format';
-import { ITEMS, SPOTS_BY_ID, personDef } from '../../content/registry';
+import { CITIES_BY_ID, ITEMS, SPOTS_BY_ID, personDef } from '../../content/registry';
 import { SUPPLIERS } from '../../content/events';
 import { requirementReason } from '../../core/conditions';
 import { channelReason, startActivity } from '../activities/logic';
@@ -11,7 +11,7 @@ import { modifierValue } from '../happenings/logic';
 import type { GameState } from '../../state';
 import { addItem, freeVolume } from '../inventory/logic';
 import { adjustRelation, adjustTrust, shortName } from '../people/logic';
-import { eventTasksFor, findEvent, planReason, taskDef, upfrontCosts } from './plan';
+import { eventTasksFor, findEvent, isPersonSlot, planReason, taskDef, upfrontCosts } from './plan';
 import type { EventPlanInput } from './state';
 
 export const planEvent = defineAction<EventPlanInput>({
@@ -53,7 +53,7 @@ export const cancelEvent = defineAction<{ eventId: string }>({
     let refund = 0;
     for (const [label, amount] of Object.entries(ev.paid)) if (refundable.includes(label) || label.startsWith('Helfer')) refund += amount * 0.5;
     if (refund > 0) earn(d, refund, 'event', `Erstattung: ${ev.name}`);
-    for (const id of ev.lineup) if (id !== 'self' && id !== 'sub') adjustRelation(d, id, -3);
+    for (const id of ev.lineup) if (isPersonSlot(id)) adjustRelation(d, id, -3);
     for (const a of d.activities.running.filter((x) => x.kind === 'event-task' && x.payload.eventId === ev.id)) {
       d.activities.running = d.activities.running.filter((x) => x.id !== a.id);
     }
@@ -96,7 +96,8 @@ export function supplierReason(s: Parameters<typeof requirementReason>[0], suppl
 
 export function goodsPrice(s: GameState, supplierId: string, defId: string): number {
   const sup = SUPPLIERS.find((x) => x.id === supplierId)!;
-  return Math.round((ITEMS.get(defId)?.price ?? 0) * sup.priceFactor * (1 + modifierValue(s, 'goodsPrice')) * 100) / 100;
+  const level = CITIES_BY_ID.get(s.map.cityId)?.priceLevel ?? 1;
+  return Math.round((ITEMS.get(defId)?.price ?? 0) * sup.priceFactor * level * (1 + modifierValue(s, 'goodsPrice')) * 100) / 100;
 }
 
 export const buyGoods = defineAction<{ supplierId: string; defId: string; qty: number }>({

@@ -7,7 +7,8 @@ import type { GameState } from '../../state';
 /** A system that is playing right now cannot be changed. */
 function inUseReason(s: GameState, systemId: string): string | null {
   const ev = s.events.list.find((e) => e.status === 'running' && e.sound.kind === 'own' && e.sound.systemId === systemId);
-  return ev ? `Läuft gerade auf „${ev.name}“.` : null;
+  if (ev) return `Läuft gerade auf „${ev.name}“.`;
+  return s.activities.running.some((a) => a.kind === 'system-rental' && a.payload.systemId === systemId) ? 'Ist gerade vermietet.' : null;
 }
 
 export const MAX_SYSTEMS = 6;

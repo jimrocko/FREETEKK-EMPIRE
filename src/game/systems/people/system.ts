@@ -21,7 +21,7 @@ export const peopleSystem: GameSystem = {
       // Some people get in touch on their own once you are on their radar.
       for (const m of p.meet) {
         if ('reaches' in m && checkAll(d, m.reaches)) {
-          meetPerson(d, p.id, 'message', { silent: true });
+          meetPerson(d, p.id, 'message', { silent: true, ...(m.trust !== undefined ? { trust: m.trust } : {}) });
           sendDirect(d, p.id, m.text, { online: !ctx.offline });
           break;
         }

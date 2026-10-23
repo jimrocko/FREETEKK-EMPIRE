@@ -46,6 +46,16 @@ export const SUPPLIERS: readonly SupplierDef[] = [
     personId: 'p.rita',
     requires: [{ t: 'trust', person: 'p.rita', gte: 20 }],
   },
+  {
+    id: 'sup.cashcarry',
+    name: 'Großmarkt Nord',
+    description: 'Paletten, Gabelstapler, Gewerbeausweis. Billiger geht es nicht – Lieferung inklusive.',
+    priceFactor: 0.6,
+    minOrder: 20,
+    maxOrder: 400,
+    deliveryFee: 25,
+    requires: [{ t: 'unlocked', id: 'u.cashcarry', label: 'Großmarkt-Ausweis' }],
+  },
 ];
 
 /** How much of each good a visitor consumes per game hour (servings). */
@@ -159,3 +169,76 @@ export const AWARENESS_COST = 70;
 export const MEDICS_COST = 90;
 /** Real minutes before start an event must at least be planned. */
 export const MIN_LEAD_MIN = 3;
+
+export type EventFormatId = 'party' | 'openair' | 'teknival';
+
+/** Event formats – bigger ones are unlocked in the progression tree. */
+export interface EventFormatDef {
+  id: EventFormatId;
+  label: string;
+  description: string;
+  unlock?: string;
+  /** Allowed lengths in game hours. */
+  durations: number[];
+  /** Needs an outdoor spot (weather exposure ≥ this). */
+  minWeather?: number;
+  minCapacity?: number;
+  /** Multipliers. */
+  demand: number;
+  /** People come and go: how often the capacity turns over. */
+  turnover: number;
+  rep: number;
+  police: number;
+  /** Mood bonus. */
+  mood: number;
+  /** Fixed costs for toilets, water, waste … */
+  orgCost: number;
+}
+
+export const EVENT_FORMATS: readonly EventFormatDef[] = [
+  {
+    id: 'party',
+    label: 'Party',
+    description: 'Eine Nacht, ein Spot, eine Anlage.',
+    durations: [4, 6, 8, 10, 12],
+    demand: 1,
+    turnover: 1,
+    rep: 1,
+    police: 1,
+    mood: 0,
+    orgCost: 0,
+  },
+  {
+    id: 'openair',
+    label: 'Open-Air',
+    description: 'Draußen bis zum Sonnenaufgang. Mehr Leute, mehr Ruf – und das Wetter spielt mit.',
+    unlock: 'u.openair',
+    durations: [6, 8, 10, 12, 16],
+    minWeather: 60,
+    demand: 1.2,
+    turnover: 1.1,
+    rep: 1.25,
+    police: 1.15,
+    mood: 4,
+    orgCost: 80,
+  },
+  {
+    id: 'teknival',
+    label: 'Teknival',
+    description: 'Ein ganzes Wochenende. Leute kommen und gehen, die Anlage läuft durch, die Polizei schaut genau hin.',
+    unlock: 'u.teknival',
+    durations: [24, 36, 48],
+    minWeather: 60,
+    minCapacity: 600,
+    demand: 1.6,
+    turnover: 1.8,
+    rep: 2,
+    police: 1.6,
+    mood: 6,
+    orgCost: 600,
+  },
+];
+
+export function eventFormat(id: EventFormatId | undefined): EventFormatDef {
+  return EVENT_FORMATS.find((f) => f.id === (id ?? 'party')) ?? EVENT_FORMATS[0];
+}

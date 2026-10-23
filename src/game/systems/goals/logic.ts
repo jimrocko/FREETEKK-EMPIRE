@@ -5,6 +5,8 @@ import { GOALS } from '../../content/goals';
 import { checkAll, checkCondition, conditionProgress, describeCondition, type ConditionProgress } from '../../core/conditions';
 import { applyEffects, describeEffects } from '../../core/effects';
 import { notify } from '../../core/notify';
+import { GOAL_POINTS } from '../../content/unlocks';
+import { addPoints } from '../progression/logic';
 
 export const GOAL_SIZE_LABELS: Record<GoalSize, string> = {
   small: 'Klein',
@@ -74,11 +76,13 @@ export function checkGoals(d: GameState): void {
       if (!checkAll(d, g.complete)) continue;
       d.goals.done[g.id] = d.clock.now;
       applyEffects(d, g.rewards);
-      const reward = describeEffects(g.rewards);
+      const points = GOAL_POINTS[g.size];
+      addPoints(d, points);
+      const reward = [describeEffects(g.rewards), `+${points} Szenepunkte`].filter(Boolean).join(' · ');
       notify(d, {
         tone: 'success',
         title: `Ziel erreicht: ${g.title}`,
-        text: reward ? `Belohnung: ${reward}` : undefined,
+        text: `Belohnung: ${reward}`,
         link: '/fortschritt',
       });
       changed = true;

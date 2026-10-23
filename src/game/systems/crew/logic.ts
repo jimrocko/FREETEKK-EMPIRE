@@ -1,4 +1,5 @@
 import type { GameState } from '../../state';
+import { isUnlocked } from '../progression/logic';
 import type { Condition, Reason } from '../../core/types';
 import type { PersonDef, Role } from '../../content/types';
 import { PEOPLE } from '../../content/people';
@@ -26,12 +27,20 @@ export const ROLE_BENEFITS: Partial<Record<Role, string>> = {
   designer: 'Flyer und Designs für Events und Merch',
   merch: 'Kümmert sich um Merch-Verkauf',
   security: 'Sicherheit und Awareness auf Events',
-  booker: 'Holt bessere DJs',
-  manager: 'Hält die Organisation zusammen',
+  booker: 'Bekannte DJs schon früher und 15 % günstiger (Freischaltung „Management“)',
+  manager: '+2 Plätze in der Crew (Freischaltung „Management“)',
 };
 
+/** Roles that need the "Management" unlock. */
+export const MANAGED_ROLES: Role[] = ['manager', 'booker'];
+
 export function crewLimit(s: GameState): number {
-  return 2 + repTierFor(s.progression.reputation).index;
+  return 2 + repTierFor(s.progression.reputation).index + (activeMembers(s, 'manager').length > 0 ? 2 : 0);
+}
+
+/** A booker in the crew gets known DJs earlier and cheaper. */
+export function hasBooker(s: GameState): boolean {
+  return activeMembers(s, 'booker').length > 0;
 }
 
 export function isCrewMember(s: GameState, personId: string): boolean {
@@ -68,6 +77,7 @@ export function recruitReason(s: GameState, personId: string, role: Role): Reaso
   if (p.crewable === false) return `${shortName(p)} hat eigene Projekte und will in keine Crew.`;
   if (isCrewMember(s, personId)) return 'Ist schon in der Crew.';
   if (!p.roles.includes(role)) return `${shortName(p)} macht nicht: ${ROLE_LABELS[role]}.`;
+  if (MANAGED_ROLES.includes(role) && !isUnlocked(s, 'u.management')) return `${ROLE_LABELS[role]} braucht die Freischaltung „Management“.`;
   const st = s.people.people[personId];
   if (st.trust < RECRUIT_TRUST) return `${shortName(p)} vertraut dir noch nicht genug (${Math.floor(st.trust)} / ${RECRUIT_TRUST}).`;
   if (st.relation < 0) return `${shortName(p)} ist gerade nicht gut auf dich zu sprechen.`;

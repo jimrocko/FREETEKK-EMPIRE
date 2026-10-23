@@ -10,10 +10,44 @@ import { stat } from '../../../game/systems/progression/logic';
 import { GoalCard } from '../../components/GoalCard';
 import { SkillList } from '../../components/SkillList';
 import { Badge, Card, CardHead, PageHeader, ProgressBar, Tabs } from '../../components/ui';
+import { navigate, useRoute } from '../../router';
+import { availableUnlocks } from '../../../game/systems/progression/tree';
+import { TreeTab } from './TreeTab';
+import { ProjectsTab } from './ProjectsTab';
+import { LegacyTab } from './LegacyTab';
 
 const SIZES: GoalSize[] = ['small', 'medium', 'large', 'long'];
 
+type ProgressTab = 'ziele' | 'baum' | 'projekte' | 'vermaechtnis';
+const TAB_PATHS: Record<string, ProgressTab> = { baum: 'baum', projekte: 'projekte', vermaechtnis: 'vermaechtnis' };
+
 export function ProgressScreen() {
+  const s = useGameState();
+  const sub = useRoute().split('/')[2];
+  const tab: ProgressTab = TAB_PATHS[sub ?? ''] ?? 'ziele';
+  const available = availableUnlocks(s).length;
+  return (
+    <div className="page" data-testid="screen-progress">
+      <PageHeader title="Fortschritt" subtitle="Fähigkeiten öffnen Wege, Reputation öffnet Türen, Ziele zeigen die nächsten Schritte." />
+      <Tabs<ProgressTab>
+        value={tab}
+        onChange={(t) => navigate(t === 'ziele' ? '/fortschritt' : `/fortschritt/${t}`)}
+        tabs={[
+          { id: 'ziele', label: 'Ziele' },
+          { id: 'baum', label: 'Freischaltungen', count: available || undefined },
+          { id: 'projekte', label: 'Projekte' },
+          { id: 'vermaechtnis', label: 'Vermächtnis' },
+        ]}
+      />
+      {tab === 'ziele' && <GoalsTab />}
+      {tab === 'baum' && <TreeTab />}
+      {tab === 'projekte' && <ProjectsTab />}
+      {tab === 'vermaechtnis' && <LegacyTab />}
+    </div>
+  );
+}
+
+function GoalsTab() {
   const s = useGameState();
   const [tab, setTab] = useState<'active' | 'done'>('active');
   const rep = repTierFor(s.progression.reputation);
@@ -21,9 +55,7 @@ export function ProgressScreen() {
   const done = completedGoals(s);
 
   return (
-    <div className="page" data-testid="screen-progress">
-      <PageHeader title="Fortschritt" subtitle="Fähigkeiten öffnen Wege, Reputation öffnet Türen, Ziele zeigen die nächsten Schritte." />
-
+    <>
       <div className="dash">
         <div className="stack">
           <Card>
@@ -113,6 +145,6 @@ export function ProgressScreen() {
           </Card>
         </div>
       </div>
-    </div>
+    </>
   );
 }

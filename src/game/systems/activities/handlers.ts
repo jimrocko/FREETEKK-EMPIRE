@@ -10,6 +10,11 @@ import { produceHandler } from '../music/handler';
 import { eventTaskHandler } from '../events/handlers';
 import { designHandler } from '../merch/handler';
 import { rivalVisitHandler } from '../rivals/handler';
+import { remixHandler } from '../music/remix';
+import { rentalHandler } from '../sound/rental';
+import { customBuildHandler } from '../equipment/custom';
+import { travelHandler } from '../map/cities';
+import { releaseHandler } from '../projects/actions';
 
 /** Registry: activity kind → completion handler. New systems register here. */
 export const ACTIVITY_HANDLERS: Record<string, ActivityHandler> = {
@@ -26,4 +31,9 @@ export const ACTIVITY_HANDLERS: Record<string, ActivityHandler> = {
   'event-task': eventTaskHandler,
   design: designHandler,
   'rival-visit': rivalVisitHandler,
+  remix: remixHandler,
+  'system-rental': rentalHandler,
+  'custom-build': customBuildHandler,
+  travel: travelHandler,
+  release: releaseHandler,
 };

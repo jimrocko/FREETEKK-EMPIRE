@@ -3,13 +3,13 @@ import { CalendarPlus, Check, MapPinned, Minus, Plus, ShieldAlert, Speaker, Truc
 import { useGameState } from '../../../app/store';
 import { PERSONS_BY_ID, spotDef } from '../../../game/content/registry';
 import { GOODS_ITEMS } from '../../../game/content/items/goods';
-import { AWARENESS_COST, HELPER_COST, MEDICS_COST, PA_RENTALS, PROMO_CHANNELS } from '../../../game/content/events';
+import { AWARENESS_COST, EVENT_FORMATS, HELPER_COST, MEDICS_COST, PA_RENTALS, PROMO_CHANNELS, eventFormat, type EventFormatId } from '../../../game/content/events';
 import { requirementReason } from '../../../game/core/conditions';
 import { fmtCountdown, fmtMoney, fmtNumber, fmtPercent } from '../../../game/core/format';
 import { planEvent } from '../../../game/systems/events/actions';
 import {
-  DURATIONS,
   ENTRY_OPTIONS,
+  formatReason,
   lineupCandidates,
   maxLineup,
   performerFee,
@@ -49,6 +49,7 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
 
   const [spotId, setSpotId] = useState(spots[0]?.id ?? '');
   const [startsAt, setStartsAt] = useState(nights.find((n) => n.weekday === 4 || n.weekday === 5)?.startsAt ?? nights[0]?.startsAt ?? 0);
+  const [format, setFormat] = useState<EventFormatId>('party');
   const [durationH, setDurationH] = useState(8);
   const [entry, setEntry] = useState(5);
   const [lineup, setLineup] = useState<string[]>([]);
@@ -83,14 +84,16 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
   }
 
   const nightValid = nights.some((n) => n.startsAt === startsAt) ? startsAt : (nights[0]?.startsAt ?? 0);
+  const durations = eventFormat(format).durations;
+  const durationValid = durations.includes(durationH) ? durationH : durations[Math.min(2, durations.length - 1)];
   const prices = Object.fromEntries(Object.entries(bring).filter(([id]) => countItem(s, id) > 0));
   const plan: EventPlanInput = {
     name,
     spotId,
     startsAt: nightValid,
-    durationH,
+    durationH: durationValid,
     entry,
-    lineup: lineup.slice(0, maxLineup(durationH)),
+    lineup: lineup.slice(0, maxLineup(durationValid)),
     sound,
     transport,
     promo,
@@ -100,6 +103,7 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
     awareness,
     medics,
     merch: merch && totalPieces(s) > 0,
+    ...(format !== 'party' ? { format } : {}),
   };
   const f = forecast(s, plan);
   const upfront = upfrontCosts(s, plan).reduce((sum, c) => sum + c.amount, 0);
@@ -109,7 +113,7 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
   const van = vanFor(s, load.volumeL, load.weightKg);
   const spot = spotDef(spotId);
   const since = daysSinceCheck(s, spotId);
-  const slots = maxLineup(durationH);
+  const slots = maxLineup(durationValid);
   const candidates = lineupCandidates(s);
 
   const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
@@ -151,9 +155,22 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
               In dieser Nacht: {RIVALS_BY_ID.get(ev.crewId)?.name} ({spotLabel(s, ev.spotId)})
             </p>
           ))}
+          {EVENT_FORMATS.some((f) => f.id !== 'party' && !formatReason(s, { format: f.id, spotId: '' })) && (
+            <div className="chips" style={{ flexWrap: 'wrap', marginTop: 10 }}>
+              {EVENT_FORMATS.map((f) => {
+                const reason = formatReason(s, { format: f.id, spotId });
+                return (
+                  <Chip key={f.id} active={f.id === format} disabled={!!reason} title={reason ?? f.description} onClick={() => setFormat(f.id)} testId={`format-${f.id}`}>
+                    {f.label}
+                  </Chip>
+                );
+              })}
+            </div>
+          )}
+          {format !== 'party' && <p className="tiny faint" style={{ marginTop: 6 }}>{eventFormat(format).description}</p>}
           <div className="chips" style={{ flexWrap: 'wrap', marginTop: 10 }}>
-            {DURATIONS.map((h) => (
-              <Chip key={h} active={h === durationH} onClick={() => setDurationH(h)}>
+            {durations.map((h) => (
+              <Chip key={h} active={h === durationValid} onClick={() => setDurationH(h)} testId={`duration-${h}`}>
                 {h} Std
               </Chip>
             ))}
@@ -180,7 +197,7 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
             {candidates.map((id) => {
               const reason = performerReason(s, id, nightValid);
               const selected = lineup.includes(id);
-              const person = id === 'self' ? null : PERSONS_BY_ID.get(id)!;
+              const person = PERSONS_BY_ID.get(id) ?? null;
               const full = !selected && plan.lineup.length >= slots;
               return (
                 <button
@@ -194,12 +211,14 @@ export function Planner({ onPlanned }: { onPlanned: () => void }) {
                 >
                   {selected ? <Check size={16} className="tone-accent" /> : <span style={{ width: 16 }} />}
                   <span className="grow">
-                    <strong className="small">{person ? displayName(person) : 'Du selbst'}</strong>
+                    <strong className="small">{person ? displayName(person) : id === 'live' ? 'Dein Live-Set' : 'Du selbst'}</strong>
                     <div className="tiny faint">
                       {reason ??
                         (person
                           ? `Bekanntheit ${person.stats.bekanntheit} · Zuverlässigkeit ${person.stats.zuverlaessigkeit} · ${performerFee(s, id) > 0 ? fmtMoney(performerFee(s, id)) : 'ohne Gage'}`
-                          : 'Dein eigenes Set')}
+                          : id === 'live'
+                            ? 'Deine Tracks, live auf Maschinen – zieht mehr Leute'
+                            : 'Dein eigenes Set')}
                     </div>
                   </span>
                 </button>

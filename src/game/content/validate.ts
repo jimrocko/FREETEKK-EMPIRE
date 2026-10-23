@@ -19,6 +19,10 @@ import { MANUFACTURERS, MERCH_PRODUCTS } from './merch';
 import { TRADE_PARTNERS } from './trade';
 import { LOAN_OFFERS } from './finance';
 import { RIVAL_CREWS } from './rivals';
+import { UNLOCKS } from './unlocks';
+import { PROJECTS } from './projects';
+import { PERKS, SCENARIOS } from './legacy';
+import { EVENT_FORMATS } from './events';
 import { HAPPENINGS } from './happenings';
 import { GENRES } from './music';
 import { RIVALS_BY_ID } from './registry';
@@ -86,6 +90,12 @@ export function validateContent(): string[] {
       case 'trust':
         if (c.person !== '$from' && !PERSONS_BY_ID.has(c.person)) problems.push(`${where}: unbekannte Person ${c.person}`);
         break;
+      case 'unlocked':
+        if (!UNLOCKS.some((u) => u.id === c.id)) problems.push(`${where}: unbekannte Freischaltung ${c.id}`);
+        break;
+      case 'cityFame':
+        if (!CITIES_BY_ID.has(c.city)) problems.push(`${where}: unbekannte Stadt ${c.city}`);
+        break;
       case 'rivalRelation':
       case 'rivalActive':
       case 'outrank':
@@ -126,7 +136,8 @@ export function validateContent(): string[] {
     if (it.quality < 0 || it.quality > 100) problems.push(`${it.id}: Qualität außerhalb 0–100`);
     if (!(it.volumeL > 0) && it.category !== 'vehicle') problems.push(`${it.id}: Volumen muss > 0 sein`);
     if (!(it.weightKg > 0)) problems.push(`${it.id}: Gewicht muss > 0 sein`);
-    if (!it.shops?.length && !it.usedMarket && it.category !== 'goods') problems.push(`${it.id}: weder im Shop noch auf dem Gebrauchtmarkt`);
+    if (!it.shops?.length && !it.usedMarket && it.category !== 'goods' && !it.tags?.includes('crafted')) problems.push(`${it.id}: weder im Shop noch auf dem Gebrauchtmarkt`);
+    if (it.unlock && !UNLOCKS.some((u) => u.id === it.unlock)) problems.push(`${it.id}: unbekannte Freischaltung ${it.unlock}`);
     for (const shop of it.shops ?? []) if (!SHOPS_BY_ID.has(shop)) problems.push(`${it.id}: unbekannter Laden ${shop}`);
   }
   for (const job of JOBS) {
@@ -156,7 +167,7 @@ export function validateContent(): string[] {
   for (const sp of SPOTS) {
     placeCheck(sp.id, sp.districtId, sp.pos);
     for (const [k, v] of Object.entries(sp.stats)) if (v < 0) problems.push(`${sp.id}: ${k} negativ`);
-    if (sp.explore === undefined && !RUMORS.some((r) => r.target.id === sp.id)) problems.push(`${sp.id}: kann nie entdeckt werden`);
+    if (sp.explore === undefined && !sp.hidden && !RUMORS.some((r) => r.target.id === sp.id)) problems.push(`${sp.id}: kann nie entdeckt werden`);
   }
   for (const p of POIS) {
     placeCheck(p.id, p.districtId, p.pos);
@@ -236,6 +247,30 @@ export function validateContent(): string[] {
     l.requires?.forEach((c) => checkCondition(l.id, c));
   }
   for (const poi of POIS) poi.storage?.requires?.forEach((c) => checkCondition(poi.id, c));
+  checkUnique('unlock', UNLOCKS);
+  const unlockIds = new Set(UNLOCKS.map((u) => u.id));
+  for (const u of UNLOCKS) {
+    for (const r of u.requires ?? []) if (!unlockIds.has(r)) problems.push(`${u.id}: braucht unbekannte Freischaltung ${r}`);
+    u.conditions?.forEach((c) => checkCondition(u.id, c));
+    if (u.cost <= 0) problems.push(`${u.id}: kostet keine Szenepunkte`);
+  }
+  for (const c of CITIES) if (c.travel.unlock && !unlockIds.has(c.travel.unlock)) problems.push(`${c.id}: unbekannte Freischaltung ${c.travel.unlock}`);
+  for (const f of EVENT_FORMATS) if (f.unlock && !unlockIds.has(f.unlock)) problems.push(`Format ${f.id}: unbekannte Freischaltung ${f.unlock}`);
+  for (const m of MERCH_PRODUCTS) if (m.unlock && !unlockIds.has(m.unlock)) problems.push(`${m.id}: unbekannte Freischaltung ${m.unlock}`);
+  checkUnique('project', PROJECTS);
+  for (const p of PROJECTS) {
+    if (!unlockIds.has(p.unlock)) problems.push(`${p.id}: unbekannte Freischaltung ${p.unlock}`);
+    if (p.stages.length === 0) problems.push(`${p.id}: keine Etappen`);
+    for (const st of p.stages) st.requires?.forEach((c) => checkCondition(`${p.id}/${st.id}`, c));
+  }
+  checkUnique('scenario', SCENARIOS);
+  for (const sc of SCENARIOS) {
+    for (const it of sc.items) if (!ITEMS.has(it.id)) problems.push(`${sc.id}: unbekanntes Item ${it.id}`);
+    for (const id of Object.keys(sc.contacts ?? {})) if (!PERSONS_BY_ID.has(id)) problems.push(`${sc.id}: unbekannte Person ${id}`);
+    if (sc.cityId && !CITIES_BY_ID.has(sc.cityId)) problems.push(`${sc.id}: unbekannte Stadt ${sc.cityId}`);
+    for (const u of sc.unlocks ?? []) if (!unlockIds.has(u)) problems.push(`${sc.id}: unbekannte Freischaltung ${u}`);
+  }
+  checkUnique('perk', PERKS);
   checkUnique('rival', RIVAL_CREWS);
   for (const r of RIVAL_CREWS) {
     if (!PERSONS_BY_ID.has(r.leaderId)) problems.push(`${r.id}: unbekannte Person ${r.leaderId}`);

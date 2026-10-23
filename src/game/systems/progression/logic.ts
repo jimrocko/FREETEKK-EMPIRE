@@ -3,6 +3,7 @@ import type { SkillId } from '../../core/types';
 import { notify } from '../../core/notify';
 import { SKILL_DEFS } from '../../content/skills';
 import { repTierFor } from '../../content/registry';
+import { TIER_POINTS } from '../../content/unlocks';
 
 /** Cumulative XP needed to reach a level (level 1 = 0 XP). */
 export function xpForLevel(level: number): number {
@@ -60,13 +61,22 @@ export function addRep(d: GameState, amount: number): void {
   d.progression.reputation = Math.max(0, d.progression.reputation + amount);
   const info = repTierFor(d.progression.reputation);
   if (info.index > before) {
+    const points = (info.index - before) * TIER_POINTS;
+    addPoints(d, points);
     notify(d, {
       tone: 'discovery',
       title: `Neuer Status: ${info.tier.name}`,
-      text: info.tier.description,
+      text: `${info.tier.description} +${points} Szenepunkte.`,
       link: '/fortschritt',
     });
   }
+}
+
+/** Szenepunkte for the unlock tree. */
+export function addPoints(d: GameState, amount: number): void {
+  if (amount <= 0) return;
+  d.progression.points += amount;
+  d.progression.pointsTotal += amount;
 }
 
 export function stat(s: GameState, key: string): number {

@@ -4,7 +4,7 @@ import type { RivalCrewDef } from '../../content/rivals';
 import { RIVAL_CREWS, crewVerb } from '../../content/rivals';
 import { SPOTS } from '../../content/spots';
 import { MESSAGE_TEMPLATES } from '../../content/messages';
-import { RIVALS_BY_ID, rivalDef, spotDef } from '../../content/registry';
+import { CITIES_BY_ID, RIVALS_BY_ID, cityDef, rivalDef, spotDef } from '../../content/registry';
 import { checkAll } from '../../core/conditions';
 import { notify } from '../../core/notify';
 import { chance, pickWeighted, rand, randInt, randRange } from '../../core/rng';
@@ -120,7 +120,7 @@ export function rivalPoliceRisk(s: GameState, ev: RivalEvent, visitors: number):
   if (base === 0) return 0;
   const st = s.spots.spots[ev.spotId];
   const stats = effectiveStats(s, ev.spotId);
-  return Math.min(0.8, base * (1 + (st?.fame ?? 0) / 50) * (1 - stats.security / 200) * (visitors > 150 ? 1.2 : 1) * (1 + modifierValue(s, 'police')));
+  return Math.min(0.8, base * (1 + (st?.fame ?? 0) / 50) * (1 - stats.security / 200) * (visitors > 150 ? 1.2 : 1) * cityDef(spot.cityId).police * (1 + modifierValue(s, 'police')));
 }
 
 /** Expected crowd for a crew's party (before the random factor). */
@@ -128,7 +128,7 @@ export function rivalDemand(s: GameState, crewId: string, ev: Pick<RivalEvent, '
   const crew = s.rivals.crews[crewId];
   const fame = s.spots.spots[ev.spotId]?.fame ?? 0;
   const weekday = gameTimeAt(s.clock, ev.startsAt).weekday;
-  let base = (25 + crew.rep * 0.55 + crew.members * 8 + fame * 2) * dayFactor(weekday) * (1 + modifierValue(s, 'demand'));
+  let base = (25 + crew.rep * 0.55 + crew.members * 8 + fame * 2) * dayFactor(weekday) * (1 + modifierValue(s, 'demand')) * (CITIES_BY_ID.get(spotDef(ev.spotId).cityId)?.sceneSize ?? 1);
   // The player's parties in the same night take their share.
   const clashes = s.rivals.coop?.crewId === crewId ? 0 : playerEventsInNight(s, ev.startsAt).length;
   if (clashes > 0) {
@@ -307,7 +307,7 @@ function planParty(d: GameState, def: RivalCrewDef): boolean {
 
 function exploreSpot(d: GameState, def: RivalCrewDef): boolean {
   const crew = d.rivals.crews[def.id];
-  const pool = SPOTS.filter((sp) => sp.cityId === def.cityId && !crew.knownSpots.includes(sp.id));
+  const pool = SPOTS.filter((sp) => sp.cityId === def.cityId && !sp.hidden && !crew.knownSpots.includes(sp.id));
   const found = pickWeighted(d, pool, (sp) => 5 + (d.spots.spots[sp.id]?.fame ?? 0));
   if (!found) return false;
   crew.knownSpots.push(found.id);

@@ -430,9 +430,32 @@ Effect += rivalRelation | coop | rivalBooking | rivalSpotTip | eventBoost | spot
 CatchUpReport.scene: SceneNews[]
 ```
 
-## Phase 9 – Städte, Endgame, Prestige
+## Phase 9 – Freischaltungen, Städte, Projekte, Vermächtnis ✅
 
-- Weitere `CityDef` mit eigener Szene (Preisniveau, Szenegröße, Lieblingsgenres, Polizeidruck).
-- Reputation pro Stadt, Reisen/Umzug, Zweigstellen.
-- Endgame-Projekte (Festival, Label, eigene Location) als mehrstufige Großprojekte mit langen Timern.
-- Vermächtnis: Crew „übergeben“, mit Legacy-Punkten in neuem Szenario starten (andere Stadt, anderer Startweg).
+```ts
+// content/unlocks.ts
+interface UnlockDef { id; name; branch: 'technik'|'events'|'musik'|'netzwerk'|'business'; tier; cost /* SP */; money?; requires?: unlockId[]; conditions?: Condition[]; description; enables: string[] }
+ProgressionState += { points; pointsTotal }        // Szenepunkte; unlocks: Record<id, at>
+ItemDef.unlock?, MerchProductDef.unlock?, EventFormatDef.unlock?, CityDef.travel.unlock?
+
+// content/events.ts
+interface EventFormatDef { id: 'party'|'openair'|'teknival'; durations; minWeather?; minCapacity?; demand; turnover; rep; police; mood; orgCost; unlock? }
+EventPlanInput.format?; Line-up-Slots: Personen | 'self' | 'live' | 'sub'
+
+// content/cities.ts
+CityDef += { police; travel: { minutes; cost; unlock? } }
+PlayerState.homeCity; MapState.cityFame: Record<cityId, 0–100>
+Publikum = Basis × sceneSize × (0,35 + 0,65 × Bekanntheit) – Heimatstadt immer 100 %
+
+// content/projects.ts
+interface ProjectDef { id; name; unlock; stages: { id; name; cost; minutes; requires? }[]; reward; repeatable? }
+ProjectsState { list: Record<id, { stage; running?: { stage; startedAt; endsAt }; completed; lastResult? }> }
+SpotDef.hidden?                                     // nur über Projekte erreichbar (Halle am Kanal)
+Track.releasedAt?                                   // auf dem eigenen Label erschienen
+
+// content/legacy.ts
+interface ScenarioDef { id; name; cash; items; xp?; contacts?; cityId?; unlocks?; minRuns }
+interface PerkDef { id; name; cost; maxLevel }
+LegacyState { runs; points; perks: Record<id, level>; history: RunRecord[]; scenario }   // überlebt den Neustart
+Condition += cityFame; STATE_VERSION = 2
+```

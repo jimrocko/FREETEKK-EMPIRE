@@ -223,7 +223,9 @@ export function meetSomeone(d: GameState, roles?: string[]): string | null {
     (p) => !knowsPerson(d, p.id) && p.introTrust <= 20 && p.meet.every((m) => !('reaches' in m)) && (!roles || p.roles.some((r) => roles.includes(r))),
   );
   if (pool.length === 0) return null;
-  const p = pick(d, pool);
+  // People from the city you are in come first.
+  const local = pool.filter((p) => p.cityId === d.map.cityId);
+  const p = pick(d, local.length > 0 ? local : pool);
   meetPerson(d, p.id, 'party');
   return p.id;
 }

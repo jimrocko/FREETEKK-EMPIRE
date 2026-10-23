@@ -1,7 +1,7 @@
 import type { GameState } from '../../state';
 import { PEOPLE } from '../../content/people';
 import { ITEMS, spotDef } from '../../content/registry';
-import { PROMO_CHANNELS } from '../../content/events';
+import { PROMO_CHANNELS, eventFormat } from '../../content/events';
 import { GAME_HOUR_MS, gameDayAt } from '../../core/time';
 import { notify } from '../../core/notify';
 import { chance, pick, rand, randInt, randRange } from '../../core/rng';
@@ -15,9 +15,10 @@ import { removeItem } from '../inventory/logic';
 import { effectiveStats } from '../spots/logic';
 import { addBrand, standSales } from '../merch/logic';
 import { addNews, adjustRivalRelation, competition } from '../rivals/logic';
+import { addCityFame } from '../map/cities';
 import { RIVALS_BY_ID, rivalDef } from '../../content/registry';
 import { crewVerb } from '../../content/rivals';
-import { canPlaySelf, soundSummary, spotName } from './plan';
+import { canPlaySelf, eventCapacity, isPersonSlot, performerFee, soundSummary, spotName } from './plan';
 import {
   demandFor,
   performers,
@@ -97,7 +98,7 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
   let present = performers(d, ev.lineup);
   const noShows: string[] = [];
   for (const p of [...present]) {
-    if (p.id === 'self' || p.id === 'sub') continue;
+    if (!isPersonSlot(p.id)) continue;
     const risk = ((100 - p.reliability) / 300) * (ev.tasks['task.lineup'] === 'done' ? 0.5 : 1);
     if (chance(d, risk)) {
       noShows.push(p.id);
@@ -132,10 +133,13 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
 
   const flyerDone = ev.tasks['task.flyer'] !== 'open';
   const demand = demandFor(d, ev, flyerDone, weather, roll, ev.createdAt);
-  let visitors = Math.min(demand, stats.capacity);
-  if (demand > stats.capacity * 1.25) {
-    highlights.push(`Ausverkauft: ${fmtNumber(demand - stats.capacity)} Leute mussten draußen bleiben.`);
+  const capacity = eventCapacity(stats.capacity, ev);
+  let visitors = Math.min(demand, capacity);
+  if (demand > capacity * 1.25) {
+    highlights.push(`Ausverkauft: ${fmtNumber(demand - capacity)} Leute mussten draußen bleiben.`);
   }
+  const format = eventFormat(ev.format);
+  if (format.id !== 'party') highlights.push(`${format.label}: ${ev.durationH} Stunden draußen.`);
 
   // Power and gear.
   let powerOk = powerAvailable(d, ev, sound);
@@ -224,8 +228,8 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
   if (supply.revenue > 0) revenue['Bar'] = Math.round(supply.revenue * share);
   const costs: Record<string, number> = { ...ev.paid };
   for (const p of present) {
-    if (p.id === 'self' || p.id === 'playlist') continue;
-    const fee = d.crew.members.some((m) => m.personId === p.id) ? 0 : (PEOPLE.find((x) => x.id === p.id)?.price ?? 0);
+    if (!isPersonSlot(p.id)) continue;
+    const fee = performerFee(d, p.id);
     if (fee > 0) costs[`Gage ${shortName(PEOPLE.find((x) => x.id === p.id)!)}`] = fee;
   }
   if (ev.sound.kind === 'own' && sound.generatorKw > 0) costs['Sprit Generator'] = Math.round(sound.powerKw * hours * 0.45);
@@ -271,7 +275,7 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
   const profit = totalRevenue - totalCosts;
 
   // Rewards.
-  const rep = Math.max(policeEnded ? 1 : 0, Math.round(1.6 * Math.sqrt(visitors) * (0.4 + scores.mood / 100)));
+  const rep = Math.max(policeEnded ? 1 : 0, Math.round(1.6 * Math.sqrt(visitors) * (0.4 + scores.mood / 100) * format.rep));
   addRep(d, rep);
   const xp: Record<string, number> = {
     organisation: Math.min(220, Math.round(15 + visitors / 8)),
@@ -280,6 +284,10 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
   };
   if (ev.sound.kind === 'own') xp.technik = Math.min(130, Math.round(10 + sound.reach / 40));
   if (ev.lineup.includes('self')) xp.produktion = 15;
+  if (ev.lineup.includes('live')) {
+    xp.produktion = 40;
+    incStat(d, 'liveSets');
+  }
   for (const [skill, amount] of Object.entries(xp)) addXp(d, skill as 'organisation', amount);
 
   if (st) {
@@ -298,7 +306,7 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
     if (met) newPeople.push(met);
   }
   for (const p of present) {
-    if (p.id === 'self' || p.id === 'playlist' || p.id === 'sub') continue;
+    if (!isPersonSlot(p.id)) continue;
     adjustRelation(d, p.id, scores.mood >= 50 ? 4 : -2);
     if (scores.mood >= 50) adjustTrust(d, p.id, 3);
   }
@@ -332,6 +340,8 @@ export function finishEvent(d: GameState, ev: GameEvent): EventReport {
   }
 
   incStat(d, 'eventsHeld');
+  addCityFame(d, spot.cityId, Math.sqrt(visitors) / 2 * (0.5 + scores.mood / 100));
+  if (format.id !== 'party') incStat(d, `format:${format.id}`);
   incStat(d, 'eventVisitors', visitors);
   if (visitors > stat(d, 'bestEventVisitors')) d.progression.stats.bestEventVisitors = visitors;
   if (profit > 0) incStat(d, 'eventsProfitable');

@@ -26,6 +26,8 @@ export interface MapState {
   rumors: Record<string, RumorState>;
   /** Rented storage places (poi id → since). */
   rentals: Record<string, { since: number }>;
+  /** City id → 0–100: how well that scene knows you (home city: always 100). */
+  cityFame: Record<string, number>;
 }
 
 export function createMapState(now: number, cityId = 'city.steinhafen'): MapState {
@@ -39,5 +41,5 @@ export function createMapState(now: number, cityId = 'city.steinhafen'): MapStat
   for (const p of POIS) {
     if (p.cityId === cityId && p.explore === 0 && (city.startExplored[p.districtId] ?? 0) > 0) pois[p.id] = { at: now, via: 'start' };
   }
-  return { cityId, districts, pois, rumors: {}, rentals: {} };
+  return { cityId, districts, pois, rumors: {}, rentals: {}, cityFame: {} };
 }

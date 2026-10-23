@@ -16,6 +16,7 @@ import { eventsSystem } from './systems/events/system';
 import { merchSystem } from './systems/merch/system';
 import { rivalsSystem } from './systems/rivals/system';
 import { happeningsSystem } from './systems/happenings/system';
+import { projectsSystem } from './systems/projects/system';
 
 /**
  * All simulation systems in processing order.
@@ -37,6 +38,7 @@ export const SYSTEMS: readonly GameSystem[] = [
   eventsSystem,
   merchSystem,
   happeningsSystem,
+  projectsSystem,
   marketSystem,
   goalsSystem,
 ];

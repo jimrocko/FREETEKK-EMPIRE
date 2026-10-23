@@ -10,6 +10,7 @@ import { earn, moneyReason, spend } from '../finance/logic';
 import { incStat, skillLevel } from '../progression/logic';
 import { freeVolume } from '../inventory/logic';
 import { adjustTrust, knowsPerson, shortName } from '../people/logic';
+import { needsUnlock } from '../progression/tree';
 import { MERCH_UNLOCK_REASON, addBrand, manufacturerDef, manufacturerReason, productDef, stockKey } from './logic';
 
 const DESIGNER_ROLES = ['designer', 'merch'];
@@ -73,6 +74,8 @@ export const orderMerch = defineAction<{ designId: string; productId: string; ma
     if (r) return r;
     const offer = manufacturerDef(p.manufacturerId).products[p.productId];
     if (!offer) return 'Stellt dieser Hersteller nicht her.';
+    const locked = needsUnlock(s, productDef(p.productId).unlock);
+    if (locked) return locked;
     if (!Number.isInteger(p.qty) || p.qty < offer.minQty) return `Mindestens ${offer.minQty} Stück.`;
     if (p.qty > 5000) return 'Höchstens 5.000 Stück pro Auftrag.';
     if (productDef(p.productId).volumeL * p.qty > freeVolume(s)) return 'Dafür ist kein Platz im Lager.';
