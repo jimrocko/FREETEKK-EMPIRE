@@ -51,6 +51,7 @@ export function addXp(d: GameState, skill: SkillId, amount: number): void {
       title: `${SKILL_DEFS[skill].name} Level ${after}`,
       text: 'Neue Möglichkeiten könnten sich geöffnet haben.',
       link: '/fortschritt',
+      big: true,
     });
   }
 }
@@ -68,6 +69,7 @@ export function addRep(d: GameState, amount: number): void {
       title: `Neuer Status: ${info.tier.name}`,
       text: `${info.tier.description} +${points} Szenepunkte.`,
       link: '/fortschritt',
+      big: true,
     });
   }
 }

@@ -4,6 +4,8 @@ import { useApp } from '../../../app/store';
 import { importGame, startNewGame } from '../../../app/runtime';
 import { Banner, Button } from '../../components/ui';
 import { navigate } from '../../router';
+import { Sky } from '../../components/Sky';
+import { Equalizer } from '../../components/Equalizer';
 
 export function StartScreen() {
   const loadError = useApp((a) => a.loadError);
@@ -16,10 +18,15 @@ export function StartScreen() {
 
   return (
     <div className="start" data-testid="screen-start">
+      <Sky phase="night" />
       <div className="start__inner">
         <div>
-          <div className="logo">
+          <div className="title-logo">
             TEKK<span>LIFE</span>
+          </div>
+          <div className="title-tagline">Underground · Soundsystem · Szene</div>
+          <div className="title-stack">
+            <Equalizer bars={30} speed={0.9} />
           </div>
           <p className="dim" style={{ marginTop: 16 }}>
             Eine Stadt, 500 € und ein altes Handy. Baue dir ein Netzwerk auf – Spots, Leute, Geräte, Soundsysteme, Partys. Welchen Weg du gehst, entscheidest du.

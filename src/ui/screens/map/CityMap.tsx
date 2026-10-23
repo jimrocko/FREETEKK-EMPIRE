@@ -8,13 +8,24 @@ import { cityDistricts, districtLockReason, districtState, isPoiKnown, openRumor
 import { spotDef, poiDef } from '../../../game/content/registry';
 
 const KIND_FILL: Record<DistrictKind, string> = {
-  center: '#3a2f4d',
-  industrial: '#3b3632',
-  residential: '#2c3446',
-  harbor: '#1d3a4a',
-  university: '#2f4038',
-  forest: '#1f3d26',
-  commercial: '#3d3826',
+  center: '#4a2f66',
+  industrial: '#4a3a2e',
+  residential: '#2c3a5c',
+  harbor: '#163f57',
+  university: '#2c4a3c',
+  forest: '#1c4626',
+  commercial: '#4a4024',
+};
+
+/** Glowing outline colour per district kind. */
+const KIND_NEON: Record<DistrictKind, string> = {
+  center: '#ff2bd6',
+  industrial: '#ffb444',
+  residential: '#8a5cff',
+  harbor: '#22e3ff',
+  university: '#3dffa6',
+  forest: '#c6ff3d',
+  commercial: '#ffd84a',
 };
 
 export const POI_COLORS: Record<PoiKind, string> = {
@@ -46,14 +57,20 @@ export function CityMap({ selected, onSelectDistrict, onSelectSpot, onSelectPoi 
       <svg viewBox="0 0 360 300" role="img" aria-label={`Karte von ${city.name}`}>
         <defs>
           <pattern id="fog" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <rect width="6" height="6" fill="#0b0b10" />
-            <line x1="0" y1="0" x2="0" y2="6" stroke="#1e1e28" strokeWidth="2.5" />
+            <rect width="6" height="6" fill="#0a0812" />
+            <line x1="0" y1="0" x2="0" y2="6" stroke="#1d1630" strokeWidth="2.5" />
           </pattern>
-          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#14141c" strokeWidth="0.6" />
-          </pattern>
+          <filter id="neon" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="1.6" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="water-glow" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="3" />
+          </filter>
         </defs>
-        <rect width="360" height="300" fill="url(#grid)" />
 
         {districts.map((d) => {
           const st = districtState(s, d.id);
@@ -67,17 +84,23 @@ export function CityMap({ selected, onSelectDistrict, onSelectSpot, onSelectPoi 
                 className="citymap__district"
                 points={pts}
                 fill={KIND_FILL[d.kind]}
-                fillOpacity={locked ? 0.12 : 0.18 + (st.explored / 100) * 0.62}
-                stroke={isSel ? 'var(--accent)' : '#2b2b38'}
-                strokeWidth={isSel ? 1.6 : 0.8}
+                fillOpacity={locked ? 0.1 : 0.14 + (st.explored / 100) * 0.5}
+                stroke={isSel ? 'var(--accent)' : locked ? '#2a2340' : KIND_NEON[d.kind]}
+                strokeOpacity={isSel ? 1 : locked ? 1 : 0.35 + (st.explored / 100) * 0.5}
+                strokeWidth={isSel ? 1.8 : 0.9}
                 strokeLinejoin="round"
+                filter={isSel || st.explored >= 50 ? 'url(#neon)' : undefined}
               />
             </g>
           );
         })}
 
         {city.water.map((path, i) => (
-          <path key={i} d={path} fill="none" stroke="#123047" strokeWidth={8} strokeLinecap="round" opacity={0.9} pointerEvents="none" />
+          <g key={i} pointerEvents="none">
+            <path d={path} fill="none" stroke="#22e3ff" strokeWidth={10} strokeLinecap="round" opacity={0.25} filter="url(#water-glow)" />
+            <path d={path} fill="none" stroke="#0f3550" strokeWidth={7} strokeLinecap="round" opacity={0.95} />
+            <path d={path} fill="none" stroke="#22e3ff" strokeWidth={0.8} strokeLinecap="round" opacity={0.55} strokeDasharray="3 5" />
+          </g>
         ))}
 
         {districts.map((d) => {
@@ -124,8 +147,9 @@ export function CityMap({ selected, onSelectDistrict, onSelectSpot, onSelectPoi 
           const st = s.spots.spots[sp.id];
           const color = st.status === 'closed' ? 'var(--danger)' : 'var(--accent)';
           return (
+            <g key={sp.id}>
+              <circle className="beacon" cx={sp.pos[0]} cy={sp.pos[1]} r={6} fill="none" stroke={color} strokeWidth={1} pointerEvents="none" />
             <rect
-              key={sp.id}
               className="citymap__marker"
               x={sp.pos[0] - 4}
               y={sp.pos[1] - 4}
@@ -133,8 +157,9 @@ export function CityMap({ selected, onSelectDistrict, onSelectSpot, onSelectPoi 
               height={8}
               rx={1.2}
               fill={color}
-              stroke="#09090c"
+              stroke="#07060b"
               strokeWidth={1.2}
+              filter="url(#neon)"
               transform={`rotate(45 ${sp.pos[0]} ${sp.pos[1]})`}
               onClick={(e) => {
                 e.stopPropagation();
@@ -144,6 +169,7 @@ export function CityMap({ selected, onSelectDistrict, onSelectSpot, onSelectPoi 
             >
               <title>{sp.name}</title>
             </rect>
+            </g>
           );
         })}
       </svg>

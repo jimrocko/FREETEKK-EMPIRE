@@ -50,7 +50,7 @@ export const buyUnlock = defineAction<{ id: string }>({
     if (u.money) spend(d, u.money, 'other', `Freischaltung: ${u.name}`);
     unlock(d, u.id);
     incStat(d, 'unlocks');
-    notify(d, { tone: 'discovery', title: `Freigeschaltet: ${u.name}`, text: u.enables.join(' · '), link: '/fortschritt/baum' });
+    notify(d, { tone: 'discovery', title: `Freigeschaltet: ${u.name}`, text: u.enables.join(' · '), link: '/fortschritt/baum', big: true });
     return `${u.name} freigeschaltet.`;
   },
 });

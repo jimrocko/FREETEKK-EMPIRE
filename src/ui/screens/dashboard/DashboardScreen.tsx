@@ -1,10 +1,8 @@
-import { Activity as ActivityIcon, Bell, Briefcase, ChevronRight, Coins, Gauge, Map as MapIcon, MessageCircle, Package, Star, Target, TrendingUp } from 'lucide-react';
+import { Activity as ActivityIcon, Bell, Briefcase, ChevronRight, Gauge, Map as MapIcon, MessageCircle, Star, Target } from 'lucide-react';
 import { useGameState } from '../../../app/store';
 import { fmtMoney, fmtNumber } from '../../../game/core/format';
-import { formatGameClock, gameTimeAt } from '../../../game/core/time';
-import { repTierFor } from '../../../game/content/registry';
-import { economySummary, warnings } from '../../../game/selectors';
-import { inventoryValue, storageCapacity, usedVolume } from '../../../game/systems/inventory/logic';
+import { cityDef, repTierFor } from '../../../game/content/registry';
+import { warnings } from '../../../game/selectors';
 import { cityDistricts, districtState, openRumors } from '../../../game/systems/map/logic';
 import { knownSpots } from '../../../game/systems/spots/logic';
 import { openMessages } from '../../../game/systems/messages/logic';
@@ -22,14 +20,13 @@ import { FeedList } from '../../components/FeedList';
 import { SkillList } from '../../components/SkillList';
 import { GoalCard } from '../../components/GoalCard';
 import { ActionButton } from '../../components/ActionButton';
-import { Banner, Button, Card, CardHead, EmptyState, PageHeader, ProgressBar, Stat } from '../../components/ui';
+import { Banner, Button, Card, CardHead, EmptyState, ProgressBar } from '../../components/ui';
 import { navigate } from '../../router';
+import { ActionTiles, HqHero } from './HqHero';
 import { HappeningCard, ModifierList } from '../../components/HappeningCard';
 
 export function DashboardScreen() {
   const s = useGameState();
-  const time = gameTimeAt(s.clock, s.clock.now);
-  const eco = economySummary(s);
   const rep = repTierFor(s.progression.reputation);
   const warns = warnings(s);
   const goals = activeGoals(s).slice(0, 4);
@@ -38,7 +35,6 @@ export function DashboardScreen() {
     .sort((a, b) => b.job.pay / b.job.durationMin - a.job.pay / a.job.durationMin)
     .slice(0, 3);
   const feed = [...s.notifications.feed].reverse().slice(0, 5);
-  const itemCount = Object.keys(s.inventory.items).length;
   const districts = cityDistricts(s);
   const cityExplored = Math.round(districts.reduce((sum, d) => sum + districtState(s, d.id).explored, 0) / districts.length);
   const spotsKnown = knownSpots(s).length;
@@ -48,45 +44,14 @@ export function DashboardScreen() {
 
   return (
     <div className="page" data-testid="screen-dashboard">
-      <PageHeader title={`Hey ${s.player.name}`} subtitle={`Tag ${time.day} · ${time.weekdayName} ${formatGameClock(time).slice(3)} · Steinhafen`} />
-
+      <HqHero />
       {warns.map((w) => (
         <div key={w.id} onClick={w.link ? () => navigate(w.link!) : undefined} style={{ cursor: w.link ? 'pointer' : undefined }}>
           <Banner tone={w.tone}>{w.text}</Banner>
         </div>
       ))}
 
-      <div className="grid grid--stats">
-        <Stat
-          label="Bargeld"
-          icon={<Coins size={13} />}
-          value={fmtMoney(s.finance.cash)}
-          tone={s.finance.cash < 0 ? 'danger' : 'accent'}
-          sub={`Inventar: ${fmtMoney(inventoryValue(s))}`}
-          onClick={() => navigate('/finanzen')}
-        />
-        <Stat
-          label="Einnahmen/Std"
-          icon={<TrendingUp size={13} />}
-          value={fmtMoney(eco.lastHourIncome + eco.passivePerHour)}
-          sub={`letzte Std · Fixkosten −${fmtMoney(eco.fixedPerHour)}`}
-          onClick={() => navigate('/finanzen')}
-        />
-        <Stat
-          label="Reputation"
-          icon={<Star size={13} />}
-          value={rep.tier.name}
-          sub={rep.next ? `${fmtNumber(s.progression.reputation)} / ${fmtNumber(rep.next.min)}` : fmtNumber(s.progression.reputation)}
-          onClick={() => navigate('/fortschritt')}
-        />
-        <Stat
-          label="Besitz"
-          icon={<Package size={13} />}
-          value={`${itemCount} Items`}
-          sub={`${fmtNumber(usedVolume(s))} / ${fmtNumber(storageCapacity(s))} L Platz`}
-          onClick={() => navigate('/inventar')}
-        />
-      </div>
+      <ActionTiles />
 
       <div className="dash">
         <div className="stack">
@@ -125,7 +90,7 @@ export function DashboardScreen() {
 
           <Card className="card--flush" testId="card-activities">
             <div style={{ padding: '16px 16px 0' }}>
-              <CardHead icon={<ActivityIcon size={15} />} title="Laufende Aktivitäten" right={<span className="tiny faint">{s.activities.running.length}</span>} />
+              <CardHead icon={<ActivityIcon size={15} />} title="Läuft gerade" right={<span className="tiny faint">{s.activities.running.length}</span>} />
             </div>
             {s.activities.running.length > 0 ? (
               <ActivityList />
@@ -137,7 +102,7 @@ export function DashboardScreen() {
           <Card testId="card-quickjobs">
             <CardHead
               icon={<Briefcase size={15} />}
-              title="Schnell-Jobs"
+              title="Schnelles Geld"
               right={
                 <Button small variant="ghost" onClick={() => navigate('/jobs')}>
                   Alle <ChevronRight size={14} />
@@ -164,7 +129,7 @@ export function DashboardScreen() {
           <Card>
             <CardHead
               icon={<Target size={15} />}
-              title="Nächste Ziele"
+              title="Missionen"
               right={
                 <Button small variant="ghost" onClick={() => navigate('/fortschritt')}>
                   Alle <ChevronRight size={14} />
@@ -184,7 +149,7 @@ export function DashboardScreen() {
           <Card testId="card-city">
             <CardHead
               icon={<MapIcon size={15} />}
-              title="Steinhafen"
+              title={cityDef(s.map.cityId).name}
               right={
                 <Button small variant="ghost" onClick={() => navigate('/karte')}>
                   Karte <ChevronRight size={14} />

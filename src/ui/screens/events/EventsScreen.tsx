@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { CalendarClock, CheckCircle2, Circle, FileText, Loader } from 'lucide-react';
 import { useGameState } from '../../../app/store';
-import { EVENT_TASKS } from '../../../game/content/events';
-import { spotDef } from '../../../game/content/registry';
+import { EVENT_TASKS, eventFormat } from '../../../game/content/events';
+import { PERSONS_BY_ID, spotDef } from '../../../game/content/registry';
+import { shortName } from '../../../game/systems/people/logic';
+import { forecast } from '../../../game/systems/events/simulate';
+import { Equalizer } from '../../components/Equalizer';
 import { fmtCountdown, fmtMoney, fmtNumber } from '../../../game/core/format';
 import { gameTimeAt, formatGameClock } from '../../../game/core/time';
 import { cancelEvent, startEventTask } from '../../../game/systems/events/actions';
@@ -11,7 +14,7 @@ import type { GameEvent } from '../../../game/systems/events/state';
 import { activitiesByChannel } from '../../../game/systems/activities/logic';
 import { ActivityRow } from '../../components/ActivityList';
 import { ActionButton } from '../../components/ActionButton';
-import { Badge, Card, EmptyState, PageHeader, ProgressBar, Tabs } from '../../components/ui';
+import { Card, EmptyState, PageHeader, ProgressBar, Tabs } from '../../components/ui';
 import { navigate, useRoute } from '../../router';
 import { Planner } from './Planner';
 import { ReportModal } from './ReportModal';
@@ -19,24 +22,50 @@ import { SupplyTab } from './SupplyTab';
 
 type EventsTab = 'plan' | 'upcoming' | 'reports' | 'supply';
 
+function lineupNames(ev: GameEvent): string {
+  return ev.lineup
+    .map((id) => (id === 'self' ? 'Du' : id === 'live' ? 'Dein Live-Set' : id === 'sub' ? 'Ersatz-DJ' : (PERSONS_BY_ID.get(id) ? shortName(PERSONS_BY_ID.get(id)!) : id)))
+    .join(' · ');
+}
+
+/** An upcoming or running party, styled as a flyer. */
 export function EventCard({ ev }: { ev: GameEvent }) {
   const s = useGameState();
   const t = gameTimeAt(s.clock, ev.startsAt);
   const running = ev.status === 'running';
   const paid = Object.values(ev.paid).reduce((a, b) => a + b, 0);
+  const progress = running && ev.endsAt ? Math.max(0, Math.min(1, (s.clock.now - ev.startsAt) / (ev.endsAt - ev.startsAt))) : 0;
+  const crowd = running ? Math.round((forecast(s, ev)?.visitors ?? 0) * Math.min(1, 0.35 + progress * 1.3)) : 0;
+  const format = eventFormat(ev.format);
   return (
-    <Card accent={running} testId={`event-${ev.id}`}>
-      <div className="stack stack--s">
-        <div className="row row--between">
-          <strong>{ev.name}</strong>
-          {running ? <Badge tone="accent">Läuft</Badge> : <Badge tone="info">in {fmtCountdown(ev.startsAt - s.clock.now)}</Badge>}
-        </div>
-        <div className="tiny faint">
-          {spotDef(ev.spotId).name} · {formatGameClock(t)} · {ev.durationH} Std · {ev.entry > 0 ? fmtMoney(ev.entry) : 'Spende'} · Vorkosten {fmtMoney(paid)}
-        </div>
-        {running && ev.endsAt && <ProgressBar value={(s.clock.now - ev.startsAt) / (ev.endsAt - ev.startsAt)} running label="Party" />}
-        {!running &&
-          Object.entries(ev.tasks).map(([id, status]) => {
+    <section className={['flyer', running && 'flyer--live'].filter(Boolean).join(' ')} data-testid={`event-${ev.id}`}>
+      <span className="flyer__stamp">{running ? 'LIVE' : 'ANGESAGT'}</span>
+      <div className="flyer__date">
+        {t.weekdayName} · {formatGameClock(t).slice(3)} · {running ? 'jetzt' : `in ${fmtCountdown(ev.startsAt - s.clock.now)}`}
+      </div>
+      <div className="flyer__name">{ev.name}</div>
+      <div className="flyer__line">
+        @ {spotDef(ev.spotId).name} · {format.id !== 'party' ? `${format.label} · ` : ''}
+        {ev.durationH} Std · {ev.entry > 0 ? fmtMoney(ev.entry) : 'Spende'}
+      </div>
+      <div className="flyer__line" style={{ color: 'var(--text)' }}>
+        {lineupNames(ev)}
+      </div>
+      {running ? (
+        <>
+          <Equalizer className="live-eq" bars={34} speed={1.5} />
+          <ProgressBar value={progress} running label="Party" />
+          <div className="row row--between tiny" style={{ marginTop: 6 }}>
+            <span className="row">
+              <span className="pulse-dot" /> ca. {fmtNumber(crowd)} Leute auf dem Floor
+            </span>
+            {ev.endsAt && <span className="num faint">noch {fmtCountdown(Math.max(0, ev.endsAt - s.clock.now))}</span>}
+          </div>
+        </>
+      ) : (
+        <div className="stack stack--s" style={{ marginTop: 10 }}>
+          <div className="tiny faint">Vorkosten bezahlt: {fmtMoney(paid)}</div>
+          {Object.entries(ev.tasks).map(([id, status]) => {
             const def = EVENT_TASKS.find((x) => x.id === id)!;
             return (
               <div key={id} className="row" style={{ alignItems: 'flex-start' }}>
@@ -55,13 +84,12 @@ export function EventCard({ ev }: { ev: GameEvent }) {
               </div>
             );
           })}
-        {!running && (
           <ActionButton action={cancelEvent} payload={{ eventId: ev.id }} variant="ghost" small showReason={false}>
             Absagen (Hälfte der Miete zurück)
           </ActionButton>
-        )}
-      </div>
-    </Card>
+        </div>
+      )}
+    </section>
   );
 }
 

@@ -1,39 +1,16 @@
 import { useState } from 'react';
-import { ChevronRight, Clock, Lock, Menu, Star } from 'lucide-react';
+import { ChevronRight, Lock, Menu } from 'lucide-react';
 import { useGameState } from '../../app/store';
 import { checkAll, requirementReason } from '../../game/core/conditions';
-import { fmtMoney } from '../../game/core/format';
-import { formatGameClock, gameTimeAt } from '../../game/core/time';
-import { repTierFor } from '../../game/content/registry';
 import { ROUTES, findRoute, type RouteDef } from '../routes';
 import { navigate, useRoute } from '../router';
 import { Modal } from '../components/ui';
 import { Toasts, FeedToaster } from './Toasts';
 import { OfflineReportModal } from './OfflineReport';
-
-function TopBar() {
-  const s = useGameState();
-  const time = gameTimeAt(s.clock, s.clock.now);
-  const tier = repTierFor(s.progression.reputation).tier;
-  return (
-    <header className="topbar">
-      <div className="topbar__brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-        TEKK<span>LIFE</span>
-      </div>
-      <div className="topbar__stats">
-        <span className="topbar__chip num" title={`Tag ${time.day}`}>
-          <Clock size={13} /> {formatGameClock(time)}
-        </span>
-        <span className="topbar__chip hide-xs" title="Reputation">
-          <Star size={13} /> {tier.name}
-        </span>
-        <span className={['topbar__chip', 'topbar__chip--cash', 'num', s.finance.cash < 0 && 'is-negative'].filter(Boolean).join(' ')} data-testid="cash">
-          {fmtMoney(s.finance.cash)}
-        </span>
-      </div>
-    </header>
-  );
-}
+import { Hud } from './Hud';
+import { Celebration } from './Celebration';
+import { Sky } from '../components/Sky';
+import { UiSounds } from '../fx/UiSounds';
 
 function routeLocked(s: ReturnType<typeof useGameState>, r: RouteDef): string | null {
   return r.requires && !checkAll(s, r.requires) ? requirementReason(s, r.requires) : null;
@@ -66,21 +43,40 @@ function SideNav({ path }: { path: string }) {
   );
 }
 
+/** The big round button in the middle of the bottom bar. */
+const CENTER_PATH = '/events';
+
 function BottomNav({ path, onMore }: { path: string; onMore: () => void }) {
   const s = useGameState();
   const primary = ROUTES.filter((r) => r.nav === 'primary');
+  // Events sit in the middle as the big button.
+  const center = primary.find((r) => r.path === CENTER_PATH);
+  const others = primary.filter((r) => r.path !== CENTER_PATH);
+  const ordered = center ? [...others.slice(0, 2), center, ...others.slice(2)] : primary;
   const active = findRoute(path);
   const moreActive = active.nav === 'more';
   const moreBadge = ROUTES.filter((r) => r.nav === 'more').reduce((n, r) => n + (r.badge?.(s) ?? 0), 0);
   return (
     <nav className="bottomnav" aria-label="Hauptnavigation">
-      {primary.map((r) => {
+      {ordered.map((r) => {
         const Icon = r.icon;
+        const badge = r.badge?.(s) ?? 0;
+        if (r.path === CENTER_PATH) {
+          return (
+            <button key={r.path} className={['navbtn', 'navbtn--center', active.path === r.path && 'is-active'].filter(Boolean).join(' ')} onClick={() => navigate(r.path)} data-testid={`nav-${r.path}`}>
+              <span className="navbtn__orb">
+                <Icon size={26} />
+              </span>
+              <span className="navbtn__label">{r.label}</span>
+              {badge > 0 && <span className="navbtn__badge">{badge}</span>}
+            </button>
+          );
+        }
         return (
           <button key={r.path} className={['navbtn', active.path === r.path && 'is-active'].filter(Boolean).join(' ')} onClick={() => navigate(r.path)} data-testid={`nav-${r.path}`}>
             <Icon size={22} />
             {r.label}
-            {(r.badge?.(s) ?? 0) > 0 && <span className="navbtn__badge">{r.badge!(s)}</span>}
+            {badge > 0 && <span className="navbtn__badge">{badge}</span>}
           </button>
         );
       })}
@@ -139,7 +135,8 @@ export function AppShell() {
 
   return (
     <div className="shell">
-      <TopBar />
+      <Sky />
+      <Hud />
       <div className="layout">
         <SideNav path={path} />
         <main className="main">
@@ -151,6 +148,8 @@ export function AppShell() {
       <OfflineReportModal />
       <FeedToaster />
       <Toasts />
+      <Celebration />
+      <UiSounds />
     </div>
   );
 }

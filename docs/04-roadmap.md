@@ -128,10 +128,29 @@ Legende: ✅ fertig · 🔨 in Arbeit · ⏳ geplant
 
 **Abnahme:** Unit-Tests für Punkte und Migration, Freischaltungen und Gating (Shop, Gebrauchtmarkt, Lieferant, Crew-Rollen), Formate, Live-Act, Remix, Verleih, Eigenbau, Reisen und Stadtfaktoren, Projekte (Location, Festival, Label), Vermächtnis mit Szenario und Perks ✓; E2E (iPhone + Desktop): Freischalten → Format im Planer → Projekt → Reise nach Bergheim → Vermächtnis ✓.
 
-## Phase 10 – Feinschliff ⏳
+## Phase 10 – Spiel-Look ✅
+
+Ziel: TEKK LIFE soll sich wie ein Spiel anfühlen, nicht wie eine Verwaltungs-App.
+
+- **Eigene Optik:** gebündelte Schriften (Anton für Titel, Chakra Petch für HUD/Zahlen, Space Grotesk für Text), neue Palette (Acid-Grün, Magenta, UV, Laser-Cyan), Karten mit HUD-Ecken, LED-Fortschrittsbalken, Glitch-Überschriften (`ui/styles/game.css`)
+- **Lebendiger Hintergrund:** Himmel wechselt mit der Spieluhr (Nacht, Morgengrauen, Tag, Dämmerung), Laser, Sterne, Körnung und Scanlines
+- **HUD statt Kopfleiste:** prozedurales Crew-Wappen (aus dem Crew-Namen erzeugt), Name und Stufe, Uhr, Szenepunkte, Geld mit schwebenden +/−-Beträgen
+- **Hauptquartier:** Startseite mit Wappen-Hero (Tag, nächste Party, Stadt, Crew-Größe) und großen Aktionskacheln (Arbeiten, Erkunden, Szene, Party)
+- **Navigation:** Events als leuchtender Mittelknopf der Bottom-Navigation
+- **Partys als Flyer:** Event-Karten im Rave-Flyer-Stil mit Stempel (ANGESAGT/LIVE); laufende Partys mit Equalizer, Fortschritt und Besucher-Schätzung
+- **Nachtergebnis:** 1–5 Sterne mit Wertung (Desaster … Legendär), hochzählende Besucher/Gewinn/Reputation
+- **Feiern:** große Momente (Stufenaufstieg, Fähigkeits-Level, große Ziele, Crew-Gründung, Freischaltung, fertige Projekte) erscheinen als Vollbild-Feier mit Konfetti und Fanfare
+- **Missionen:** Ziele mit Symbol nach Größe und Belohnungs-Chips (inkl. Szenepunkte)
+- **Neon-Stadtkarte** mit leuchtenden Bezirken und pulsierenden Spot-Markern; Titelbildschirm mit Glitch-Logo
+- **Sound:** synthetisierte Effekte (Tippen, Erfolg, Münzen, Fehler, Fanfare) per WebAudio, in den Einstellungen abschaltbar (`ui/fx`)
+- Bewegungen respektieren „Bewegung reduzieren“ des Systems
+
+**Abnahme:** E2E (iPhone + Desktop): Titelbildschirm → neues Spiel mit Hero und Kacheln, HUD-Geld mit Abzug-Animation, Feier bei Freischaltung, Mittelknopf, Sound-Schalter bleibt nach Reload, kein horizontales Scrollen auf Start, Karte, Events, Fortschritt ✓.
+
+## Phase 11 – Balancing & Feinschliff ⏳
 
 - Balancing über Wirtschafts-Simulationen (automatisierte Durchläufe)
-- UI-Polish, Animationen, Performance, Barrierefreiheit
+- Barrierefreiheit (Kontraste, Screenreader-Texte, Tastatur), Performance
 - Erweiterte E2E-Tests, Fehlerbehebung
 
 ## Querschnittsaufgaben (laufend)

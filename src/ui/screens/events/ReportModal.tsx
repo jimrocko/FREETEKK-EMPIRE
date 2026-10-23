@@ -1,4 +1,6 @@
-import { AlertTriangle, PartyPopper, Sparkles, Users } from 'lucide-react';
+import { AlertTriangle, PartyPopper, Sparkles, Star } from 'lucide-react';
+import { CountUp } from '../../components/CountUp';
+import type { EventReport } from '../../../game/systems/events/state';
 import { useGameState } from '../../../app/store';
 import { PERSONS_BY_ID, spotDef } from '../../../game/content/registry';
 import { SKILL_DEFS } from '../../../game/content/skills';
@@ -6,7 +8,7 @@ import type { SkillId } from '../../../game/core/types';
 import { fmtMoney, fmtNumber } from '../../../game/core/format';
 import { findEvent } from '../../../game/systems/events/plan';
 import { displayName, shortName } from '../../../game/systems/people/logic';
-import { Badge, Modal, ProgressBar, Stat } from '../../components/ui';
+import { Badge, Modal, ProgressBar } from '../../components/ui';
 import { navigate } from '../../router';
 
 const SCORE_LABELS: Record<string, string> = {
@@ -18,6 +20,51 @@ const SCORE_LABELS: Record<string, string> = {
   supply: 'Versorgung',
   safety: 'Sicherheit',
 };
+
+/** Grade of a night by its mood. */
+export function nightGrade(mood: number): { label: string; stars: number } {
+  const stars = Math.max(1, Math.min(5, Math.ceil(mood / 20)));
+  const label = mood >= 85 ? 'Legendär' : mood >= 70 ? 'Stark' : mood >= 55 ? 'Solide' : mood >= 40 ? 'Zäh' : 'Desaster';
+  return { label, stars };
+}
+
+function ResultBanner({ r }: { r: EventReport }) {
+  const g = nightGrade(r.scores.mood);
+  return (
+    <div className="result" data-testid="night-result">
+      <div className="result__stars" aria-label={`${g.stars} von 5 Sternen`}>
+        {Array.from({ length: 5 }, (_, i) => (
+          <Star key={i} size={26} className={i < g.stars ? 'is-on' : undefined} style={{ animationDelay: `${0.15 + i * 0.12}s` }} />
+        ))}
+      </div>
+      <div className="result__grade">{g.label}</div>
+      <div className="result__nums">
+        <div>
+          <div className="result__num">
+            <CountUp value={r.visitors} format={(n) => fmtNumber(n)} />
+          </div>
+          <div className="result__label">Besucher</div>
+        </div>
+        <div>
+          <div className={['result__num', r.profit < 0 && 'tone-danger'].filter(Boolean).join(' ')}>
+            <CountUp value={r.profit} format={(n) => fmtMoney(n, { sign: true })} />
+          </div>
+          <div className="result__label">Gewinn</div>
+        </div>
+        <div>
+          <div className="result__num tone-discovery">
+            +<CountUp value={r.rep} format={(n) => fmtNumber(n)} />
+          </div>
+          <div className="result__label">Reputation</div>
+        </div>
+      </div>
+      <div className="tiny faint" style={{ marginTop: 10 }}>
+        {r.demand > r.visitors ? `${fmtNumber(r.demand)} wollten kommen · ` : ''}
+        {r.hoursPlayed} Std gefeiert
+      </div>
+    </div>
+  );
+}
 
 export function ReportModal({ eventId, onClose }: { eventId: string; onClose: () => void }) {
   const s = useGameState();
@@ -34,10 +81,7 @@ export function ReportModal({ eventId, onClose }: { eventId: string; onClose: ()
       {ev.status === 'cancelled' && <p className="dim">{ev.cancelReason}</p>}
       {r && (
         <>
-          <div className="grid grid--2">
-            <Stat label="Besucher" icon={<Users size={13} />} value={fmtNumber(r.visitors)} sub={r.demand > r.visitors ? `${fmtNumber(r.demand)} wollten kommen` : undefined} />
-            <Stat label="Gewinn" value={fmtMoney(r.profit, { sign: true })} tone={r.profit >= 0 ? 'success' : 'danger'} sub={`${r.hoursPlayed} Std gefeiert`} />
-          </div>
+          <ResultBanner r={r} />
           <div className="stack stack--s">
             {Object.entries(r.scores).map(([k, v]) => (
               <div key={k}>

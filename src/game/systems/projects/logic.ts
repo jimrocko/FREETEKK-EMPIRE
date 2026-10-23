@@ -102,10 +102,10 @@ function completeProject(d: GameState, def: ProjectDef, st: ProjectState): void 
     revealSpot(d, 'spot.own-location', 'project', 100, { silent: true });
     d.spots.spots['spot.own-location'].lastCheckedAt = d.clock.now;
     setFlag(d, 'ownLocation');
-    notify(d, { tone: 'success', title: 'Halle am Kanal eröffnet', text: def.reward, link: '/karte/spot/spot.own-location' });
+    notify(d, { tone: 'success', title: 'Halle am Kanal eröffnet', text: def.reward, link: '/karte/spot/spot.own-location', big: true });
   } else if (def.id === 'proj.label') {
     setFlag(d, 'label');
-    notify(d, { tone: 'success', title: 'Dein Label steht', text: def.reward, link: '/studio' });
+    notify(d, { tone: 'success', title: 'Dein Label steht', text: def.reward, link: '/studio', big: true });
   } else if (def.id === 'proj.festival') {
     const r = runFestival(d, st.completed + 1);
     st.lastResult = { ...r, at: d.clock.now };
@@ -116,6 +116,7 @@ function completeProject(d: GameState, def: ProjectDef, st: ProjectState): void 
       title: `Festival-Wochenende: ${fmtNumber(r.visitors)} Leute`,
       text: `Stimmung ${r.mood} · ${fmtMoney(r.revenue - r.costs, { sign: true })} am Wochenende · +${fmtNumber(r.rep)} Reputation`,
       link: '/fortschritt/projekte',
+      big: true,
     });
   }
   st.completed++;

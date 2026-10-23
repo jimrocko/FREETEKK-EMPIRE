@@ -14,7 +14,7 @@ export const foundCrew = defineAction<{ name: string }>({
     d.crew.name = p.name.trim();
     d.crew.foundedAt = d.clock.now;
     incStat(d, 'crewFounded');
-    notify(d, { tone: 'discovery', title: `${d.crew.name} ist gegründet`, text: 'Ab jetzt seid ihr eine Crew. Hol Leute dazu, die dir vertrauen.', link: '/crew' });
+    notify(d, { tone: 'discovery', title: `${d.crew.name} ist gegründet`, text: 'Ab jetzt seid ihr eine Crew. Hol Leute dazu, die dir vertrauen.', link: '/crew', big: true });
     return `Crew „${d.crew.name}“ gegründet.`;
   },
 });

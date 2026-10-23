@@ -17,7 +17,8 @@ Mobile-first Web-App (React + TypeScript), läuft komplett im Browser, speichert
 | 7 | Konto mit Zinsen, Kredite, Merch (Designs, Hersteller, Lager, Stand, Großhandel, Onlineshop, Markenwert), Handel über Kontakte, Lagerhalle | ✅ |
 | 8 | Fünf KI-Crews mit eigener Simulation (Partys, Spots, Wachstum, Razzien, Pleiten), Konkurrenz und Kooperation, Szene-Ticker, 30 Zufallsereignisse mit Entscheidungen, Stadt-Modifikatoren | ✅ |
 | 9 | Freischaltungsbaum (21 Knoten, Szenepunkte), Open-Air & Teknival, Live-Act, Remix, Verleih, Eigenbau, Bergheim & Nordhafen, Großprojekte (Location, Label, Festival), Vermächtnis mit Startszenarien | ✅ |
-| 10 | Feinschliff: Balancing, Polish, Tests | siehe [Roadmap](docs/04-roadmap.md) |
+| 10 | Spiel-Look: Neon-/Flyer-Optik, lebendiger Himmel nach Spieluhr, HUD mit Crew-Wappen, Aktionskacheln, Party-Flyer, Sterne-Wertung, Vollbild-Feiern, Sound-Effekte | ✅ |
+| 11 | Balancing, Barrierefreiheit, Feinschliff | siehe [Roadmap](docs/04-roadmap.md) |
 
 ## Schnellstart
 

@@ -83,6 +83,7 @@ export function checkGoals(d: GameState): void {
         tone: 'success',
         title: `Ziel erreicht: ${g.title}`,
         text: `Belohnung: ${reward}`,
+        big: g.size === 'large' || g.size === 'long',
         link: '/fortschritt',
       });
       changed = true;

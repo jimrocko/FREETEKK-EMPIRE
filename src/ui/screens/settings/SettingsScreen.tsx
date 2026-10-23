@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { Bug, Copy, Download, FileUp, HardDrive, RotateCcw, Save, Upload, UserRound } from 'lucide-react';
+import { Bug, Copy, Download, FileUp, HardDrive, RotateCcw, Save, Upload, UserRound, Volume2, VolumeX } from 'lucide-react';
+import { setSoundEnabled, sfx, soundEnabled } from '../../fx/sound';
 import { appStore, useApp, useGameState } from '../../../app/store';
 import { debugAdvance, dispatch, importGame, resetGame, saveNow } from '../../../app/runtime';
 import { debugMoney, debugNextMessage } from '../../../game/systems/messages/actions';
@@ -78,6 +79,8 @@ export function SettingsScreen() {
           </ActionButton>
         </div>
       </Card>
+
+      <SoundCard />
 
       <Card>
         <CardHead icon={<HardDrive size={15} />} title="Spielstand" />
@@ -199,5 +202,28 @@ export function SettingsScreen() {
         </Modal>
       )}
     </div>
+  );
+}
+
+function SoundCard() {
+  const [on, setOn] = useState(soundEnabled());
+  return (
+    <Card testId="sound-settings">
+      <CardHead icon={on ? <Volume2 size={15} /> : <VolumeX size={15} />} title="Sound" />
+      <p className="small dim">Kleine Klicks, Münzen und eine Acid-Fanfare bei großen Momenten – alles synthetisch erzeugt.</p>
+      <div style={{ marginTop: 10 }}>
+        <Button
+          variant={on ? 'primary' : 'default'}
+          onClick={() => {
+            setSoundEnabled(!on);
+            setOn(!on);
+            if (!on) sfx.ok();
+          }}
+          testId="sound-toggle"
+        >
+          {on ? 'Sound an' : 'Sound aus'}
+        </Button>
+      </div>
+    </Card>
   );
 }

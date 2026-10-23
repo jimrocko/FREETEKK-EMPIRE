@@ -9,6 +9,8 @@ export interface FeedEntry {
   text?: string;
   /** Hash route the entry links to, e.g. "/markt". */
   link?: string;
+  /** A big moment (level up, new status, big goal) – the UI celebrates it. */
+  big?: boolean;
 }
 
 export interface NotificationsState {
@@ -29,6 +31,7 @@ export interface NotifyInput {
   title: string;
   text?: string;
   link?: string;
+  big?: boolean;
 }
 
 export function notify(d: GameState, input: NotifyInput): FeedEntry {
@@ -40,6 +43,7 @@ export function notify(d: GameState, input: NotifyInput): FeedEntry {
     title: input.title,
     ...(input.text ? { text: input.text } : {}),
     ...(input.link ? { link: input.link } : {}),
+    ...(input.big ? { big: true } : {}),
   };
   n.feed.push(entry);
   if (n.feed.length > FEED_LIMIT) n.feed.splice(0, n.feed.length - FEED_LIMIT);

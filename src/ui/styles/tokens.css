@@ -1,44 +1,48 @@
 :root {
   color-scheme: dark;
 
-  --bg: #09090c;
-  --bg-elev: #0f0f14;
-  --card: #14141b;
-  --card-2: #1b1b24;
-  --card-hover: #20202b;
-  --border: #262632;
-  --border-strong: #363645;
+  /* Night club palette: near-black with UV, acid green, magenta and laser cyan. */
+  --bg: #07060b;
+  --bg-elev: #0e0b16;
+  --card: rgba(19, 15, 29, 0.9);
+  --card-2: #1a1527;
+  --card-hover: #221b33;
+  --border: #2b2342;
+  --border-strong: #41355f;
 
-  --text: #ececf2;
-  --text-dim: #a2a2b4;
-  --text-faint: #6c6c7e;
+  --text: #f2effb;
+  --text-dim: #ada6c7;
+  --text-faint: #716a91;
 
-  --accent: #b8ff3c;
-  --accent-ink: #0c1200;
-  --accent-soft: rgba(184, 255, 60, 0.12);
-  --accent-2: #ff3fd5;
-  --accent-2-soft: rgba(255, 63, 213, 0.12);
+  --accent: #c6ff3d;
+  --accent-ink: #0b1000;
+  --accent-soft: rgba(198, 255, 61, 0.12);
+  --accent-glow: rgba(198, 255, 61, 0.45);
+  --accent-2: #ff2bd6;
+  --accent-2-soft: rgba(255, 43, 214, 0.13);
+  --uv: #8a5cff;
+  --laser: #22e3ff;
 
   --success: #3dffa6;
   --success-soft: rgba(61, 255, 166, 0.12);
   --warning: #ffb444;
   --warning-soft: rgba(255, 180, 68, 0.12);
   --danger: #ff4d61;
-  --danger-soft: rgba(255, 77, 97, 0.13);
+  --danger-soft: rgba(255, 77, 97, 0.14);
   --info: #5ccbff;
   --info-soft: rgba(92, 203, 255, 0.12);
   --discovery: #c48cff;
-  --discovery-soft: rgba(196, 140, 255, 0.13);
+  --discovery-soft: rgba(196, 140, 255, 0.14);
 
   --skill-produktion: #ff6bd8;
   --skill-technik: #5ccbff;
   --skill-organisation: #ffb444;
-  --skill-netzwerk: #b8ff3c;
+  --skill-netzwerk: #c6ff3d;
   --skill-business: #c48cff;
 
-  --radius-s: 8px;
-  --radius: 14px;
-  --radius-l: 20px;
+  --radius-s: 4px;
+  --radius: 7px;
+  --radius-l: 12px;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -47,14 +51,22 @@
   --space-5: 24px;
   --space-6: 32px;
 
-  --font: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font: 'Space Grotesk Variable', 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-display: 'Anton', Impact, 'Arial Narrow', sans-serif;
+  --font-hud: 'Chakra Petch', ui-monospace, 'SF Mono', Menlo, monospace;
   --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
 
-  --topbar-h: 56px;
-  --bottomnav-h: 64px;
+  --topbar-h: 60px;
+  --bottomnav-h: 66px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
 
-  --shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Sky (changes with the game hour, see Sky.tsx) */
+  --sky-a: rgba(138, 92, 255, 0.28);
+  --sky-b: rgba(255, 43, 214, 0.18);
+  --sky-c: rgba(34, 227, 255, 0.08);
 }
